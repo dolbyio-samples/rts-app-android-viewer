@@ -1,0 +1,49 @@
+<?xml version="1.0" encoding="utf-8"?><!--
+  ~ /*
+  ~  This program is protected under international and U.S. copyright laws as
+  ~  an unpublished work. This program is confidential and proprietary to the
+  ~  copyright owners. Reproduction or disclosure, in whole or in part, or the
+  ~  production of derivative works therefrom without the express permission of
+  ~  the copyright owners is prohibited.
+  ~
+  ~                   Copyright (C) 2022 by Dolby Laboratories.
+  ~                              All rights reserved.
+  ~  */
+  -->
+
+<font-family xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto">
+    <font
+        app:font="@font/avenir_next_bold"
+        app:fontStyle="normal"
+        app:fontWeight="700" />
+    <font
+        app:font="@font/avenir_next_bold_italic"
+        app:fontStyle="italic"
+        app:fontWeight="700" />
+    <font
+        app:font="@font/avenir_next_italic"
+        app:fontStyle="italic"
+        app:fontWeight="400" />
+    <font
+        app:font="@font/avenir_next_medium"
+        app:fontStyle="normal"
+        app:fontWeight="500" />
+    <font
+        app:font="@font/avenir_next_medium_italic"
+        app:fontStyle="italic"
+        app:fontWeight="500" />
+    <font
+        app:font="@font/avenir_next_regular"
+        app:fontStyle="normal"
+        app:fontWeight="400" />
+    <font
+        app:font="@font/avenir_next_demi"
+        app:fontStyle="normal"
+        app:fontWeight="600" />
+    <font
+        app:font="@font/avenir_next_demi_italic"
+        app:fontStyle="italic"
+        app:fontWeight="600" />
+
+</font-family>

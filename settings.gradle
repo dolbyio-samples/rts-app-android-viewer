@@ -1,0 +1,48 @@
+pluginManagement {
+    repositories {
+        google()
+        mavenCentral()
+        gradlePluginPortal()
+    }
+}
+dependencyResolutionManagement {
+    repositoriesMode.set(RepositoriesMode.FAIL_ON_PROJECT_REPOS)
+    repositories {
+        google()
+        mavenCentral()
+
+        // Millicast SDK via Maven from GitHub Packages
+        maven {
+            name = "GitHubPackages"
+            url = uri("https://maven.pkg.github.com/millicast/maven")
+            credentials {
+                username = getGithubUsername()
+                password = getGithubUserPassword()
+            }
+        }
+    }
+}
+def getGithubUsername() {
+    Properties properties = new Properties()
+    properties.load(new File(rootDir.absolutePath + "/sa.properties").newDataInputStream())
+    def githubUserName = properties.getProperty('githubUsername', null)
+    if (githubUserName == null) {
+        throw new GradleException(
+                "Github username not found. Define location with githubUsername in the sa.properties file")
+    }
+    return githubUserName
+}
+def getGithubUserPassword() {
+    Properties properties = new Properties()
+    properties.load(new File(rootDir.absolutePath + "/sa.properties").newDataInputStream())
+    def githubUserPassword = properties.getProperty('githubPat', null)
+    if (githubUserPassword == null) {
+        throw new GradleException(
+                "Github PAT not found. Define location with githubPat in the sa.properties file")
+    }
+    return githubUserPassword
+}
+rootProject.name = "rts-app-android-viewer"
+include ':app'
+include ':rtscomponentkit'
+include ':uikit'
