@@ -30,6 +30,7 @@ import androidx.compose.runtime.remember
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.text.style.TextAlign
+import androidx.compose.ui.text.toUpperCase
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import com.dolby.uicomponents.ui.theme.backgroundColor
@@ -37,6 +38,7 @@ import com.dolby.uicomponents.ui.theme.borderColor
 import com.dolby.uicomponents.ui.theme.fontColor
 import io.dolby.rtsviewer.uikit.utils.listItemHeight
 import io.dolby.uikit.utils.ViewState
+import java.util.Locale
 
 /**
  * This is a sample component, please do not use this in any real world use case.
@@ -72,8 +74,8 @@ fun StyledButton(
         onClick = { onClickAction?.invoke(context) },
         content = {
             Text(
-                text = buttonText,
-                style = MaterialTheme.typography.body1,
+                text = buttonText.uppercase(),
+                style = MaterialTheme.typography.button,
                 textAlign = TextAlign.Center,
                 color = fontColor
             )

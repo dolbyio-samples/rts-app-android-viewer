@@ -3,6 +3,7 @@ package io.dolby.rtsviewer.ui.streaming
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.material.CircularProgressIndicator
+import androidx.compose.material.MaterialTheme
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
 import androidx.compose.ui.Alignment
@@ -10,6 +11,7 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.paint
 import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.res.painterResource
+import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.viewinterop.AndroidView
 import androidx.constraintlayout.compose.ConstraintLayout
 import androidx.hilt.navigation.compose.hiltViewModel
@@ -30,20 +32,28 @@ fun StreamingScreen(viewModel: StreamingViewModel = hiltViewModel()) {
                 contentScale = ContentScale.FillBounds
             )
     ) {
-        ConstraintLayout(modifier = Modifier
-            .fillMaxSize()
-            .align(Alignment.Center)) {
-            val (text, progress, videoView) = createRefs()
-            Text(
-                text = "${uiState.streamName} / ${uiState.accountId}",
-                modifier = Modifier.constrainAs(text) {
-                    top.linkTo(parent.top)
-                })
-            if (uiState.connecting) {
+        ConstraintLayout(
+            modifier = Modifier
+                .fillMaxSize()
+                .align(Alignment.Center)
+        ) {
+            val (text, progress, videoView, error) = createRefs()
+            if (uiState.connecting && uiState.error == null) {
                 CircularProgressIndicator(modifier = Modifier.constrainAs(progress) {
                     centerVerticallyTo(parent)
                     centerHorizontallyTo(parent)
                 })
+            } else if (uiState.error != null) {
+                Text(
+                    text = "${uiState.error}",
+                    style = MaterialTheme.typography.h3,
+                    color = MaterialTheme.colors.onPrimary,
+                    textAlign = TextAlign.Center,
+                    modifier = Modifier.constrainAs(error) {
+                        centerHorizontallyTo(parent)
+                        centerVerticallyTo(parent)
+                    }
+                )
             } else {
                 AndroidView(
                     factory = { context -> VideoRenderer(context) },
@@ -57,6 +67,12 @@ fun StreamingScreen(viewModel: StreamingViewModel = hiltViewModel()) {
                     }
                 )
             }
+            Text(
+                text = uiState.streamName,
+                color = MaterialTheme.colors.onPrimary,
+                modifier = Modifier.constrainAs(text) {
+                    top.linkTo(parent.top)
+                })
         }
     }
 }

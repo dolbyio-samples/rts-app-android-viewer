@@ -116,9 +116,9 @@ class RTSViewerDataStore(
         subscriptionManager.stopSubscribe()
     }
 
-    sealed class SubscriptionError {
-        class SubscribeError(reason: String) : SubscriptionError()
-        class ConnectError(reason: String) : SubscriptionError()
+    sealed class SubscriptionError(val reason: String) {
+        class SubscribeError(reason: String) : SubscriptionError(reason = reason)
+        class ConnectError(reason: String) : SubscriptionError(reason = reason)
     }
 
     sealed class State {
@@ -127,7 +127,7 @@ class RTSViewerDataStore(
         object StreamActive : State()
         object StreamInactive : State()
         object Disconnected : State()
-        class Error(error: SubscriptionError) : State()
+        class Error(val error: SubscriptionError) : State()
         class VideoTrackReady(val videoTrack: VideoTrack) : State()
     }
 }

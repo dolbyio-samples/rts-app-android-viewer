@@ -74,7 +74,7 @@ class DarkThemeColors : ColorPalette() {
 
     override fun asList(): Colors {
         return darkColors(
-            primary = blue,
+            primary = purple,
             onPrimary = white,
             secondary = blue20,
             onSecondary = grayMediumFont,

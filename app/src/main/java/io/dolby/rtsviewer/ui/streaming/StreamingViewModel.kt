@@ -40,17 +40,22 @@ class StreamingViewModel @Inject constructor(
                 when (it) {
                     RTSViewerDataStore.State.Connected -> repository.startSubscribe()
                     RTSViewerDataStore.State.StreamInactive -> repository.stopSubscribe()
-//                    RTSViewerDataStore.State.Subscribed -> {
-//                        withContext(dispatcherProvider.main) {
-//                            _uiState.update { state -> state.copy(connecting = false) }
-//                        }
-//                    }
                     is RTSViewerDataStore.State.VideoTrackReady -> {
                         withContext(dispatcherProvider.main) {
                             _uiState.update { state ->
                                 state.copy(
                                     connecting = false,
                                     videoTrack = it.videoTrack
+                                )
+                            }
+                        }
+                    }
+                    is RTSViewerDataStore.State.Error -> {
+                        withContext(dispatcherProvider.main) {
+                            _uiState.update { state ->
+                                state.copy(
+                                    connecting = false,
+                                    error = it.error.reason
                                 )
                             }
                         }

@@ -18,8 +18,6 @@ class SubscriptionManager(
 ) : SubscriptionManagerInterface {
     private var subscriber: Subscriber? = null
 
-    private val TAG = SubscriptionManager::class.simpleName
-
     override suspend fun connect(streamName: String, accountID: String): Boolean {
         val logTag = "[Sub][Con] "
         subscriber = Subscriber.createSubscriber(subscriptionListener)

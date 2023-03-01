@@ -4,7 +4,7 @@ import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.padding
-import androidx.compose.foundation.layout.wrapContentSize
+import androidx.compose.foundation.layout.size
 import androidx.compose.material.MaterialTheme
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
@@ -13,15 +13,12 @@ import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.draw.paint
-import androidx.compose.ui.layout.ContentScale
-import androidx.compose.ui.res.painterResource
+import androidx.compose.ui.draw.clip
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import androidx.constraintlayout.compose.ConstraintLayout
 import androidx.tv.material3.Text
 import com.dolby.uicomponents.ui.theme.fontColor
-import io.dolby.rtscomponentkit.R
 import io.dolby.rtscomponentkit.domain.StreamingData
 import io.dolby.rtsviewer.uikit.button.StyledButton
 import io.dolby.rtsviewer.uikit.input.TextInput
@@ -34,20 +31,19 @@ fun DetailInputScreen(onPlayClick: (StreamingData) -> Unit) {
     Box(
         modifier = Modifier
             .fillMaxSize()
-            .paint(
-                painter = painterResource(id = R.drawable.background),
-                contentScale = ContentScale.FillBounds
-            )
+            .background(MaterialTheme.colors.background)
     ) {
         ConstraintLayout(
             modifier = Modifier
+                .size(size = 600.dp)
                 .align(Alignment.Center)
                 .padding(24.dp)
-                .wrapContentSize()
                 .background(MaterialTheme.colors.background)
+                .clip(MaterialTheme.shapes.large)
                 .padding(25.dp)
         ) {
-            val (header, title, subtitle, inputStream, inputAccount, playButton) = createRefs()
+            val (header, title, subtitle, inputStream, inputAccount,
+                savedStreamsButton, playButton, cleanStreamHistory) = createRefs()
             Text("Dolby.io Remote Monitor",
                 style = MaterialTheme.typography.body1,
                 color = fontColor(ViewState.Selected),
@@ -80,7 +76,6 @@ fun DetailInputScreen(onPlayClick: (StreamingData) -> Unit) {
                     top.linkTo(subtitle.bottom, margin = 25.dp)
                 })
             TextInput(value = accountId, label = "Enter your account ID",
-
                 onValueChange = {
                     accountId = it
                 },
@@ -101,7 +96,8 @@ fun DetailInputScreen(onPlayClick: (StreamingData) -> Unit) {
                         )
                     )
                 },
-                isEnabled = !(streamName.isNullOrEmpty() || accountId.isNullOrEmpty())
+                isPrimary = true,
+                isEnabled = streamName.trim().isNotEmpty() && accountId.trim().isNotEmpty()
             )
         }
     }
