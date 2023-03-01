@@ -1,6 +1,6 @@
 package io.dolby.rtsviewer.ui.navigation
 
-import io.dolby.rtsviewer.data.StreamingData
+import io.dolby.rtsviewer.domain.StreamingData
 
 sealed class Screen(val route: String) {
     object DetailInputScreen : Screen(route = "login")

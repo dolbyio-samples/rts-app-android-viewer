@@ -1,4 +1,4 @@
-package io.dolby.rtsviewer.data
+package io.dolby.rtsviewer.domain
 
 data class StreamingData(
     val accountId: String,
