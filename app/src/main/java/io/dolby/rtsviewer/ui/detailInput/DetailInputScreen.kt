@@ -100,7 +100,8 @@ fun DetailInputScreen(onPlayClick: (StreamingData) -> Unit) {
                             accountId = accountId
                         )
                     )
-                }
+                },
+                isEnabled = !(streamName.isNullOrEmpty() || accountId.isNullOrEmpty())
             )
         }
     }

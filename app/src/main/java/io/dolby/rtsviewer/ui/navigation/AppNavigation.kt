@@ -1,16 +1,12 @@
 package io.dolby.rtsviewer.ui.navigation
 
-import androidx.compose.animation.ExperimentalAnimationApi
 import androidx.compose.runtime.Composable
-import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
 import androidx.navigation.compose.rememberNavController
-import io.dolby.rtscomponentkit.domain.StreamingData
 import io.dolby.rtsviewer.ui.detailInput.DetailInputScreen
 import io.dolby.rtsviewer.ui.streaming.StreamingScreen
 
-@OptIn(ExperimentalAnimationApi::class)
 @Composable
 fun AppNavigation() {
     val navController = rememberNavController()
@@ -29,14 +25,12 @@ fun AppNavigation() {
         composable(
             route = Screen.StreamingScreen.route
         ) {
-            val streamName = it.arguments?.getString(Screen.StreamingScreen.ARG_STREAM_NAME)
             val accountId = it.arguments?.getString(Screen.StreamingScreen.ARG_ACCOUNT_ID)
-            StreamingScreen(
-                viewModel = hiltViewModel(),
-                streamingData = StreamingData(
-                    streamName = streamName ?: "", accountId = accountId ?: ""
-                )
-            )
+            val streamName = it.arguments?.getString(Screen.StreamingScreen.ARG_STREAM_NAME)
+            if (streamName.isNullOrEmpty() || accountId.isNullOrEmpty()) {
+                throw IllegalArgumentException()
+            }
+            StreamingScreen()
         }
     }
 }

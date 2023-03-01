@@ -1,16 +1,13 @@
 package io.dolby.rtscomponentkit.data
 
-import android.app.Application
 import android.content.Context
+import android.util.Log
 import com.millicast.AudioTrack
 import com.millicast.Client
 import com.millicast.LayerData
-import com.millicast.VideoRenderer
+import com.millicast.Subscriber
 import com.millicast.VideoTrack
-import io.dolby.rtscomponentkit.domain.StreamingData
-import io.dolby.rtscomponentkit.manager.SubscriptionListener
 import io.dolby.rtscomponentkit.manager.SubscriptionManager
-import io.dolby.rtscomponentkit.manager.SubscriptionManagerDelegate
 import io.dolby.rtscomponentkit.manager.SubscriptionManagerInterface
 import io.dolby.rtscomponentkit.utils.DispatcherProvider
 import io.dolby.rtscomponentkit.utils.DispatcherProviderImpl
@@ -20,98 +17,103 @@ import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.launch
 import org.webrtc.RTCStatsReport
+import java.util.Optional
 
 class RTSViewerDataStore(
     context: Context,
     dispatcherProvider: DispatcherProvider = DispatcherProviderImpl
 ) {
-
     private val apiScope = CoroutineScope(dispatcherProvider.default + Job())
 
-    private val videoRenderer: VideoRenderer = VideoRenderer(context)
-    private val subscriptionDelegate = object : SubscriptionManagerDelegate {
+    private val subscriptionDelegate = object : Subscriber.Listener {
         override fun onSubscribed() {
             _state.value = State.Subscribed
         }
 
         override fun onSubscribedError(reason: String) {
+            Log.d("Subscriber", "onSubscribedError: $reason")
             _state.value = State.Error(SubscriptionError.SubscribeError(reason))
         }
 
-        override fun onVideoTrack(track: VideoTrack, mid: String) {
-            videoTrack = track
-            track.setRenderer(videoRenderer)
+        override fun onTrack(track: VideoTrack, p1: Optional<String>?) {
+            Log.d("Subscriber", "onVideoTrack")
+            _state.value = State.VideoTrackReady(track)
         }
 
-        override fun onAudioTrack(track: AudioTrack, mid: String) {
+        override fun onTrack(track: AudioTrack?, p1: Optional<String>?) {
+            Log.d("Subscriber", "onAudioTrack")
             audioTrack = track
         }
 
         override fun onStatsReport(report: RTCStatsReport) {
-            TODO("Not yet implemented")
+            Log.d("Subscriber", "onStatsReport")
+        }
+
+        override fun onViewerCount(p0: Int) {
+            Log.d("Subscriber", "onViewerCount")
         }
 
         override fun onConnected() {
+            Log.d("Subscriber", "onConnected")
             _state.value = State.Connected
         }
 
-        override fun onStreamActive() {
+        override fun onActive(p0: String?, p1: Array<out String>?, p2: Optional<String>?) {
+            Log.d("Subscriber", "onActive")
             _state.value = State.StreamActive
         }
 
-        override fun onStreamInactive() {
+        override fun onInactive(p0: String?, p1: Optional<String>?) {
+            Log.d("Subscriber", "onInactive")
             _state.value = State.StreamInactive
         }
 
-        override fun onStreamStopped() {
+        override fun onStopped() {
+            Log.d("Subscriber", "onStopped")
             _state.value = State.StreamInactive
+        }
+
+        override fun onVad(p0: String?, p1: Optional<String>?) {
+            Log.d("Subscriber", "onVad")
+            TODO("Not yet implemented")
         }
 
         override fun onConnectionError(reason: String) {
+            Log.d("Subscriber", "onConnectionError: $reason")
             _state.value = State.Error(SubscriptionError.ConnectError(reason))
         }
 
-        override fun onStreamLayers(
-            mid: String?,
-            activeLayers: Array<out LayerData>?,
-            inactiveLayers: Array<out LayerData>?
-        ) {
-            TODO("Not yet implemented")
+        override fun onSignalingError(reason: String?) {
+            Log.d("Subscriber", "onSignalingError: $reason")
+        }
+
+        override fun onLayers(p0: String?, p1: Array<out LayerData>?, p2: Array<out LayerData>?) {
+            Log.d("Subscriber", "onLayers: $p0")
         }
     }
-    private val subscriptionListener = SubscriptionListener(subscriptionDelegate)
+
     private val subscriptionManager: SubscriptionManagerInterface =
-        SubscriptionManager(subscriptionDelegate, subscriptionListener)
+        SubscriptionManager(subscriptionDelegate)
 
     private var _state: MutableStateFlow<State> = MutableStateFlow(State.Disconnected)
     val state: Flow<State> = _state
 
-    private var streamDetail: StreamingData? = null
     private var audioTrack: AudioTrack? = null
-    private var videoTrack: VideoTrack? = null
 
     init {
         Client.initMillicastSdk(context)
     }
 
-    fun connect() {
-        apiScope.launch {
-            streamDetail?.let {
-                subscriptionManager.connect(it.streamName, it.accountId)
-            }
-        }
+    fun connect(streamName: String, accountId: String) = apiScope.launch {
+        subscriptionManager.connect(streamName, accountId)
     }
 
-    fun startSubscribe() {
-        apiScope.launch {
-            subscriptionManager.startSubscribe()
-        }
+    fun startSubscribe() = apiScope.launch {
+        subscriptionManager.startSubscribe()
     }
 
-    fun stopSubscribe() {
-        apiScope.launch {
-            subscriptionManager.stopSubscribe()
-        }
+    fun stopSubscribe() = apiScope.launch {
+        subscriptionManager.stopSubscribe()
     }
 
     sealed class SubscriptionError {
@@ -120,13 +122,12 @@ class RTSViewerDataStore(
     }
 
     sealed class State {
-        object Connecting : State()
         object Connected : State()
-        object Subscribing : State()
         object Subscribed : State()
         object StreamActive : State()
         object StreamInactive : State()
         object Disconnected : State()
         class Error(error: SubscriptionError) : State()
+        class VideoTrackReady(val videoTrack: VideoTrack) : State()
     }
 }

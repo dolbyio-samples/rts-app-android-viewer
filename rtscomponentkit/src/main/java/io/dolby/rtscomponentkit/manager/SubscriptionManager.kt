@@ -1,32 +1,10 @@
 package io.dolby.rtscomponentkit.manager
 
 import android.util.Log
-import com.millicast.AudioTrack
 import com.millicast.LayerData
 import com.millicast.Subscriber
-import com.millicast.VideoTrack
 import io.dolby.rtscomponentkit.legacy.MillicastManager
 import io.dolby.rtscomponentkit.legacy.Utils.logD
-import org.webrtc.RTCStatsReport
-
-
-interface SubscriptionManagerDelegate {
-    fun onSubscribed()
-    fun onSubscribedError(reason: String)
-    fun onVideoTrack(track: VideoTrack, mid: String)
-    fun onAudioTrack(track: AudioTrack, mid: String)
-    fun onStatsReport(report: RTCStatsReport)
-    fun onConnected()
-    fun onStreamActive()
-    fun onStreamInactive()
-    fun onStreamStopped()
-    fun onConnectionError(reason: String)
-    fun onStreamLayers(
-        mid: String?,
-        activeLayers: Array<out LayerData>?,
-        inactiveLayers: Array<out LayerData>?
-    )
-}
 
 interface SubscriptionManagerInterface {
     suspend fun connect(streamName: String, accountID: String): Boolean
@@ -36,8 +14,7 @@ interface SubscriptionManagerInterface {
 }
 
 class SubscriptionManager(
-    val delegate: SubscriptionManagerDelegate,
-    private val subscriptionListener: SubscriptionListener
+    private val subscriptionListener: Subscriber.Listener
 ) : SubscriptionManagerInterface {
     private var subscriber: Subscriber? = null
 
@@ -62,6 +39,7 @@ class SubscriptionManager(
             val credentials = it.credentials
             credentials.streamName = streamName
             credentials.accountId = accountID
+            credentials.apiUrl = "https://director.millicast.com/api/director/subscribe"
             it.credentials = credentials
         }
         // Connect Subscriber.
@@ -70,7 +48,7 @@ class SubscriptionManager(
         try {
             success = subscriber?.connect() ?: false
         } catch (e: Exception) {
-            Log.d(TAG, "${e.message}");
+            Log.d(MillicastManager.TAG, "${e.message}");
         }
 
         return success
@@ -114,7 +92,7 @@ class SubscriptionManager(
         TODO("Not yet implemented")
     }
 
-    fun enableStatsSub(enable: Int) {
+    private fun enableStatsSub(enable: Int) {
         subscriber?.let {
             val logTag = "[Sub][Stats][Enable] "
             if (enable > 0) {
