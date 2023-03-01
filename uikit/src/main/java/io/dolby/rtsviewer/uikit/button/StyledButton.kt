@@ -17,6 +17,7 @@ import android.content.Context
 import androidx.compose.foundation.BorderStroke
 import androidx.compose.foundation.interaction.MutableInteractionSource
 import androidx.compose.foundation.interaction.collectIsPressedAsState
+import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.widthIn
 import androidx.compose.material.Button
@@ -65,6 +66,7 @@ fun StyledButton(
         modifier = modifier
             .padding(5.dp)
             .listItemHeight()
+            .fillMaxWidth()
             .widthIn(min = if (isLarge) 180.dp else 80.dp),
         interactionSource = interactionSource,
         onClick = { onClickAction?.invoke(context) },
