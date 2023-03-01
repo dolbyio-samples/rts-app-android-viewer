@@ -22,7 +22,7 @@ import androidx.constraintlayout.compose.ConstraintLayout
 import androidx.tv.material3.Text
 import com.dolby.uicomponents.ui.theme.fontColor
 import io.dolby.rtscomponentkit.R
-import io.dolby.rtsviewer.domain.StreamingData
+import io.dolby.rtscomponentkit.domain.StreamingData
 import io.dolby.rtsviewer.uikit.button.StyledButton
 import io.dolby.rtsviewer.uikit.input.TextInput
 import io.dolby.uikit.utils.ViewState

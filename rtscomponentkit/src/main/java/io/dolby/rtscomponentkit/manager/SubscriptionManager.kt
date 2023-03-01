@@ -29,18 +29,21 @@ interface SubscriptionManagerDelegate {
 }
 
 interface SubscriptionManagerInterface {
-    fun connect(streamName: String, accountID: String): Boolean
-    fun startSubscribe(): Boolean
-    fun stopSubscribe(): Boolean
-    fun selectLayer(layer: LayerData?): Boolean
+    suspend fun connect(streamName: String, accountID: String): Boolean
+    suspend fun startSubscribe(): Boolean
+    suspend fun stopSubscribe(): Boolean
+    suspend fun selectLayer(layer: LayerData?): Boolean
 }
 
-class SubscriptionManager(val delegate: SubscriptionManagerDelegate, val subscriptionListener: SubscriptionListener) : SubscriptionManagerInterface {
-    var subscriber: Subscriber? = null
+class SubscriptionManager(
+    val delegate: SubscriptionManagerDelegate,
+    private val subscriptionListener: SubscriptionListener
+) : SubscriptionManagerInterface {
+    private var subscriber: Subscriber? = null
 
     private val TAG = SubscriptionManager::class.simpleName
 
-    override fun connect(streamName: String, accountID: String): Boolean {
+    override suspend fun connect(streamName: String, accountID: String): Boolean {
         val logTag = "[Sub][Con] "
         subscriber = Subscriber.createSubscriber(subscriptionListener)
         if (subscriber == null) {
@@ -73,7 +76,7 @@ class SubscriptionManager(val delegate: SubscriptionManagerDelegate, val subscri
         return success
     }
 
-    override fun startSubscribe(): Boolean {
+    override suspend fun startSubscribe(): Boolean {
         // Subscribe to Millicast
         var success = true
         try {
@@ -86,7 +89,7 @@ class SubscriptionManager(val delegate: SubscriptionManagerDelegate, val subscri
         return success
     }
 
-    override fun stopSubscribe(): Boolean {
+    override suspend fun stopSubscribe(): Boolean {
         // Stop subscribing to Millicast.
         var success = true
         try {
@@ -107,7 +110,7 @@ class SubscriptionManager(val delegate: SubscriptionManagerDelegate, val subscri
         return success
     }
 
-    override fun selectLayer(layer: LayerData?): Boolean {
+    override suspend fun selectLayer(layer: LayerData?): Boolean {
         TODO("Not yet implemented")
     }
 

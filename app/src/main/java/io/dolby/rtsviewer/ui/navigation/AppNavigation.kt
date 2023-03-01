@@ -2,10 +2,11 @@ package io.dolby.rtsviewer.ui.navigation
 
 import androidx.compose.animation.ExperimentalAnimationApi
 import androidx.compose.runtime.Composable
+import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
 import androidx.navigation.compose.rememberNavController
-import io.dolby.rtsviewer.domain.StreamingData
+import io.dolby.rtscomponentkit.domain.StreamingData
 import io.dolby.rtsviewer.ui.detailInput.DetailInputScreen
 import io.dolby.rtsviewer.ui.streaming.StreamingScreen
 
@@ -31,7 +32,8 @@ fun AppNavigation() {
             val streamName = it.arguments?.getString(Screen.StreamingScreen.ARG_STREAM_NAME)
             val accountId = it.arguments?.getString(Screen.StreamingScreen.ARG_ACCOUNT_ID)
             StreamingScreen(
-                StreamingData(
+                viewModel = hiltViewModel(),
+                streamingData = StreamingData(
                     streamName = streamName ?: "", accountId = accountId ?: ""
                 )
             )
