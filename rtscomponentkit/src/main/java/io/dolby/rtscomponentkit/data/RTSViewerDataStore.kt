@@ -2,11 +2,15 @@ package io.dolby.rtscomponentkit.data
 
 import android.content.Context
 import android.util.Log
+import com.millicast.AudioPlayback
 import com.millicast.AudioTrack
 import com.millicast.Client
 import com.millicast.LayerData
+import com.millicast.Media
 import com.millicast.Subscriber
 import com.millicast.VideoTrack
+import io.dolby.rtscomponentkit.legacy.MillicastManager
+import io.dolby.rtscomponentkit.legacy.Utils.logD
 import io.dolby.rtscomponentkit.manager.SubscriptionManager
 import io.dolby.rtscomponentkit.manager.SubscriptionManagerInterface
 import io.dolby.rtscomponentkit.utils.DispatcherProvider
@@ -40,9 +44,9 @@ class RTSViewerDataStore(
             _state.value = State.VideoTrackReady(track)
         }
 
-        override fun onTrack(track: AudioTrack?, p1: Optional<String>?) {
+        override fun onTrack(track: AudioTrack, p1: Optional<String>?) {
             Log.d("Subscriber", "onAudioTrack")
-            audioTrack = track
+            _state.value = State.AudioTrackReady(track)
         }
 
         override fun onStatsReport(report: RTCStatsReport) {
@@ -98,10 +102,13 @@ class RTSViewerDataStore(
     private var _state: MutableStateFlow<State> = MutableStateFlow(State.Disconnected)
     val state: Flow<State> = _state
 
-    private var audioTrack: AudioTrack? = null
+    private var media: Media
+    private var audioPlayback: ArrayList<AudioPlayback>? = null
 
     init {
         Client.initMillicastSdk(context)
+        media = Media.getInstance(context)
+        audioPlayback = media.audioPlayback
     }
 
     fun connect(streamName: String, accountId: String) = apiScope.launch {
@@ -116,6 +123,26 @@ class RTSViewerDataStore(
         subscriptionManager.stopSubscribe()
     }
 
+    /**
+     * Start the playback of selected audioPlayback if available.
+     */
+    fun audioPlaybackStart() {
+        val logTag = "[Playback][Audio][Start] "
+        if (audioPlayback == null) {
+            logD(MillicastManager.TAG, logTag + "Creating new audioPlayback...")
+
+            audioPlayback = media.audioPlayback
+        } else {
+            logD(MillicastManager.TAG, logTag + "Using existing audioPlayback...")
+        }
+        logD(MillicastManager.TAG, logTag + "AudioPlayback is: " + audioPlayback)
+
+        audioPlayback?.let {
+            it[0].initPlayback()
+            logD(MillicastManager.TAG, logTag + "OK. Playback initiated.")
+        }
+    }
+
     sealed class SubscriptionError(val reason: String) {
         class SubscribeError(reason: String) : SubscriptionError(reason = reason)
         class ConnectError(reason: String) : SubscriptionError(reason = reason)
@@ -128,6 +155,7 @@ class RTSViewerDataStore(
         object StreamInactive : State()
         object Disconnected : State()
         class Error(val error: SubscriptionError) : State()
+        class AudioTrackReady(val audioTrack: AudioTrack) : State()
         class VideoTrackReady(val videoTrack: VideoTrack) : State()
     }
 }

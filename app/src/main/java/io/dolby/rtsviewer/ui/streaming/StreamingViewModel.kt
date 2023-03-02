@@ -39,13 +39,17 @@ class StreamingViewModel @Inject constructor(
             repository.state.collect {
                 when (it) {
                     RTSViewerDataStore.State.Connected -> repository.startSubscribe()
+                    RTSViewerDataStore.State.Subscribed -> {
+                        repository.audioPlaybackStart()
+                    }
                     RTSViewerDataStore.State.StreamInactive -> repository.stopSubscribe()
                     is RTSViewerDataStore.State.VideoTrackReady -> {
                         withContext(dispatcherProvider.main) {
                             _uiState.update { state ->
                                 state.copy(
                                     connecting = false,
-                                    videoTrack = it.videoTrack
+                                    videoTrack = it.videoTrack,
+                                    error = null
                                 )
                             }
                         }
