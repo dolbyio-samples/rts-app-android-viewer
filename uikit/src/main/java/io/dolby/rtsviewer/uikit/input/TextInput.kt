@@ -1,5 +1,6 @@
 package io.dolby.rtsviewer.uikit.input
 
+import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.material.MaterialTheme
 import androidx.compose.material.OutlinedTextField
 import androidx.compose.material.Text
@@ -17,9 +18,9 @@ fun TextInput(
     readOnly: Boolean = false
 ) {
     OutlinedTextField(
-        modifier = modifier,
+        modifier = modifier.fillMaxWidth(),
         value = value,
-        label = { Text(text = label) },
+        label = { Text(text = label, style = MaterialTheme.typography.body1) },
         onValueChange = onValueChange,
         enabled = enabled,
         readOnly = readOnly,

@@ -74,7 +74,7 @@ class DarkThemeColors : ColorPalette() {
 
     override fun asList(): Colors {
         return darkColors(
-            primary = blue,
+            primary = purple,
             onPrimary = white,
             secondary = blue20,
             onSecondary = grayMediumFont,
@@ -130,7 +130,8 @@ internal fun backgroundColor(state: ViewState, isPrimary: Boolean): Color {
 @Composable
 fun fontColor(state: ViewState): Color {
     return when (state) {
-        ViewState.Selected, ViewState.Disabled, ViewState.Pressed -> MaterialTheme.colors.onPrimary
+        ViewState.Selected, ViewState.Pressed -> MaterialTheme.colors.onPrimary
+        ViewState.Disabled -> MaterialTheme.colors.secondary
         else -> MaterialTheme.colors.onBackground
     }
 }

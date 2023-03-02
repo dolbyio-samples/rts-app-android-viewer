@@ -1,6 +1,7 @@
 plugins {
     id 'com.android.library'
     id 'org.jetbrains.kotlin.android'
+    id 'androidx.navigation.safeargs.kotlin'
 }
 
 android {
@@ -27,6 +28,8 @@ dependencies {
     api 'com.millicast:millicast-sdk-android:1.4.2'
 
     implementation libs.androidx.core.ktx
+
+    implementation libs.android.coroutines
 
     testImplementation 'junit:junit:4.13.2'
     androidTestImplementation 'androidx.test.ext:junit:1.1.5'
