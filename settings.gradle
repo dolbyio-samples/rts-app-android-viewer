@@ -5,6 +5,9 @@ pluginManagement {
         gradlePluginPortal()
     }
 }
+def gitUserName = System.env.GIT_USERNAME ?: getGithubUsername()
+def gitPat = System.env.GIT_PAT ?: getGithubUserPassword()
+
 dependencyResolutionManagement {
     repositoriesMode.set(RepositoriesMode.FAIL_ON_PROJECT_REPOS)
     repositories {
@@ -16,8 +19,8 @@ dependencyResolutionManagement {
             name = "GitHubPackages"
             url = uri("https://maven.pkg.github.com/millicast/maven")
             credentials {
-                username = getGithubUsername()
-                password = getGithubUserPassword()
+                username = gitUserName
+                password = gitPat
             }
         }
     }

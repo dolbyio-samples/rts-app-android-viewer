@@ -42,6 +42,8 @@ jobs:
           export KEYSTORE_PASSWORD=$KEYSTORE_PASSWORD
           export KEY_ALIAS=$KEY_ALIAS
           export KEY_PASSWORD=$KEY_PASSWORD
+          export GIT_USERNAME=$GIT_USERNAME
+          export GIT_PAT=$GIT_PAT
           source ~/.env_version
           chmod +x ./gradlew && ./gradlew assembleTvRelease bundleTvRelease
 
