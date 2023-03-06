@@ -38,6 +38,8 @@ jobs:
           KEYSTORE_PASSWORD: ${{ secrets.RELEASE_KEYSTORE_STORE_PASSWORD }}
           KEY_ALIAS: ${{ secrets.RELEASE_KEYSTORE_KEY_ALIAS }}
           KEY_PASSWORD: ${{ secrets.RELEASE_KEYSTORE_KEY_PASSWORD }}
+          GIT_USERNAME: ${{ secrets.MAVEN_USERNAME }}
+          GIT_PAT: ${{ secrets.MAVEN_PAT }}
         run: |
           export KEYSTORE_PASSWORD=$KEYSTORE_PASSWORD
           export KEY_ALIAS=$KEY_ALIAS

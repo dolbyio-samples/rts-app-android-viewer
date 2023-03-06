@@ -5,6 +5,7 @@ pluginManagement {
         gradlePluginPortal()
     }
 }
+
 def gitUserName = System.env.GIT_USERNAME ?: getGithubUsername()
 def gitPat = System.env.GIT_PAT ?: getGithubUserPassword()
 
