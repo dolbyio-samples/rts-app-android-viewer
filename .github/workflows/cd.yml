@@ -33,7 +33,7 @@ jobs:
           versionCode=$GITHUB_RUN_NUMBER; echo "versionName: $versionName; versionCode: $versionCode"
           echo "export VERSION_NAME=$versionName; export VERSION_CODE=$versionCode" > ~/.env_version
 
-      - name: Android App Release Build
+      - name: Android TV App Release Build
         env:
           KEYSTORE_PASSWORD: ${{ secrets.RELEASE_KEYSTORE_STORE_PASSWORD }}
           KEY_ALIAS: ${{ secrets.RELEASE_KEYSTORE_KEY_ALIAS }}
