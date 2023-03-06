@@ -33,7 +33,7 @@ jobs:
           versionCode=$GITHUB_RUN_NUMBER; echo "versionName: $versionName; versionCode: $versionCode"
           echo "export VERSION_NAME=$versionName; export VERSION_CODE=$versionCode" > ~/.env_version
 
-      - name: Beta Android App Build
+      - name: Android App Release Build
         env:
           KEYSTORE_PASSWORD: ${{ secrets.RELEASE_KEYSTORE_STORE_PASSWORD }}
           KEY_ALIAS: ${{ secrets.RELEASE_KEYSTORE_KEY_ALIAS }}
@@ -43,23 +43,16 @@ jobs:
           export KEY_ALIAS=$KEY_ALIAS
           export KEY_PASSWORD=$KEY_PASSWORD
           source ~/.env_version
-          cd examples/mobile/android && gradle assembleProdRelease bundleProdRelease
-      - name: Archive production apk
-        uses: actions/upload-artifact@v3
-        with:
-          name: android-release-apk
-          path: |
-            ./app/build/outputs/apk/prod/release
-          retention-days: 1
+          chmod +x ./gradlew && ./gradlew assembleTvRelease bundleTvRelease
+
       - name: Archive production bundle
         uses: actions/upload-artifact@v3
         with:
           name: android-release-bundle
           path: |
-            ./app/build/outputs/bundle/prodRelease/app-prod-release.aab
+            ./app/build/outputs/bundle/tvRelease/app-tv-release.aab
 
   Android-Play-Store-Distribution:
-    if: github.event_name == 'push' && contains(github.ref, 'refs/tags/')
     needs: Android-App-Build
     runs-on: ubuntu-latest
     steps:
@@ -83,11 +76,11 @@ jobs:
         uses: actions/download-artifact@v3
         with:
           name: android-release-bundle
-          path: ./app/build/outputs/bundle/prodRelease/
+          path: ./app/build/outputs/bundle/tvRelease/
 
       - name: Deploy to Play Store
         env:
           ANDROID_PUBLISHER_CREDENTIALS: ${{ secrets.ANDROID_PUBLISHER_CREDENTIALS }}
         run: |
           export ANDROID_PUBLISHER_CREDENTIALS=$ANDROID_PUBLISHER_CREDENTIALS
-          chmod +x ./gradlew && ./gradlew publishProdReleaseBundle --artifact-dir ./app/build/outputs/bundle/prodRelease/ --stacktrace
+          chmod +x ./gradlew && ./gradlew publishTvReleaseBundle --artifact-dir ./app/build/outputs/bundle/tvRelease/ --stacktrace
