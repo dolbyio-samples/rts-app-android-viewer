@@ -5,6 +5,9 @@ plugins {
     id 'com.google.dagger.hilt.android'
 }
 
+def appVersionCode = Integer.valueOf(System.env.VERSION_CODE ?: 1)
+def appVersionName = System.env.VERSION_NAME ?: "0.0"
+
 android {
     namespace 'io.dolby.rtsviewer'
     compileSdk 33
@@ -13,8 +16,8 @@ android {
         applicationId "io.dolby.rtsviewer"
         minSdk 27
         targetSdk 32
-        versionCode 1
-        versionName "0.0"
+        versionCode appVersionCode
+        versionName appVersionName
 
         testInstrumentationRunner "androidx.test.runner.AndroidJUnitRunner"
         vectorDrawables {
@@ -22,8 +25,18 @@ android {
         }
     }
 
+    signingConfigs {
+        release {
+            storeFile file('release.keystore')
+            storePassword System.env.KEYSTORE_PASSWORD
+            keyAlias System.env.KEY_ALIAS
+            keyPassword System.env.KEY_PASSWORD
+        }
+    }
+
     buildTypes {
         release {
+            signingConfig signingConfigs.release
             minifyEnabled false
             proguardFiles getDefaultProguardFile('proguard-android-optimize.txt'), 'proguard-rules.pro'
         }
