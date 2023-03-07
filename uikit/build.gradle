@@ -38,8 +38,6 @@ dependencies {
     implementation libs.androidx.compose.ui.preview
     implementation libs.androidx.compose.compiler
 
-    implementation libs.androidx.tv.material
-
     implementation libs.androidx.lifecycle.runtime
 
     testImplementation 'junit:junit:4.13.2'

@@ -3,18 +3,22 @@ plugins {
     id 'org.jetbrains.kotlin.android'
     id 'kotlin-kapt'
     id 'com.google.dagger.hilt.android'
+    id 'com.github.triplet.play' version '3.8.1'
 }
+
+def appVersionCode = Integer.valueOf(System.env.VERSION_CODE ?: 1)
+def appVersionName = System.env.VERSION_NAME ?: "0.0"
 
 android {
     namespace 'io.dolby.rtsviewer'
     compileSdk 33
 
     defaultConfig {
-        applicationId "io.dolby.tvrtsviewer"
+        applicationId "io.dolby.rtsviewer"
         minSdk 27
         targetSdk 32
-        versionCode 1
-        versionName "1.0"
+        versionCode appVersionCode
+        versionName appVersionName
 
         testInstrumentationRunner "androidx.test.runner.AndroidJUnitRunner"
         vectorDrawables {
@@ -22,10 +26,24 @@ android {
         }
     }
 
+    signingConfigs {
+        release {
+            storeFile file('release.keystore')
+            storePassword System.env.KEYSTORE_PASSWORD
+            keyAlias System.env.KEY_ALIAS
+            keyPassword System.env.KEY_PASSWORD
+        }
+    }
+
     buildTypes {
         release {
+            signingConfig signingConfigs.release
             minifyEnabled false
             proguardFiles getDefaultProguardFile('proguard-android-optimize.txt'), 'proguard-rules.pro'
+
+            play {
+                track.set("alpha")
+            }
         }
     }
 
@@ -34,6 +52,16 @@ android {
     }
     composeOptions {
         kotlinCompilerExtensionVersion kotlin_compiler_version
+    }
+
+    flavorDimensions += "target"
+    productFlavors {
+        create("tv") {
+            dimension = "target"
+        }
+        create("mobile") {
+            dimension = "target"
+        }
     }
 }
 
@@ -54,10 +82,10 @@ dependencies {
     kapt "com.google.dagger:hilt-compiler:2.44"
     implementation "androidx.hilt:hilt-navigation-compose:1.0.0"
 
-    implementation 'androidx.leanback:leanback:1.0.0'
+    tvImplementation 'androidx.leanback:leanback:1.0.0'
 
-    implementation 'androidx.tv:tv-foundation:1.0.0-alpha04'
-    implementation libs.androidx.tv.material
+    tvImplementation 'androidx.tv:tv-foundation:1.0.0-alpha04'
+    tvImplementation libs.androidx.tv.material
 
     implementation "androidx.constraintlayout:constraintlayout-compose:1.0.1"
     implementation "androidx.navigation:navigation-compose:2.5.3"
