@@ -87,6 +87,12 @@ jobs:
           name: android-release-bundle
           path: ./app/build/outputs/bundle/tvRelease/
 
+      - name: Create release notes
+        run: |
+          RELEASE_NOTES_FILE=./app/src/main/play/release-notes/en-US/default.txt
+          mkdir -p "$(dirname $RELEASE_NOTES_FILE)" && touch "$RELEASE_NOTES_FILE"
+          echo "Android TV app update: ${{ github.event.head_commit.message }}" > $RELEASE_NOTES_FILE
+
       - name: Deploy TV app to Play Store
         env:
           ANDROID_PUBLISHER_CREDENTIALS: ${{ secrets.ANDROID_PUBLISHER_CREDENTIALS }}
@@ -94,9 +100,8 @@ jobs:
           GIT_PAT: ${{ secrets.MAVEN_PAT }}
         run: |
           versionName='1.0.'$GITHUB_RUN_NUMBER
-          versionCode=$GITHUB_RUN_NUMBER; echo "versionName: $versionName; versionCode: $versionCode"
+          versionCode=$GITHUB_RUN_NUMBER
           export GIT_USERNAME=$GIT_USERNAME
           export GIT_PAT=$GIT_PAT
-          echo "Android TV app update: ${{ github.event.head_commit.message }}" > ./app/src/main/play/release-notes/en-US/default.txt
           export ANDROID_PUBLISHER_CREDENTIALS=$ANDROID_PUBLISHER_CREDENTIALS
-          chmod +x ./gradlew && ./gradlew publishTvReleaseBundle --artifact-dir ./app/build/outputs/bundle/tvRelease/ --release-name "$versionCode ($versionName.$versionCode) TV" --stacktrace
+          chmod +x ./gradlew && ./gradlew publishTvReleaseBundle --artifact-dir ./app/build/outputs/bundle/tvRelease/ --release-name "$versionCode ($versionName) TV" --stacktrace
