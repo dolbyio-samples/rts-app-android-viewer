@@ -1,11 +1,12 @@
 name: CD Android build and distribution
 
 on:
-  push:
-    branches:
-      - main
-    tags:
-      - '*'
+  push
+#  push:
+#    branches:
+#      - main
+#    tags:
+#      - '*'
 
 jobs:
   Android-App-Build:
@@ -86,13 +87,15 @@ jobs:
           name: android-release-bundle
           path: ./app/build/outputs/bundle/tvRelease/
 
-      - name: Deploy to Play Store
+      - name: Deploy TV app to Play Store
         env:
           ANDROID_PUBLISHER_CREDENTIALS: ${{ secrets.ANDROID_PUBLISHER_CREDENTIALS }}
           GIT_USERNAME: ${{ secrets.MAVEN_USERNAME }}
           GIT_PAT: ${{ secrets.MAVEN_PAT }}
         run: |
+          versionName='1.0.'$GITHUB_RUN_NUMBER
+          versionCode=$GITHUB_RUN_NUMBER; echo "versionName: $versionName; versionCode: $versionCode"
           export GIT_USERNAME=$GIT_USERNAME
           export GIT_PAT=$GIT_PAT
           export ANDROID_PUBLISHER_CREDENTIALS=$ANDROID_PUBLISHER_CREDENTIALS
-          chmod +x ./gradlew && ./gradlew publishTvReleaseBundle --artifact-dir ./app/build/outputs/bundle/tvRelease/ --stacktrace
+          chmod +x ./gradlew && ./gradlew publishTvReleaseBundle --artifact-dir ./app/build/outputs/bundle/tvRelease/ --release-name "$versionCode ($versionName.$versionCode) TV" --stacktrace
