@@ -97,5 +97,6 @@ jobs:
           versionCode=$GITHUB_RUN_NUMBER; echo "versionName: $versionName; versionCode: $versionCode"
           export GIT_USERNAME=$GIT_USERNAME
           export GIT_PAT=$GIT_PAT
+          echo "Android TV app update: ${{ github.event.head_commit.message }}" > ./app/src/main/play/release-notes/en-US/default.txt
           export ANDROID_PUBLISHER_CREDENTIALS=$ANDROID_PUBLISHER_CREDENTIALS
           chmod +x ./gradlew && ./gradlew publishTvReleaseBundle --artifact-dir ./app/build/outputs/bundle/tvRelease/ --release-name "$versionCode ($versionName.$versionCode) TV" --stacktrace
