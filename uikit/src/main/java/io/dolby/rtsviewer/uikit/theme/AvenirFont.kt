@@ -11,7 +11,7 @@
  *
  */
 
-package com.dolby.uicomponents.ui.theme
+package io.dolby.rtsviewer.uikit.theme
 
 import androidx.compose.ui.text.TextStyle
 import androidx.compose.ui.text.font.Font
@@ -19,7 +19,6 @@ import androidx.compose.ui.text.font.FontFamily
 import androidx.compose.ui.text.font.FontStyle
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.sp
-
 import io.dolby.uikit.R
 
 // Define all the Avenir fonts
@@ -94,7 +93,7 @@ object AvenirFont {
         fontFamily = family,
         fontSize = fontSize.sp,
         fontStyle = fontStyle,
-        fontWeight = fontWeight,
+        fontWeight = fontWeight
     )
 
     fun mediumFontWith(

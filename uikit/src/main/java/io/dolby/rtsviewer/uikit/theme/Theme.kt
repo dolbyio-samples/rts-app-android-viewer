@@ -1,4 +1,4 @@
-package com.dolby.uicomponents.ui.theme
+package io.dolby.rtsviewer.uikit.theme
 
 import androidx.compose.foundation.isSystemInDarkTheme
 import androidx.compose.material.MaterialTheme
@@ -18,5 +18,5 @@ fun RTSViewerTheme(content: @Composable () -> Unit) {
 
 @Composable
 fun getColorPalette(): ColorPalette {
-    return if (isSystemInDarkTheme()) DarkThemeColors() else DarkThemeColors()//LightThemeColors()
+    return if (isSystemInDarkTheme()) DarkThemeColors() else DarkThemeColors() // LightThemeColors()
 }

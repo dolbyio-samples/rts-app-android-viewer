@@ -39,10 +39,12 @@ fun StreamingScreen(viewModel: StreamingViewModel = hiltViewModel()) {
         ) {
             val (text, progress, videoView, error) = createRefs()
             if (uiState.connecting && uiState.error == null) {
-                CircularProgressIndicator(modifier = Modifier.constrainAs(progress) {
-                    centerVerticallyTo(parent)
-                    centerHorizontallyTo(parent)
-                })
+                CircularProgressIndicator(
+                    modifier = Modifier.constrainAs(progress) {
+                        centerVerticallyTo(parent)
+                        centerHorizontallyTo(parent)
+                    }
+                )
             } else if (uiState.error != null) {
                 Text(
                     text = "${uiState.error}",
@@ -72,7 +74,8 @@ fun StreamingScreen(viewModel: StreamingViewModel = hiltViewModel()) {
                 color = MaterialTheme.colors.onPrimary,
                 modifier = Modifier.constrainAs(text) {
                     top.linkTo(parent.top)
-                })
+                }
+            )
         }
     }
 }

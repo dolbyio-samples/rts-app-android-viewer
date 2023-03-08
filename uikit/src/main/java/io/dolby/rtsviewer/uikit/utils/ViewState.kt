@@ -11,7 +11,7 @@
  *
  */
 
-package io.dolby.uikit.utils
+package io.dolby.rtsviewer.uikit.utils
 
 /**
  * An analogous enum to the traditional Android view state model where in the state of a view can be

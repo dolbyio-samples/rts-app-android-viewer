@@ -5,7 +5,6 @@ import androidx.activity.ComponentActivity
 import androidx.activity.compose.setContent
 import com.dolby.uicomponents.ui.theme.RTSViewerTheme
 import dagger.hilt.android.AndroidEntryPoint
-import io.dolby.rtscomponentkit.legacy.MillicastManager
 import io.dolby.rtsviewer.ui.navigation.AppNavigation
 @AndroidEntryPoint
 class MainActivity : ComponentActivity() {

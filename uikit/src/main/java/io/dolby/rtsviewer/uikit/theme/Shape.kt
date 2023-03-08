@@ -1,4 +1,4 @@
-package com.dolby.uicomponents.ui.theme
+package io.dolby.rtsviewer.uikit.theme
 
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.Shapes
