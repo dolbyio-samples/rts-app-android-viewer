@@ -3,7 +3,7 @@ package io.dolby.rtsviewer
 import android.os.Bundle
 import androidx.activity.ComponentActivity
 import androidx.activity.compose.setContent
-import com.dolby.uicomponents.ui.theme.RTSViewerTheme
+import io.dolby.rtsviewer.uikit.theme.RTSViewerTheme
 import dagger.hilt.android.AndroidEntryPoint
 import io.dolby.rtsviewer.ui.navigation.AppNavigation
 @AndroidEntryPoint

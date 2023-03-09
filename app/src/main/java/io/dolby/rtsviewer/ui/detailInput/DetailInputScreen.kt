@@ -18,7 +18,7 @@ import androidx.compose.ui.draw.clip
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import androidx.constraintlayout.compose.ConstraintLayout
-import com.dolby.uicomponents.ui.theme.fontColor
+import io.dolby.rtsviewer.uikit.theme.fontColor
 import io.dolby.rtscomponentkit.domain.StreamingData
 import io.dolby.rtsviewer.uikit.button.StyledButton
 import io.dolby.rtsviewer.uikit.input.TextInput

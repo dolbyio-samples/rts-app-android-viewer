@@ -32,9 +32,9 @@ import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
-import com.dolby.uicomponents.ui.theme.backgroundColor
-import com.dolby.uicomponents.ui.theme.borderColor
-import com.dolby.uicomponents.ui.theme.fontColor
+import io.dolby.rtsviewer.uikit.theme.backgroundColor
+import io.dolby.rtsviewer.uikit.theme.borderColor
+import io.dolby.rtsviewer.uikit.theme.fontColor
 import io.dolby.rtsviewer.uikit.utils.ViewState
 import io.dolby.rtsviewer.uikit.utils.listItemHeight
 
