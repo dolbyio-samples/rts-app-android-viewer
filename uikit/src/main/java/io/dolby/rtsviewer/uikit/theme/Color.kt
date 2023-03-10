@@ -1,6 +1,6 @@
 @file:Suppress("MemberVisibilityCanBePrivate")
 
-package com.dolby.uicomponents.ui.theme
+package io.dolby.rtsviewer.uikit.theme
 
 import androidx.compose.material.Colors
 import androidx.compose.material.MaterialTheme
@@ -10,7 +10,7 @@ import androidx.compose.material.darkColors
 import androidx.compose.material.lightColors
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.graphics.Color
-import io.dolby.uikit.utils.ViewState
+import io.dolby.rtsviewer.uikit.utils.ViewState
 
 abstract class ColorPalette {
     open val blue = Color(0xFF3E44FE)
@@ -43,8 +43,6 @@ abstract class ColorPalette {
     open val black = Color.Black
     open val yellow = Color(0xFFFFFF00)
     open val red = Color(0xFFFF0000)
-
-
 
     abstract fun asList(): Colors
 }

@@ -18,11 +18,11 @@ import androidx.compose.ui.draw.clip
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import androidx.constraintlayout.compose.ConstraintLayout
-import com.dolby.uicomponents.ui.theme.fontColor
 import io.dolby.rtscomponentkit.domain.StreamingData
 import io.dolby.rtsviewer.uikit.button.StyledButton
 import io.dolby.rtsviewer.uikit.input.TextInput
-import io.dolby.uikit.utils.ViewState
+import io.dolby.rtsviewer.uikit.theme.fontColor
+import io.dolby.rtsviewer.uikit.utils.ViewState
 
 @Composable
 fun DetailInputScreen(onPlayClick: (StreamingData) -> Unit) {
@@ -42,24 +42,30 @@ fun DetailInputScreen(onPlayClick: (StreamingData) -> Unit) {
                 .clip(MaterialTheme.shapes.large)
                 .padding(25.dp)
         ) {
-            val (header, title, subtitle, inputStream, inputAccount,
-                savedStreamsButton, playButton, cleanStreamHistory) = createRefs()
-            Text("Dolby.io Remote Monitor",
+            val (
+                header, title, subtitle, inputStream, inputAccount,
+                savedStreamsButton, playButton, cleanStreamHistory
+            ) = createRefs()
+            Text(
+                "Dolby.io Remote Monitor",
                 style = MaterialTheme.typography.body1,
                 color = fontColor(ViewState.Selected),
                 textAlign = TextAlign.Center,
                 modifier = Modifier.constrainAs(header) {
                     top.linkTo(parent.top, margin = 15.dp)
                     centerHorizontallyTo(parent)
-                })
-            Text("View Stream",
+                }
+            )
+            Text(
+                "View Stream",
                 style = MaterialTheme.typography.h1,
                 color = fontColor(ViewState.Selected),
                 textAlign = TextAlign.Center,
                 modifier = Modifier.constrainAs(title) {
                     top.linkTo(header.bottom, margin = 20.dp)
                     centerHorizontallyTo(parent)
-                })
+                }
+            )
             Text(
                 "Enter your stream name and publisher \naccount ID to view a stream",
                 style = MaterialTheme.typography.body1,
@@ -68,20 +74,28 @@ fun DetailInputScreen(onPlayClick: (StreamingData) -> Unit) {
                 modifier = Modifier.constrainAs(subtitle) {
                     top.linkTo(title.bottom, margin = 12.dp)
                     centerHorizontallyTo(parent)
-                })
-            TextInput(value = streamName, label = "Enter your stream name", onValueChange = {
-                streamName = it
-            },
+                }
+            )
+            TextInput(
+                value = streamName,
+                label = "Enter your stream name",
+                onValueChange = {
+                    streamName = it
+                },
                 modifier = Modifier.constrainAs(inputStream) {
                     top.linkTo(subtitle.bottom, margin = 25.dp)
-                })
-            TextInput(value = accountId, label = "Enter your account ID",
+                }
+            )
+            TextInput(
+                value = accountId,
+                label = "Enter your account ID",
                 onValueChange = {
                     accountId = it
                 },
                 modifier = Modifier.constrainAs(inputAccount) {
                     top.linkTo(inputStream.bottom, margin = 12.dp)
-                })
+                }
+            )
             StyledButton(
                 buttonText = "Play",
                 modifier = Modifier.constrainAs(playButton) {

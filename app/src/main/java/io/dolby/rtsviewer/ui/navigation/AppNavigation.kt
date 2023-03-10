@@ -12,10 +12,10 @@ fun AppNavigation() {
     val navController = rememberNavController()
     NavHost(
         navController = navController,
-        startDestination = Screen.DetailInputScreen.route,
+        startDestination = Screen.DetailInputScreen.route
     ) {
         composable(
-            route = Screen.DetailInputScreen.route,
+            route = Screen.DetailInputScreen.route
         ) {
             DetailInputScreen {
                 navController.navigate(Screen.StreamingScreen.route(it))

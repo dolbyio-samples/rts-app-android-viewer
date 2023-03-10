@@ -1,4 +1,4 @@
-package com.dolby.uicomponents.ui.theme
+package io.dolby.rtsviewer.uikit.theme
 
 import androidx.compose.material.Typography
 import androidx.compose.ui.text.font.FontStyle
@@ -10,13 +10,13 @@ val Typography = Typography(
     // Use this as your default paragraph text
 
     h1 = AvenirFont.semiBoldFontWith(
-        fontSize = 34,
+        fontSize = 34
     ),
     h2 = AvenirFont.semiBoldFontWith(
-        fontSize = 28,
+        fontSize = 28
     ),
     h3 = AvenirFont.semiBoldFontWith(
-        fontSize = 24,
+        fontSize = 24
     ),
     h4 = AvenirFont.semiBoldFontWith(
         fontSize = 22
@@ -28,13 +28,13 @@ val Typography = Typography(
         fontSize = 18
     ),
     subtitle1 = AvenirFont.mediumFontWith(
-        fontSize = 14,
+        fontSize = 14
     ),
     subtitle2 = AvenirFont.mediumItalicFontWith(
-        fontSize = 17,
+        fontSize = 17
     ),
     body1 = AvenirFont.mediumFontWith(
-        fontSize = 16,
+        fontSize = 16
     ),
     body2 = AvenirFont.mediumFontWith(
         fontSize = 15

@@ -46,7 +46,7 @@ class SubscriptionManager(
         try {
             success = subscriber?.connect() ?: false
         } catch (e: Exception) {
-            Log.d(MillicastManager.TAG, "${e.message}");
+            Log.d(MillicastManager.TAG, "${e.message}")
         }
 
         return success
@@ -103,4 +103,3 @@ class SubscriptionManager(
         }
     }
 }
-
