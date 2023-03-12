@@ -29,6 +29,7 @@ import androidx.compose.runtime.getValue
 import androidx.compose.runtime.remember
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.LocalContext
+import androidx.compose.ui.platform.testTag
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
@@ -67,7 +68,8 @@ fun StyledButton(
             .padding(5.dp)
             .listItemHeight()
             .fillMaxWidth()
-            .widthIn(min = if (isLarge) 180.dp else 80.dp),
+            .widthIn(min = if (isLarge) 180.dp else 80.dp)
+            .testTag(buttonText),
         interactionSource = interactionSource,
         onClick = { onClickAction?.invoke(context) },
         content = {
