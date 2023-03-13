@@ -6,6 +6,8 @@ on:
       - main
     tags:
       - '*'
+env:
+  GIT_USERNAME: "dolbyio-gh-bot"
 
 jobs:
   Android-App-Build:
@@ -42,14 +44,11 @@ jobs:
           KEYSTORE_PASSWORD: ${{ secrets.RELEASE_KEYSTORE_STORE_PASSWORD }}
           KEY_ALIAS: ${{ secrets.RELEASE_KEYSTORE_KEY_ALIAS }}
           KEY_PASSWORD: ${{ secrets.RELEASE_KEYSTORE_KEY_PASSWORD }}
-          GIT_USERNAME: ${{ secrets.MAVEN_USERNAME }}
-          GIT_PAT: ${{ secrets.MAVEN_PAT }}
+          GIT_PAT: ${{ secrets.GITHUB_TOKEN }}
         run: |
           export KEYSTORE_PASSWORD=$KEYSTORE_PASSWORD
           export KEY_ALIAS=$KEY_ALIAS
           export KEY_PASSWORD=$KEY_PASSWORD
-          export GIT_USERNAME=$GIT_USERNAME
-          export GIT_PAT=$GIT_PAT
           source ~/.env_version
           chmod +x ./gradlew && ./gradlew assembleTvRelease bundleTvRelease
 
@@ -95,12 +94,9 @@ jobs:
       - name: Deploy TV app to Play Store
         env:
           ANDROID_PUBLISHER_CREDENTIALS: ${{ secrets.ANDROID_PUBLISHER_CREDENTIALS }}
-          GIT_USERNAME: ${{ secrets.MAVEN_USERNAME }}
-          GIT_PAT: ${{ secrets.MAVEN_PAT }}
+          GIT_PAT: ${{ secrets.GITHUB_TOKEN }}
         run: |
           versionName='1.0.'$GITHUB_RUN_NUMBER
           versionCode=$GITHUB_RUN_NUMBER
-          export GIT_USERNAME=$GIT_USERNAME
-          export GIT_PAT=$GIT_PAT
           export ANDROID_PUBLISHER_CREDENTIALS=$ANDROID_PUBLISHER_CREDENTIALS
           chmod +x ./gradlew && ./gradlew publishTvReleaseBundle --artifact-dir ./app/build/outputs/bundle/tvRelease/ --release-name "$versionCode ($versionName) TV" --stacktrace

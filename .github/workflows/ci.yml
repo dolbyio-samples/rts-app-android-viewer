@@ -6,6 +6,13 @@ on:
   pull_request:
     branches: [ "*" ]
 
+permissions:
+  contents: read
+  packages: write
+
+env:
+  GIT_USERNAME: "dolbyio-gh-bot"
+
 jobs:
   Validate-And-Build:
     runs-on: ubuntu-latest
@@ -23,9 +30,6 @@ jobs:
         run: chmod +x gradlew
       - name: Validate
         env:
-          GIT_USERNAME: ${{ secrets.MAVEN_USERNAME }}
-          GIT_PAT: ${{ secrets.MAVEN_PAT }}
+          GIT_PAT: ${{ secrets.GITHUB_TOKEN }}
         run: |
-          export GIT_USERNAME=$GIT_USERNAME
-          export GIT_PAT=$GIT_PAT
           ./gradlew spotlessCheck check assembleDebug --info
