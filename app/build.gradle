@@ -100,6 +100,7 @@ dependencies {
     testImplementation libs.robolectric
     testImplementation libs.androidx.compose.ui.test.junit
     debugImplementation libs.androidx.compose.ui.test.manifest
+    testImplementation "androidx.navigation:navigation-testing:2.5.3"
 
     androidTestImplementation 'androidx.test.ext:junit:1.1.5'
     androidTestImplementation 'androidx.test.espresso:espresso-core:3.5.1'
