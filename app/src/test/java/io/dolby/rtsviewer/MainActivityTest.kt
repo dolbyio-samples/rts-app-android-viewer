@@ -1,15 +1,10 @@
 package io.dolby.rtsviewer
 
-import androidx.compose.ui.test.assert
 import androidx.compose.ui.test.assertIsEnabled
 import androidx.compose.ui.test.assertIsNotEnabled
-import androidx.compose.ui.test.assertTextEquals
-import androidx.compose.ui.test.hasText
 import androidx.compose.ui.test.junit4.createComposeRule
 import androidx.compose.ui.test.onNodeWithContentDescription
-import androidx.compose.ui.test.onRoot
 import androidx.compose.ui.test.performTextInput
-import androidx.compose.ui.test.printToLog
 import androidx.test.core.app.ActivityScenario
 import org.junit.Before
 import org.junit.Rule

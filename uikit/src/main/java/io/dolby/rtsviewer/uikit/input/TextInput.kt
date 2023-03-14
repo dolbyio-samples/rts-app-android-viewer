@@ -6,7 +6,6 @@ import androidx.compose.material.OutlinedTextField
 import androidx.compose.material.Text
 import androidx.compose.material.TextFieldDefaults
 import androidx.compose.runtime.Composable
-import androidx.compose.runtime.MutableState
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.ui.Modifier
@@ -18,6 +17,7 @@ import androidx.compose.ui.tooling.preview.Preview
 import io.dolby.uikit.R
 
 internal val textInputContentDescriptionId = R.string.textInput_contentDescription
+
 @Preview(showBackground = true)
 @Composable
 fun TextInput(
@@ -46,4 +46,3 @@ fun TextInput(
         colors = TextFieldDefaults.textFieldColors(MaterialTheme.colors.onBackground)
     )
 }
-

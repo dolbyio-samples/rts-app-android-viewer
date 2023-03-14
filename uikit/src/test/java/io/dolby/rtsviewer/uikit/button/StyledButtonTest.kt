@@ -48,6 +48,7 @@ class StyledButtonTest {
         composeTestRule.onNodeWithContentDescription("Second Button").assertIsEnabled()
         composeTestRule.onNodeWithContentDescription("Third Button").assertIsEnabled()
     }
+
     @Test
     fun buttonClickTest() {
         var firstClicked = false
