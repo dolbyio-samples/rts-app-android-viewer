@@ -1,0 +1,5 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="button_contentDescription">Button</string>
+    <string name="textInput_contentDescription">Input</string>
+</resources>

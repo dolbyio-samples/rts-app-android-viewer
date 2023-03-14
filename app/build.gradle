@@ -21,9 +21,6 @@ android {
         versionName appVersionName
 
         testInstrumentationRunner "androidx.test.runner.AndroidJUnitRunner"
-        vectorDrawables {
-            useSupportLibrary true
-        }
     }
 
     signingConfigs {
@@ -61,6 +58,11 @@ android {
         }
         create("mobile") {
             dimension = "target"
+        }
+    }
+    testOptions {
+        unitTests {
+            includeAndroidResources = true
         }
     }
 }
