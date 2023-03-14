@@ -14,7 +14,7 @@ env:
   GIT_USERNAME: "dolbyio-gh-bot"
 
 jobs:
-  Validate-And-Build:
+  Validate-Build-And-Test:
     runs-on: ubuntu-latest
 
     steps:
@@ -32,7 +32,12 @@ jobs:
         env:
           GIT_PAT: ${{ secrets.GITHUB_TOKEN }}
         run: |
-          ./gradlew spotlessCheck check assembleDebug --info
+          ./gradlew spotlessCheck
+          ./gradlew assembleDebug --info
 
       - name: Run unit tests
-        run: ./gradlew clean testTvDebugUnitTest --info
+        env:
+          GIT_PAT: ${{ secrets.GITHUB_TOKEN }}
+        run: |
+          ./gradlew clean :uikit:testDebugUnitTest --info
+          ./gradlew clean :app:testTvDebugUnitTest --info
