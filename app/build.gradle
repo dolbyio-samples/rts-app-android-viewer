@@ -21,9 +21,6 @@ android {
         versionName appVersionName
 
         testInstrumentationRunner "androidx.test.runner.AndroidJUnitRunner"
-        vectorDrawables {
-            useSupportLibrary true
-        }
     }
 
     signingConfigs {
@@ -63,6 +60,11 @@ android {
             dimension = "target"
         }
     }
+    testOptions {
+        unitTests {
+            includeAndroidResources = true
+        }
+    }
 }
 
 dependencies {
@@ -94,7 +96,12 @@ dependencies {
     implementation 'androidx.lifecycle:lifecycle-runtime-compose:2.6.0-rc01'
     implementation "androidx.activity:activity-compose:1.6.1"
 
-    testImplementation 'junit:junit:4.13.2'
+    testImplementation libs.junit
+    testImplementation libs.robolectric
+    testImplementation libs.androidx.compose.ui.test.junit
+    debugImplementation libs.androidx.compose.ui.test.manifest
+    testImplementation "androidx.navigation:navigation-testing:2.5.3"
+
     androidTestImplementation 'androidx.test.ext:junit:1.1.5'
     androidTestImplementation 'androidx.test.espresso:espresso-core:3.5.1'
 }

@@ -29,6 +29,9 @@ import androidx.compose.runtime.getValue
 import androidx.compose.runtime.remember
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.LocalContext
+import androidx.compose.ui.res.stringResource
+import androidx.compose.ui.semantics.contentDescription
+import androidx.compose.ui.semantics.semantics
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
@@ -37,16 +40,15 @@ import io.dolby.rtsviewer.uikit.theme.borderColor
 import io.dolby.rtsviewer.uikit.theme.fontColor
 import io.dolby.rtsviewer.uikit.utils.ViewState
 import io.dolby.rtsviewer.uikit.utils.listItemHeight
+import io.dolby.uikit.R
 
-/**
- * This is a sample component, please do not use this in any real world use case.
- * As more components are built, this can be deleted
- */
+internal val buttonContentDescriptionId = R.string.button_contentDescription
+
+@Preview
 @Composable
-@Preview(showBackground = false)
 fun StyledButton(
     modifier: Modifier = Modifier,
-    buttonText: String = "test",
+    buttonText: String = "",
     onClickAction: ((Context) -> Unit)? = null,
     isSelected: Boolean = false,
     isEnabled: Boolean = true,
@@ -61,13 +63,14 @@ fun StyledButton(
     val fontColor = fontColor(viewState)
     val backgroundColor = backgroundColor(state = viewState, isPrimary = isPrimary)
     val borderColor = borderColor(viewState, isPrimary)
-
+    val buttonContentDescription = "$buttonText ${ stringResource(id = buttonContentDescriptionId) }"
     Button(
         modifier = modifier
             .padding(5.dp)
             .listItemHeight()
             .fillMaxWidth()
-            .widthIn(min = if (isLarge) 180.dp else 80.dp),
+            .widthIn(min = if (isLarge) 180.dp else 80.dp)
+            .semantics { contentDescription = buttonContentDescription },
         interactionSource = interactionSource,
         onClick = { onClickAction?.invoke(context) },
         content = {
