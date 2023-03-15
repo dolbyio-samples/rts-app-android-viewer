@@ -1,6 +1,21 @@
 <resources xmlns:tools="http://schemas.android.com/tools">
     <string name="app_name">Dolby.io Stream Monitor</string>
+    
+    <!-- Streaming Screen -->
     <string name="streaming_screen_contentDescription">Streaming Screen</string>
     <string name="live_label">Live</string>
     <string name="offline_label">Offline</string>
+
+    <!-- Stream Detail Input Screen -->
+    <string name="stream_detail_screen_name">Stream Detail Input Screen</string>
+    <string name="stream_detail_header">Dolby.io Remote Monitor</string>
+    <string name="stream_detail_title">View stream</string>
+    <string name="stream_detail_subtitle">Enter your stream name and publisher\naccount ID to view a stream.</string>
+    <string name="stream_name_placeholder">Enter your stream name</string>
+    <string name="account_id_placeholder">Enter your account ID</string>
+    <string name="play_button">Play</string>
+    <string name="saved_streams_button">Saved Streams</string>
+    <string name="clear_stream_history_button">Clear stream history</string>
+    <string name="missing_stream_name_or_account_id">Please enter a Stream name and Account ID</string>
+    <string name="missing_stream_detail_dismiss_button">OK</string>
 </resources>

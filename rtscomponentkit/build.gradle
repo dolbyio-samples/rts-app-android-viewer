@@ -22,12 +22,25 @@ android {
             proguardFiles getDefaultProguardFile('proguard-android-optimize.txt'), 'proguard-rules.pro'
         }
     }
+
+    buildFeatures {
+        compose true
+    }
+
+    composeOptions {
+        kotlinCompilerExtensionVersion kotlin_compiler_version
+    }
 }
 
 dependencies {
     api 'com.millicast:millicast-sdk-android:1.4.2'
 
     implementation libs.androidx.core.ktx
+
+    implementation libs.androidx.compose.ui
+    implementation libs.androidx.compose.ui.preview
+
+    implementation libs.androidx.compose.material
 
     implementation libs.android.coroutines
 
