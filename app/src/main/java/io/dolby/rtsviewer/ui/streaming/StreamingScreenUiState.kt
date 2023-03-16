@@ -7,6 +7,7 @@ data class StreamingScreenUiState(
     val accountId: String = "",
     val streamName: String = "",
     val connecting: Boolean = true,
+    val disconnected: Boolean = false,
     val audioTrack: AudioTrack? = null,
     val videoTrack: VideoTrack? = null,
     val error: String? = null

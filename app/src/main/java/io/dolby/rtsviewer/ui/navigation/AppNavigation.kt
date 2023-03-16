@@ -16,9 +16,9 @@ fun AppNavigation(navController: NavHostController) {
         composable(
             route = Screen.DetailInputScreen.route
         ) {
-            DetailInputScreen {
+            DetailInputScreen(onPlayClick = {
                 navController.navigate(Screen.StreamingScreen.route(it))
-            }
+            })
         }
 
         composable(

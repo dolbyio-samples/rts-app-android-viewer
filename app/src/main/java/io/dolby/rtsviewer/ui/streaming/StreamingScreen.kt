@@ -21,6 +21,8 @@ import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import com.millicast.VideoRenderer
 import io.dolby.rtscomponentkit.R
+import io.dolby.rtsviewer.utils.KeepScreenOn
+import io.dolby.rtsviewer.utils.SetupVolumeControlAudioStream
 import org.webrtc.RendererCommon
 
 @Composable
@@ -41,36 +43,44 @@ fun StreamingScreen(viewModel: StreamingViewModel = hiltViewModel()) {
                 .semantics { contentDescription = "Streaming Screen" }
         ) {
             val (text, progress, videoView, error) = createRefs()
-            if (uiState.connecting && uiState.error == null) {
-                CircularProgressIndicator(
-                    modifier = Modifier.constrainAs(progress) {
-                        centerVerticallyTo(parent)
-                        centerHorizontallyTo(parent)
+            when {
+                uiState.connecting && uiState.error == null -> {
+                    CircularProgressIndicator(
+                        modifier = Modifier.constrainAs(progress) {
+                            centerVerticallyTo(parent)
+                            centerHorizontallyTo(parent)
+                        }
+                    )
+                }
+                uiState.error != null -> {
+                    Text(
+                        text = "${uiState.error}",
+                        style = MaterialTheme.typography.h3,
+                        color = MaterialTheme.colors.onPrimary,
+                        textAlign = TextAlign.Center,
+                        modifier = Modifier.constrainAs(error) {
+                            centerHorizontallyTo(parent)
+                            centerVerticallyTo(parent)
+                        }
+                    )
+                }
+                else -> {
+                    AndroidView(
+                        factory = { context -> VideoRenderer(context) },
+                        update = { view ->
+                            view.setScalingType(RendererCommon.ScalingType.SCALE_ASPECT_FIT)
+                            uiState.videoTrack?.setRenderer(view)
+                        },
+                        modifier = Modifier.constrainAs(videoView) {
+                            centerHorizontallyTo(parent)
+                            centerVerticallyTo(parent)
+                        }
+                    )
+                    if (uiState.videoTrack != null || uiState.audioTrack != null) {
+                        KeepScreenOn()
+                        SetupVolumeControlAudioStream()
                     }
-                )
-            } else if (uiState.error != null) {
-                Text(
-                    text = "${uiState.error}",
-                    style = MaterialTheme.typography.h3,
-                    color = MaterialTheme.colors.onPrimary,
-                    textAlign = TextAlign.Center,
-                    modifier = Modifier.constrainAs(error) {
-                        centerHorizontallyTo(parent)
-                        centerVerticallyTo(parent)
-                    }
-                )
-            } else {
-                AndroidView(
-                    factory = { context -> VideoRenderer(context) },
-                    update = { view ->
-                        view.setScalingType(RendererCommon.ScalingType.SCALE_ASPECT_FIT)
-                        uiState.videoTrack?.setRenderer(view)
-                    },
-                    modifier = Modifier.constrainAs(videoView) {
-                        centerHorizontallyTo(parent)
-                        centerVerticallyTo(parent)
-                    }
-                )
+                }
             }
             Text(
                 text = uiState.streamName,
