@@ -24,6 +24,7 @@ import kotlin.time.Duration
 import kotlin.time.Duration.Companion.seconds
 
 private const val TAG = "StreamingViewModel"
+
 @HiltViewModel
 class StreamingViewModel @Inject constructor(
     private val savedStateHandle: SavedStateHandle,
@@ -83,7 +84,7 @@ class StreamingViewModel @Inject constructor(
                             _uiState.update { state ->
                                 state.copy(
                                     subscribed = false,
-                                    disconnected = true,
+                                    disconnected = true
                                 )
                             }
                         }
@@ -93,7 +94,7 @@ class StreamingViewModel @Inject constructor(
                         withContext(dispatcherProvider.main) {
                             _uiState.update { state ->
                                 state.copy(
-                                    audioTrack = it.audioTrack,
+                                    audioTrack = it.audioTrack
                                 )
                             }
                         }
@@ -103,7 +104,7 @@ class StreamingViewModel @Inject constructor(
                         withContext(dispatcherProvider.main) {
                             _uiState.update { state ->
                                 state.copy(
-                                    videoTrack = it.videoTrack,
+                                    videoTrack = it.videoTrack
                                 )
                             }
                             Log.d("StreamingViewModel", "RTSViewerDataStore.State.VideoTrackReady - 2")

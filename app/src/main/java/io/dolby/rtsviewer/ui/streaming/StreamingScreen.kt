@@ -1,6 +1,5 @@
 package io.dolby.rtsviewer.ui.streaming
 
-import androidx.annotation.Keep
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.fillMaxSize
@@ -86,7 +85,7 @@ fun StreamingScreen(viewModel: StreamingViewModel = hiltViewModel()) {
                             update = { view ->
                                 view.setScalingType(RendererCommon.ScalingType.SCALE_ASPECT_FIT)
                                 uiState.videoTrack?.setRenderer(view)
-                            },
+                            }
                         )
                         SetupVolumeControlAudioStream()
                     }

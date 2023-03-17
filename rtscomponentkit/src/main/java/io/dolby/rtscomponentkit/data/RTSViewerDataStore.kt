@@ -131,7 +131,7 @@ class RTSViewerDataStore(
 
             audioPlayback = media.audioPlayback
         } else {
-            Log.d(tag,  "Using existing audioPlayback...")
+            Log.d(tag, "Using existing audioPlayback...")
         }
         Log.d(tag, "AudioPlayback is: $audioPlayback")
 
