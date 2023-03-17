@@ -1,5 +1,6 @@
 package io.dolby.rtsviewer.ui.streaming
 
+import android.util.Log
 import androidx.lifecycle.SavedStateHandle
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
@@ -22,6 +23,7 @@ import javax.inject.Inject
 import kotlin.time.Duration
 import kotlin.time.Duration.Companion.seconds
 
+private const val TAG = "StreamingViewModel"
 @HiltViewModel
 class StreamingViewModel @Inject constructor(
     private val savedStateHandle: SavedStateHandle,
@@ -36,7 +38,8 @@ class StreamingViewModel @Inject constructor(
         defaultCoroutineScope.launch {
             tickerFlow(5.seconds)
                 .onEach {
-                    if (_uiState.value.error != null || _uiState.value.disconnected) {
+                    if (!_uiState.value.connecting && (_uiState.value.error != null || _uiState.value.disconnected)) {
+                        Log.d(TAG, "reconnect!")
                         connect()
                     }
                 }
@@ -46,38 +49,79 @@ class StreamingViewModel @Inject constructor(
         defaultCoroutineScope.launch {
             repository.state.collect {
                 when (it) {
-                    RTSViewerDataStore.State.Connected -> {
-                        repository.startSubscribe()
-                    }
                     RTSViewerDataStore.State.Subscribed -> {
+                        Log.d(TAG, "Subscribed")
                         repository.audioPlaybackStart()
-                    }
-                    RTSViewerDataStore.State.StreamInactive -> {
-                        repository.stopSubscribe()
-                    }
-                    is RTSViewerDataStore.State.VideoTrackReady -> {
                         withContext(dispatcherProvider.main) {
                             _uiState.update { state ->
                                 state.copy(
+                                    subscribed = true,
                                     connecting = false,
-                                    videoTrack = it.videoTrack,
-                                    error = null
+                                    error = null,
+                                    disconnected = false
+                                )
+                            }
+                        }
+                    }
+                    RTSViewerDataStore.State.StreamActive -> {
+                        Log.d(TAG, "StreamActive")
+                        withContext(dispatcherProvider.main) {
+                            _uiState.update { state ->
+                                state.copy(
+                                    subscribed = true,
+                                    connecting = false,
+                                    error = null,
+                                    disconnected = false
                                 )
                             }
                         }
                     }
                     RTSViewerDataStore.State.StreamInactive -> {
-                    }
-                    RTSViewerDataStore.State.Disconnected -> {
+                        Log.d(TAG, "StreamInactive")
+                        repository.stopSubscribe()
                         withContext(dispatcherProvider.main) {
                             _uiState.update { state ->
                                 state.copy(
+                                    subscribed = false,
+                                    disconnected = true,
+                                )
+                            }
+                        }
+                    }
+                    is RTSViewerDataStore.State.AudioTrackReady -> {
+                        Log.d(TAG, "AudioTrackReady")
+                        withContext(dispatcherProvider.main) {
+                            _uiState.update { state ->
+                                state.copy(
+                                    audioTrack = it.audioTrack,
+                                )
+                            }
+                        }
+                    }
+                    is RTSViewerDataStore.State.VideoTrackReady -> {
+                        Log.d(TAG, "VideoTrackReady")
+                        withContext(dispatcherProvider.main) {
+                            _uiState.update { state ->
+                                state.copy(
+                                    videoTrack = it.videoTrack,
+                                )
+                            }
+                            Log.d("StreamingViewModel", "RTSViewerDataStore.State.VideoTrackReady - 2")
+                        }
+                    }
+                    RTSViewerDataStore.State.Disconnected -> {
+                        Log.d(TAG, "Disconnected")
+                        withContext(dispatcherProvider.main) {
+                            _uiState.update { state ->
+                                state.copy(
+                                    connecting = false,
                                     disconnected = true
                                 )
                             }
                         }
                     }
                     is RTSViewerDataStore.State.Error -> {
+                        Log.d(TAG, "Error")
                         withContext(dispatcherProvider.main) {
                             _uiState.update { state ->
                                 state.copy(
@@ -87,7 +131,6 @@ class StreamingViewModel @Inject constructor(
                             }
                         }
                     }
-                    else -> {}
                 }
             }
         }

@@ -6,9 +6,13 @@ import com.millicast.VideoTrack
 data class StreamingScreenUiState(
     val accountId: String = "",
     val streamName: String = "",
+
     val connecting: Boolean = true,
     val disconnected: Boolean = false,
+    val subscribed: Boolean = false,
+
     val audioTrack: AudioTrack? = null,
     val videoTrack: VideoTrack? = null,
+    val viewerCount: Int = 0,
     val error: String? = null
 )
