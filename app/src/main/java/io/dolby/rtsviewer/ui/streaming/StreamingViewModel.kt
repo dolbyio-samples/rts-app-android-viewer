@@ -40,7 +40,7 @@ class StreamingViewModel @Inject constructor(
             tickerFlow(5.seconds)
                 .onEach {
                     if (!_uiState.value.connecting && (_uiState.value.error != null || _uiState.value.disconnected)) {
-                        Log.d(TAG, "reconnect!")
+                        Log.d(TAG, "Reconnect")
                         connect()
                     }
                 }
@@ -50,6 +50,16 @@ class StreamingViewModel @Inject constructor(
         defaultCoroutineScope.launch {
             repository.state.collect {
                 when (it) {
+                    RTSViewerDataStore.State.Connecting -> {
+                        Log.d(TAG, "Connecting")
+                        withContext(dispatcherProvider.main) {
+                            _uiState.update { state ->
+                                state.copy(
+                                    connecting = true
+                                )
+                            }
+                        }
+                    }
                     RTSViewerDataStore.State.Subscribed -> {
                         Log.d(TAG, "Subscribed")
                         repository.audioPlaybackStart()

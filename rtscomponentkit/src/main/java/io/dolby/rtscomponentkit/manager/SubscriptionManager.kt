@@ -4,7 +4,7 @@ import android.util.Log
 import com.millicast.LayerData
 import com.millicast.Subscriber
 
-private const val tag = "SubscriptionManager"
+internal const val TAG = "RTSSubscriptionManager"
 interface SubscriptionManagerInterface {
     suspend fun connect(streamName: String, accountID: String): Boolean
     suspend fun startSubscribe(): Boolean
@@ -20,18 +20,18 @@ class SubscriptionManager(
     override suspend fun connect(streamName: String, accountID: String): Boolean {
         subscriber = Subscriber.createSubscriber(subscriptionListener)
         if (subscriber == null) {
-            Log.d(tag, "Failed! Subscriber is not available.")
+            Log.d(TAG, "Failed! Subscriber is not available.")
             return false
         }
 
         // Create Subscriber if not present
         subscriber?.let {
             if (it.isConnected) {
-                Log.d(tag, "Not doing as we're already connected!")
+                Log.d(TAG, "Not doing as we're already connected!")
                 return true
             }
 
-            Log.d(tag, "Set Credentials.")
+            Log.d(TAG, "Set Credentials.")
             val credentials = it.credentials
             credentials.streamName = streamName
             credentials.accountId = accountID
@@ -39,12 +39,12 @@ class SubscriptionManager(
             it.credentials = credentials
         }
         // Connect Subscriber.
-        Log.d(tag, "Trying...")
+        Log.d(TAG, "Trying...")
         var success = false
         try {
             success = subscriber?.connect() ?: false
         } catch (e: Exception) {
-            Log.d(tag, "${e.message}")
+            Log.d(TAG, "${e.message}")
         }
 
         return success
@@ -57,7 +57,7 @@ class SubscriptionManager(
             subscriber?.subscribe()
         } catch (e: Exception) {
             success = false
-            Log.d(tag, "${e.message}")
+            Log.d(TAG, "${e.message}")
         }
         enableStatsSub(10000)
         return success
@@ -70,7 +70,7 @@ class SubscriptionManager(
             subscriber?.unsubscribe()
         } catch (e: Exception) {
             success = false
-            Log.d(tag, "${e.message}")
+            Log.d(TAG, "${e.message}")
         }
 
         // Disconnect from Millicast.
@@ -78,7 +78,7 @@ class SubscriptionManager(
             subscriber?.disconnect()
         } catch (e: java.lang.Exception) {
             success = false
-            Log.d(tag, "${e.message}")
+            Log.d(TAG, "${e.message}")
         }
         enableStatsSub(0)
         return success
@@ -93,13 +93,13 @@ class SubscriptionManager(
             try {
                 if (enable > 0) {
                     it.getStats(enable)
-                    Log.d(tag, "YES. Interval: $enable ms.")
+                    Log.d(TAG, "YES. Interval: $enable ms.")
                 } else {
                     it.getStats(0)
-                    Log.d(tag, "NO.")
+                    Log.d(TAG, "NO.")
                 }
             } catch (e: IllegalStateException) {
-                Log.e(tag, e.message ?: e.toString())
+                Log.e(TAG, e.message ?: e.toString())
             }
         }
     }

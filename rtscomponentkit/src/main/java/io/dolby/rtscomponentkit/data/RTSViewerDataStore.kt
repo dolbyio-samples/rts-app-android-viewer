@@ -11,8 +11,10 @@ import com.millicast.Subscriber
 import com.millicast.VideoTrack
 import io.dolby.rtscomponentkit.manager.SubscriptionManager
 import io.dolby.rtscomponentkit.manager.SubscriptionManagerInterface
+import io.dolby.rtscomponentkit.manager.TAG
 import io.dolby.rtscomponentkit.utils.DispatcherProvider
 import io.dolby.rtscomponentkit.utils.DispatcherProviderImpl
+import io.dolby.rtscomponentkit.utils.SingletonHolder
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Job
 import kotlinx.coroutines.flow.Flow
@@ -21,8 +23,7 @@ import kotlinx.coroutines.launch
 import org.webrtc.RTCStatsReport
 import java.util.Optional
 
-private const val tag = "RTSDataStore"
-class RTSViewerDataStore(
+class RTSViewerDataStore private constructor(
     context: Context,
     dispatcherProvider: DispatcherProvider = DispatcherProviderImpl
 ) {
@@ -34,22 +35,22 @@ class RTSViewerDataStore(
         }
 
         override fun onSubscribedError(reason: String) {
-            Log.d(tag, "onSubscribedError: $reason")
+            Log.d(TAG, "onSubscribedError: $reason")
             _state.value = State.Error(SubscriptionError.SubscribeError(reason))
         }
 
         override fun onTrack(track: VideoTrack, p1: Optional<String>?) {
-            Log.d(tag, "onVideoTrack")
+            Log.d(TAG, "onVideoTrack")
             _state.value = State.VideoTrackReady(track)
         }
 
         override fun onTrack(track: AudioTrack, p1: Optional<String>?) {
-            Log.d(tag, "onAudioTrack")
+            Log.d(TAG, "onAudioTrack")
             _state.value = State.AudioTrackReady(track)
         }
 
         override fun onStatsReport(report: RTCStatsReport) {
-            Log.d(tag, "onStatsReport")
+            Log.d(TAG, "onStatsReport")
         }
 
         override fun onViewerCount(p0: Int) {
@@ -57,41 +58,41 @@ class RTSViewerDataStore(
         }
 
         override fun onConnected() {
-            Log.d(tag, "onConnected")
+            Log.d(TAG, "onConnected")
             startSubscribe()
         }
 
         override fun onActive(p0: String?, p1: Array<out String>?, p2: Optional<String>?) {
-            Log.d(tag, "onActive")
+            Log.d(TAG, "onActive")
             _state.value = State.StreamActive
         }
 
         override fun onInactive(p0: String?, p1: Optional<String>?) {
-            Log.d(tag, "onInactive")
+            Log.d(TAG, "onInactive")
             _state.value = State.StreamInactive
         }
 
         override fun onStopped() {
-            Log.d(tag, "onStopped")
+            Log.d(TAG, "onStopped")
             _state.value = State.StreamInactive
         }
 
         override fun onVad(p0: String?, p1: Optional<String>?) {
-            Log.d(tag, "onVad")
+            Log.d(TAG, "onVad")
             TODO("Not yet implemented")
         }
 
         override fun onConnectionError(reason: String) {
-            Log.d(tag, "onConnectionError: $reason")
+            Log.d(TAG, "onConnectionError: $reason")
             _state.value = State.Error(SubscriptionError.ConnectError(reason))
         }
 
         override fun onSignalingError(reason: String?) {
-            Log.d(tag, "onSignalingError: $reason")
+            Log.d(TAG, "onSignalingError: $reason")
         }
 
         override fun onLayers(p0: String?, p1: Array<out LayerData>?, p2: Array<out LayerData>?) {
-            Log.d(tag, "onLayers: $p0")
+            Log.d(TAG, "onLayers: $p0")
         }
     }
 
@@ -104,6 +105,8 @@ class RTSViewerDataStore(
     private var media: Media
     private var audioPlayback: ArrayList<AudioPlayback>? = null
 
+    companion object : SingletonHolder<RTSViewerDataStore, Context>(::RTSViewerDataStore)
+
     init {
         Client.initMillicastSdk(context)
         media = Media.getInstance(context)
@@ -111,6 +114,7 @@ class RTSViewerDataStore(
     }
 
     fun connect(streamName: String, accountId: String) = apiScope.launch {
+        _state.value = State.Connecting
         subscriptionManager.connect(streamName, accountId)
     }
 
@@ -127,17 +131,17 @@ class RTSViewerDataStore(
      */
     fun audioPlaybackStart() {
         if (audioPlayback == null) {
-            Log.d(tag, "Creating new audioPlayback...")
+            Log.d(TAG, "Creating new audioPlayback...")
 
             audioPlayback = media.audioPlayback
         } else {
-            Log.d(tag, "Using existing audioPlayback...")
+            Log.d(TAG, "Using existing audioPlayback...")
         }
-        Log.d(tag, "AudioPlayback is: $audioPlayback")
+        Log.d(TAG, "AudioPlayback is: $audioPlayback")
 
         audioPlayback?.let {
             it[0].initPlayback()
-            Log.d(tag, "OK. Playback initiated.")
+            Log.d(TAG, "OK. Playback initiated.")
         }
     }
 
@@ -147,6 +151,7 @@ class RTSViewerDataStore(
     }
 
     sealed class State {
+        object Connecting : State()
         object Subscribed : State()
         object StreamActive : State()
         object StreamInactive : State()

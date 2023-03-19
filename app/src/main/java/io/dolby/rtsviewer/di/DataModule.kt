@@ -19,20 +19,18 @@ import android.content.Context
 import dagger.Module
 import dagger.Provides
 import dagger.hilt.InstallIn
+import dagger.hilt.android.components.ActivityRetainedComponent
 import dagger.hilt.android.qualifiers.ApplicationContext
-import dagger.hilt.components.SingletonComponent
 import io.dolby.rtscomponentkit.data.RTSViewerDataStore
 import io.dolby.rtscomponentkit.utils.DispatcherProvider
 import io.dolby.rtscomponentkit.utils.DispatcherProviderImpl
-import javax.inject.Singleton
 
 @Module
-@InstallIn(SingletonComponent::class)
+@InstallIn(ActivityRetainedComponent::class)
 object DataModule {
-    @Singleton
     @Provides
     fun provideRTSRepository(@ApplicationContext context: Context): RTSViewerDataStore {
-        return RTSViewerDataStore(context)
+        return RTSViewerDataStore.getInstance(context)
     }
 
     @Provides
