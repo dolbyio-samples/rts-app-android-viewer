@@ -67,13 +67,13 @@ fun DetailInputScreen(
 ) {
     var streamName by remember { mutableStateOf("") }
     var accountId by remember { mutableStateOf("") }
-    var missing_stream_detail_dialog by remember { mutableStateOf(false) }
+    var showMissingStreamDetailDialog by remember { mutableStateOf(false) }
     val screenName = stringResource(id = R.string.stream_detail_screen_name)
 
-    if (missing_stream_detail_dialog) {
+    if (showMissingStreamDetailDialog) {
         AlertDialog(
             onDismissRequest = {
-                missing_stream_detail_dialog = false
+                showMissingStreamDetailDialog = false
             },
             text = {
                 Text(text = stringResource(id = R.string.missing_stream_name_or_account_id))
@@ -88,7 +88,7 @@ fun DetailInputScreen(
                     Button(
                         modifier = Modifier
                             .width(200.dp),
-                        onClick = { missing_stream_detail_dialog = false }
+                        onClick = { showMissingStreamDetailDialog = false }
                     ) {
                         Text(stringResource(id = R.string.missing_stream_detail_dismiss_button))
                     }
@@ -211,7 +211,7 @@ fun DetailInputScreen(
                     buttonText = stringResource(id = R.string.play_button),
                     onClickAction = {
                         if (streamName.isEmpty() || accountId.isEmpty()) {
-                            missing_stream_detail_dialog = true
+                            showMissingStreamDetailDialog = true
                         } else {
                             viewModel.connect(streamName = streamName, accountId = accountId)
                             onPlayClick(
