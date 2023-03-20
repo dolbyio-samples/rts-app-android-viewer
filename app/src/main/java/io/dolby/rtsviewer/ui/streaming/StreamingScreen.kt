@@ -89,9 +89,8 @@ fun StreamingScreen(viewModel: StreamingViewModel = hiltViewModel()) {
                 }
             }
 
-            if (uiState.audioTrack != null) {
-                val audioTrack = uiState.audioTrack
-                (context.findActivity() as? MainActivity?)?.addVolumeObserver(audioTrack)
+            uiState.audioTrack?.let {
+                (context.findActivity() as? MainActivity?)?.addVolumeObserver(it)
             }
 
             if (uiState.subscribed) {

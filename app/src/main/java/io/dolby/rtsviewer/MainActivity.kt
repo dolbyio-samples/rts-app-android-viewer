@@ -31,18 +31,16 @@ class MainActivity : ComponentActivity() {
         super.onDestroy()
     }
 
-    fun addVolumeObserver(audioTrack: AudioTrack?) {
+    fun addVolumeObserver(audioTrack: AudioTrack) {
         unregisterVolumeObserverIfExists()
-        audioTrack?.let {
-            volumeObserver = VolumeObserver(this, Handler(Looper.getMainLooper()), audioTrack)
+        volumeObserver = VolumeObserver(this, Handler(Looper.getMainLooper()), audioTrack)
 
-            volumeObserver?.let {
-                contentResolver.registerContentObserver(
-                    Settings.System.CONTENT_URI,
-                    true,
-                    it
-                )
-            }
+        volumeObserver?.let {
+            contentResolver.registerContentObserver(
+                Settings.System.CONTENT_URI,
+                true,
+                it
+            )
         }
     }
 
