@@ -25,10 +25,10 @@ abstract class ColorPalette {
     open val lteBlue = Color(0xFF2AA0CC)
     open val purple = Color(0xFFAA33FF)
     open val pink = Color(0xFFFF2E7E)
-    open val razzmatazz = Color(0xFFDA0059)
+    open val razzmatazz = Color(0xFFE52222)
     open val green = Color(0xFF06B635)
     open val grayDark = Color(0xFF2c2c31)
-    open val grayMedium = Color(0xFF6A6A6D)
+    open val grayMedium = Color(0xFF7A7A80)
     open val grayLight = Color(0xFFB9B9BA)
     open val darkGrayAp3 = Color(0xFF4A4A4A)
 

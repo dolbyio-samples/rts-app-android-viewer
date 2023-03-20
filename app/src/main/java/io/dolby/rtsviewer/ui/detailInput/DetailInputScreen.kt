@@ -22,6 +22,7 @@ import androidx.compose.ui.semantics.semantics
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import androidx.constraintlayout.compose.ConstraintLayout
+import androidx.hilt.navigation.compose.hiltViewModel
 import io.dolby.rtscomponentkit.domain.StreamingData
 import io.dolby.rtsviewer.uikit.button.StyledButton
 import io.dolby.rtsviewer.uikit.input.TextInput
@@ -29,7 +30,10 @@ import io.dolby.rtsviewer.uikit.theme.fontColor
 import io.dolby.rtsviewer.uikit.utils.ViewState
 
 @Composable
-fun DetailInputScreen(onPlayClick: (StreamingData) -> Unit) {
+fun DetailInputScreen(
+    onPlayClick: (StreamingData) -> Unit,
+    viewModel: DetailInputViewModel = hiltViewModel()
+) {
     var streamName by remember { mutableStateOf("") }
     var accountId by remember { mutableStateOf("") }
     Box(
@@ -109,6 +113,7 @@ fun DetailInputScreen(onPlayClick: (StreamingData) -> Unit) {
                     centerHorizontallyTo(parent)
                 },
                 onClickAction = {
+                    viewModel.connect(streamName = streamName, accountId = accountId)
                     onPlayClick(
                         StreamingData(
                             streamName = streamName,

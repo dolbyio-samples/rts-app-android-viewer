@@ -30,7 +30,7 @@ import io.dolby.rtscomponentkit.utils.DispatcherProviderImpl
 object DataModule {
     @Provides
     fun provideRTSRepository(@ApplicationContext context: Context): RTSViewerDataStore {
-        return RTSViewerDataStore(context)
+        return RTSViewerDataStore.getInstance(context)
     }
 
     @Provides
