@@ -22,12 +22,15 @@ enum class ViewState {
     Unknown,
     Pressed,
     Selected,
+    Focused,
     Disabled;
 
     companion object Factory {
-        fun from(isPressed: Boolean, isSelected: Boolean, isEnabled: Boolean): ViewState {
+        fun from(isPressed: Boolean, isSelected: Boolean, isFocused: Boolean, isEnabled: Boolean): ViewState {
             return if (isPressed) {
                 Pressed
+            } else if (isFocused) {
+                Focused
             } else if (isSelected) {
                 Selected
             } else if (!isEnabled) {

@@ -44,6 +44,10 @@ abstract class ColorPalette {
     open val yellow = Color(0xFFFFFF00)
     open val red = Color(0xFFFF0000)
 
+    open val neutralColor25 = Color(0xFFFCFCFF)
+
+    open val typographyTeritiary = Color(0xFF525259)
+
     abstract fun asList(): Colors
 }
 
@@ -74,8 +78,8 @@ class DarkThemeColors : ColorPalette() {
         return darkColors(
             primary = purple,
             onPrimary = white,
-            secondary = blue20,
-            onSecondary = grayMediumFont,
+            secondary = neutralColor25,
+            onSecondary = typographyTeritiary,
             primaryVariant = purple,
             secondaryVariant = pink,
             background = blackDark,
@@ -104,7 +108,9 @@ internal fun borderColor(state: ViewState, isPrimary: Boolean): Color {
     return when (state) {
         ViewState.Selected,
         ViewState.Disabled,
-        ViewState.Pressed -> backgroundColor(state, isPrimary)
+        ViewState.Selected,
+        ViewState.Pressed,
+        ViewState.Focused -> backgroundColor(state, isPrimary)
         else -> MaterialTheme.colors.onBackground
     }
 }
@@ -113,8 +119,7 @@ internal fun borderColor(state: ViewState, isPrimary: Boolean): Color {
 internal fun backgroundColor(state: ViewState, isPrimary: Boolean): Color {
     return when (state) {
         ViewState.Disabled -> MaterialTheme.colors.surface
-        ViewState.Pressed -> MaterialTheme.colors.secondary
-        ViewState.Selected -> MaterialTheme.colors.primaryVariant
+        ViewState.Pressed, ViewState.Selected, ViewState.Focused -> MaterialTheme.colors.secondary
         else -> {
             if (isPrimary) {
                 MaterialTheme.colors.primary
@@ -129,6 +134,7 @@ internal fun backgroundColor(state: ViewState, isPrimary: Boolean): Color {
 fun fontColor(state: ViewState): Color {
     return when (state) {
         ViewState.Selected, ViewState.Pressed -> MaterialTheme.colors.onPrimary
+        ViewState.Focused -> MaterialTheme.colors.onSecondary
         ViewState.Disabled -> MaterialTheme.colors.secondary
         else -> MaterialTheme.colors.onBackground
     }

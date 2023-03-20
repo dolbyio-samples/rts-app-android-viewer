@@ -16,6 +16,7 @@ package io.dolby.rtsviewer.uikit.button
 import android.content.Context
 import androidx.compose.foundation.BorderStroke
 import androidx.compose.foundation.interaction.MutableInteractionSource
+import androidx.compose.foundation.interaction.collectIsFocusedAsState
 import androidx.compose.foundation.interaction.collectIsPressedAsState
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
@@ -57,8 +58,10 @@ fun StyledButton(
 ) {
     val interactionSource = remember { MutableInteractionSource() }
     val isPressed by interactionSource.collectIsPressedAsState()
+    val isFocused by interactionSource.collectIsFocusedAsState()
+
     val context = LocalContext.current
-    val viewState = ViewState.from(isPressed, isSelected, isEnabled)
+    val viewState = ViewState.from(isPressed, isSelected, isFocused, isEnabled)
 
     val fontColor = fontColor(viewState)
     val backgroundColor = backgroundColor(state = viewState, isPrimary = isPrimary)

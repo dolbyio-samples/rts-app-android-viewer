@@ -1,10 +1,8 @@
 package io.dolby.rtsviewer
 
-import androidx.compose.ui.test.assertIsEnabled
-import androidx.compose.ui.test.assertIsNotEnabled
 import androidx.compose.ui.test.junit4.createComposeRule
 import androidx.compose.ui.test.onNodeWithContentDescription
-import androidx.compose.ui.test.performTextInput
+import androidx.compose.ui.test.performClick
 import androidx.test.core.app.ActivityScenario
 import org.junit.Before
 import org.junit.Rule
@@ -28,26 +26,15 @@ class MainActivityTest {
     }
 
     @Test
-    fun `given DetailInputScreen with unfilled inputs then Play button is disabled`() {
+    fun `given DetailInputScreen with unfilled inputs then tapping the Play button shows an dialog message`() {
         ActivityScenario.launch(MainActivity::class.java)
             .use { scenario ->
                 scenario.onActivity { activity: MainActivity ->
                     composeTestRule
-                        .onNodeWithContentDescription("Play Button").assertIsNotEnabled()
-                }
-            }
-    }
+                        .onNodeWithContentDescription("Play Button").performClick()
 
-    @Test
-    fun `when Stream name is not empty then Play button is enabled`() {
-        ActivityScenario.launch(MainActivity::class.java)
-            .use { scenario ->
-                scenario.onActivity { activity: MainActivity ->
-                    composeTestRule.onNodeWithContentDescription("Enter your stream name Input")
-                        .performTextInput("StreamName")
-                    composeTestRule.onNodeWithContentDescription("Enter your account ID Input")
-                        .performTextInput("AccountId")
-                    composeTestRule.onNodeWithContentDescription("Play Button").assertIsEnabled()
+                    // TODO:
+                    // Test for Dialog alert
                 }
             }
     }

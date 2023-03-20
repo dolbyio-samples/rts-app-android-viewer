@@ -1,6 +1,8 @@
 package io.dolby.rtsviewer.uikit.input
 
 import androidx.compose.foundation.layout.fillMaxWidth
+import androidx.compose.foundation.text.KeyboardActions
+import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.material.MaterialTheme
 import androidx.compose.material.OutlinedTextField
 import androidx.compose.material.Text
@@ -26,7 +28,9 @@ fun TextInput(
     onValueChange: (String) -> Unit = {},
     label: String = "",
     enabled: Boolean = true,
-    readOnly: Boolean = false
+    readOnly: Boolean = false,
+    keyboardOptions: KeyboardOptions = KeyboardOptions.Default,
+    keyboardActions: KeyboardActions = KeyboardActions()
 ) {
     val textState = remember { mutableStateOf(TextFieldValue(value)) }
     val textInputContentDescription =
@@ -41,6 +45,8 @@ fun TextInput(
             onValueChange(it.text)
             textState.value = it
         },
+        keyboardOptions = keyboardOptions,
+        keyboardActions = keyboardActions,
         enabled = enabled,
         readOnly = readOnly,
         colors = TextFieldDefaults.textFieldColors(MaterialTheme.colors.onBackground)
