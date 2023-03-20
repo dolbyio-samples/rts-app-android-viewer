@@ -12,10 +12,7 @@ import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.draw.paint
-import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.platform.LocalContext
-import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.semantics.contentDescription
 import androidx.compose.ui.semantics.semantics
@@ -27,6 +24,7 @@ import androidx.constraintlayout.compose.ConstraintLayout
 import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import com.millicast.VideoRenderer
+import io.dolby.rtscomponentkit.ui.DolbyBackgroundBox
 import io.dolby.rtsviewer.MainActivity
 import io.dolby.rtsviewer.R
 import io.dolby.rtsviewer.utils.KeepScreenOn
@@ -39,15 +37,7 @@ import java.util.Locale
 fun StreamingScreen(viewModel: StreamingViewModel = hiltViewModel()) {
     val uiState by viewModel.uiState.collectAsStateWithLifecycle()
     val screenContentDescription = stringResource(id = R.string.streaming_screen_contentDescription)
-    Box(
-        modifier = Modifier
-            .fillMaxSize()
-            .paint(
-                painter = painterResource(id = io.dolby.rtscomponentkit.R.drawable.background),
-                contentScale = ContentScale.FillBounds
-            ),
-        contentAlignment = Alignment.Center
-    ) {
+    DolbyBackgroundBox {
         ConstraintLayout(
             modifier = Modifier
                 .fillMaxSize()
