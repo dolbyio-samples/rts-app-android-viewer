@@ -58,6 +58,7 @@ import io.dolby.rtsviewer.uikit.theme.fontColor
 import io.dolby.rtsviewer.uikit.utils.ViewState
 
 @OptIn(ExperimentalComposeUiApi::class)
+@Suppress("UnusedMaterialScaffoldPaddingParameter")
 @Composable
 fun DetailInputScreen(
     onPlayClick: (StreamingData) -> Unit,
@@ -105,7 +106,7 @@ fun DetailInputScreen(
             DolbyCopyrightFooterView()
         },
         modifier = modifier
-    ) { _ ->
+    ) {
         DolbyBackgroundBox(
             modifier = modifier
                 .semantics { contentDescription = screenName }
