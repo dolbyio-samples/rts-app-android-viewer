@@ -1,14 +1,21 @@
 package io.dolby.rtsviewer
 
 import android.os.Bundle
+import android.os.Handler
+import android.os.Looper
+import android.provider.Settings
 import androidx.activity.ComponentActivity
 import androidx.activity.compose.setContent
 import androidx.navigation.compose.rememberNavController
+import com.millicast.AudioTrack
 import dagger.hilt.android.AndroidEntryPoint
+import io.dolby.rtscomponentkit.utils.VolumeObserver
 import io.dolby.rtsviewer.ui.navigation.AppNavigation
 import io.dolby.rtsviewer.uikit.theme.RTSViewerTheme
+
 @AndroidEntryPoint
 class MainActivity : ComponentActivity() {
+    private var volumeObserver: VolumeObserver? = null
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         setContent {
@@ -16,6 +23,30 @@ class MainActivity : ComponentActivity() {
             RTSViewerTheme {
                 AppNavigation(navController)
             }
+        }
+    }
+
+    override fun onDestroy() {
+        unregisterVolumeObserverIfExists()
+        super.onDestroy()
+    }
+
+    fun addVolumeObserver(audioTrack: AudioTrack) {
+        unregisterVolumeObserverIfExists()
+        volumeObserver = VolumeObserver(this, Handler(Looper.getMainLooper()), audioTrack)
+
+        volumeObserver?.let {
+            contentResolver.registerContentObserver(
+                Settings.System.CONTENT_URI,
+                true,
+                it
+            )
+        }
+    }
+
+    fun unregisterVolumeObserverIfExists() {
+        volumeObserver?.let {
+            applicationContext.contentResolver.unregisterContentObserver(it)
         }
     }
 }
