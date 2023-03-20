@@ -14,6 +14,7 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.paint
 import androidx.compose.ui.layout.ContentScale
+import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.semantics.contentDescription
@@ -26,9 +27,11 @@ import androidx.constraintlayout.compose.ConstraintLayout
 import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import com.millicast.VideoRenderer
+import io.dolby.rtsviewer.MainActivity
 import io.dolby.rtsviewer.R
 import io.dolby.rtsviewer.utils.KeepScreenOn
 import io.dolby.rtsviewer.utils.SetupVolumeControlAudioStream
+import io.dolby.rtsviewer.utils.findActivity
 import org.webrtc.RendererCommon
 import java.util.Locale
 
@@ -51,6 +54,7 @@ fun StreamingScreen(viewModel: StreamingViewModel = hiltViewModel()) {
                 .align(Alignment.Center)
                 .semantics { contentDescription = screenContentDescription }
         ) {
+            val context = LocalContext.current
             val (liveIndicator, progress, videoView, error) = createRefs()
             when {
                 uiState.connecting && uiState.error == null -> {
@@ -90,6 +94,14 @@ fun StreamingScreen(viewModel: StreamingViewModel = hiltViewModel()) {
                         SetupVolumeControlAudioStream()
                     }
                 }
+                uiState.disconnected -> {
+                    (context.findActivity() as? MainActivity?)?.unregisterVolumeObserverIfExists()
+                }
+            }
+
+            if (uiState.audioTrack != null) {
+                val audioTrack = uiState.audioTrack
+                (context.findActivity() as? MainActivity?)?.addVolumeObserver(audioTrack)
             }
 
             if (uiState.subscribed) {

@@ -63,8 +63,8 @@ import io.dolby.rtsviewer.uikit.utils.ViewState
 fun DetailInputScreen(
     onPlayClick: (StreamingData) -> Unit,
     onSavedStreamsClick: () -> Unit,
-    viewModel: DetailInputViewModel = hiltViewModel(),
-    modifier: Modifier = Modifier
+    modifier: Modifier = Modifier,
+    viewModel: DetailInputViewModel = hiltViewModel()
 ) {
     var streamName by remember { mutableStateOf("") }
     var accountId by remember { mutableStateOf("") }
