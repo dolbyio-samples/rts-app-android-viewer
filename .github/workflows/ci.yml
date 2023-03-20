@@ -33,6 +33,7 @@ jobs:
           GIT_PAT: ${{ secrets.GITHUB_TOKEN }}
         run: |
           ./gradlew spotlessCheck
+          ./gradlew lint
           ./gradlew assembleDebug --info
 
       - name: Run unit tests
