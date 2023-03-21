@@ -13,7 +13,7 @@ import io.dolby.rtscomponentkit.R
 @Composable
 fun DolbyBackgroundBox(modifier: Modifier = Modifier, content: @Composable BoxScope.() -> Unit) {
     Box(
-        modifier = Modifier
+        modifier = modifier
             .fillMaxSize()
     ) {
         Image(
