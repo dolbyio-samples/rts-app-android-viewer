@@ -4,9 +4,14 @@ import android.app.Activity
 import android.content.Context
 import android.content.ContextWrapper
 import android.media.AudioManager
+import android.view.KeyEvent
 import android.view.WindowManager
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.DisposableEffect
+import androidx.compose.ui.Modifier
+import androidx.compose.ui.input.key.key
+import androidx.compose.ui.input.key.nativeKeyCode
+import androidx.compose.ui.input.key.onKeyEvent
 import androidx.compose.ui.platform.LocalContext
 
 @Composable
@@ -39,3 +44,22 @@ fun Context.findActivity(): Activity? {
     }
     return null
 }
+
+fun Modifier.anyDpadKeyEvent(action: () -> Unit): Modifier =
+    this.onKeyEvent {
+        if (
+            it.key.nativeKeyCode == KeyEvent.KEYCODE_DPAD_CENTER ||
+            it.key.nativeKeyCode == KeyEvent.KEYCODE_DPAD_UP ||
+            it.key.nativeKeyCode == KeyEvent.KEYCODE_DPAD_DOWN ||
+            it.key.nativeKeyCode == KeyEvent.KEYCODE_DPAD_LEFT ||
+            it.key.nativeKeyCode == KeyEvent.KEYCODE_DPAD_RIGHT ||
+            it.key.nativeKeyCode == KeyEvent.KEYCODE_DPAD_UP_LEFT ||
+            it.key.nativeKeyCode == KeyEvent.KEYCODE_DPAD_UP_RIGHT ||
+            it.key.nativeKeyCode == KeyEvent.KEYCODE_DPAD_DOWN_LEFT ||
+            it.key.nativeKeyCode == KeyEvent.KEYCODE_DPAD_DOWN_RIGHT
+        ) {
+            action()
+            return@onKeyEvent true
+        }
+        return@onKeyEvent false
+    }

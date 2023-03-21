@@ -34,6 +34,8 @@ class StreamingViewModel @Inject constructor(
     private val defaultCoroutineScope = CoroutineScope(dispatcherProvider.default)
     private val _uiState = MutableStateFlow(StreamingScreenUiState())
     val uiState: StateFlow<StreamingScreenUiState> = _uiState.asStateFlow()
+    private val _showToolbarState = MutableStateFlow<Boolean>(false)
+    var showToolbarState = _showToolbarState.asStateFlow()
 
     init {
         defaultCoroutineScope.launch {
@@ -117,7 +119,6 @@ class StreamingViewModel @Inject constructor(
                                     videoTrack = it.videoTrack
                                 )
                             }
-                            Log.d("StreamingViewModel", "RTSViewerDataStore.State.VideoTrackReady - 2")
                         }
                     }
                     RTSViewerDataStore.State.Disconnected -> {
@@ -171,6 +172,14 @@ class StreamingViewModel @Inject constructor(
         while (true) {
             emit(Unit)
             delay(period)
+        }
+    }
+
+    fun showToolbar() {
+        viewModelScope.launch {
+            _showToolbarState.update { true }
+            delay(5_000)
+            _showToolbarState.update { false }
         }
     }
 }
