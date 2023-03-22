@@ -46,6 +46,7 @@ import androidx.compose.ui.text.input.ImeAction
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import androidx.hilt.navigation.compose.hiltViewModel
+import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import io.dolby.rtscomponentkit.domain.StreamingData
 import io.dolby.rtscomponentkit.ui.DolbyBackgroundBox
 import io.dolby.rtscomponentkit.ui.DolbyCopyrightFooterView
@@ -68,6 +69,7 @@ fun DetailInputScreen(
     var accountId by remember { mutableStateOf("") }
     var showMissingStreamDetailDialog by remember { mutableStateOf(false) }
     val screenName = stringResource(id = R.string.stream_detail_screen_name)
+    val uiState by viewModel.uiState.collectAsStateWithLifecycle()
 
     if (showMissingStreamDetailDialog) {
         AlertDialog(
@@ -194,13 +196,15 @@ fun DetailInputScreen(
 
                 Spacer(modifier = modifier.height(8.dp))
 
-                StyledButton(
-                    buttonText = stringResource(id = R.string.saved_streams_button),
-                    onClickAction = {
-                        onSavedStreamsClick()
-                    },
-                    isPrimary = false
-                )
+                if (uiState.recentStreams.isNotEmpty()) {
+                    StyledButton(
+                        buttonText = stringResource(id = R.string.saved_streams_button),
+                        onClickAction = {
+                            onSavedStreamsClick()
+                        },
+                        isPrimary = false
+                    )
+                }
 
                 Spacer(modifier = modifier.height(8.dp))
 
@@ -222,17 +226,19 @@ fun DetailInputScreen(
                     isPrimary = true
                 )
 
-                Row(
-                    modifier = modifier
-                        .fillMaxWidth()
-                ) {
-                    TextButton(
-                        onClick = { /* Do something! */ }
+                if (uiState.recentStreams.isNotEmpty()) {
+                    Row(
+                        modifier = modifier
+                            .fillMaxWidth()
                     ) {
-                        Text(
-                            stringResource(id = R.string.clear_stream_history_button),
-                            color = MaterialTheme.colors.onSurface
-                        )
+                        TextButton(
+                            onClick = { /* Do something! */ }
+                        ) {
+                            Text(
+                                stringResource(id = R.string.clear_stream_history_button),
+                                color = MaterialTheme.colors.onSurface
+                            )
+                        }
                     }
                 }
             }

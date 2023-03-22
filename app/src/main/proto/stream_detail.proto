@@ -1,0 +1,16 @@
+syntax = "proto3";
+
+import "google/protobuf/timestamp.proto";
+
+option java_package = "io.dolby.rtsviewer.datastore";
+option java_multiple_files = true;
+
+message StreamDetail {
+  string accountID = 1;
+  string streamName = 2;
+  google.protobuf.Timestamp lastUsedDate = 3;
+}
+
+message RecentStreams {
+  repeated StreamDetail streamDetail = 1;
+}
