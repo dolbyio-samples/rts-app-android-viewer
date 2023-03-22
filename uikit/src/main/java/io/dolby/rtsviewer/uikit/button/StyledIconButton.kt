@@ -49,7 +49,7 @@ fun StyledIconButton(
                 text = it,
                 style = MaterialTheme.typography.body1,
                 fontWeight = FontWeight.Medium,
-                color = fontColor(ViewState.Selected),
+                color = fontColor(MaterialTheme.colors.background),
                 textAlign = TextAlign.End,
                 modifier = Modifier.align(CenterVertically)
             )

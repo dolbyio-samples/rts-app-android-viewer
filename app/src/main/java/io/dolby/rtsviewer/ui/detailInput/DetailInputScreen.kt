@@ -112,7 +112,7 @@ fun DetailInputScreen(
         ) {
             val localFocusManager = LocalFocusManager.current
             val focusRequester = remember { FocusRequester() }
-
+            val background = MaterialTheme.colors.background
             LaunchedEffect(Unit) {
                 focusRequester.requestFocus()
             }
@@ -123,7 +123,7 @@ fun DetailInputScreen(
                     .verticalScroll(rememberScrollState())
                     .width(450.dp)
                     .align(Alignment.Center)
-                    .background(MaterialTheme.colors.background, shape = RoundedCornerShape(4.dp))
+                    .background(background, shape = RoundedCornerShape(4.dp))
                     .clip(MaterialTheme.shapes.large)
                     .padding(horizontal = 55.dp)
                     .padding(vertical = 16.dp)
@@ -142,7 +142,7 @@ fun DetailInputScreen(
                     stringResource(id = R.string.stream_detail_header),
                     style = MaterialTheme.typography.body1,
                     fontWeight = FontWeight.Medium,
-                    color = fontColor(ViewState.Selected),
+                    color = fontColor(background),
                     textAlign = TextAlign.Center
                 )
 
@@ -151,7 +151,7 @@ fun DetailInputScreen(
                 Text(
                     stringResource(id = R.string.stream_detail_title),
                     style = MaterialTheme.typography.h2,
-                    color = fontColor(ViewState.Selected),
+                    color = fontColor(background),
                     textAlign = TextAlign.Center
                 )
 
@@ -160,7 +160,7 @@ fun DetailInputScreen(
                 Text(
                     stringResource(id = R.string.stream_detail_subtitle),
                     style = MaterialTheme.typography.body2,
-                    color = fontColor(ViewState.Selected),
+                    color = fontColor(background),
                     textAlign = TextAlign.Center
                 )
 
@@ -232,7 +232,7 @@ fun DetailInputScreen(
                     ) {
                         Text(
                             stringResource(id = R.string.clear_stream_history_button),
-                            color = MaterialTheme.colors.onSecondary
+                            color = MaterialTheme.colors.onSurface
                         )
                     }
                 }

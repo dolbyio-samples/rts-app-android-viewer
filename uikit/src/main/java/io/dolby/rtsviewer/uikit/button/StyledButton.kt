@@ -63,13 +63,12 @@ fun StyledButton(
     val context = LocalContext.current
     val viewState = ViewState.from(isPressed, isSelected, isFocused, isEnabled)
 
-    val fontColor = fontColor(viewState)
     val backgroundColor = backgroundColor(state = viewState, isPrimary = isPrimary)
+    val fontColor = fontColor(backgroundColor)
     val borderColor = borderColor(viewState, isPrimary)
     val buttonContentDescription = "$buttonText ${ stringResource(id = buttonContentDescriptionId) }"
     Button(
         modifier = modifier
-            .padding(5.dp)
             .listItemHeight()
             .fillMaxWidth()
             .widthIn(min = if (isLarge) 180.dp else 80.dp)
@@ -88,7 +87,7 @@ fun StyledButton(
             contentColor = fontColor,
             backgroundColor = backgroundColor
         ),
-        shape = MaterialTheme.shapes.small,
+        shape = MaterialTheme.shapes.medium,
         border = BorderStroke(1.dp, borderColor),
         enabled = isEnabled
     )
