@@ -45,6 +45,7 @@ fun TextInput(
             onValueChange(it.text)
             textState.value = it
         },
+        shape = MaterialTheme.shapes.small,
         keyboardOptions = keyboardOptions,
         keyboardActions = keyboardActions,
         enabled = enabled,

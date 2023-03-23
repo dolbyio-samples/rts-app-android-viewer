@@ -19,8 +19,6 @@ import androidx.compose.foundation.interaction.MutableInteractionSource
 import androidx.compose.foundation.interaction.collectIsFocusedAsState
 import androidx.compose.foundation.interaction.collectIsPressedAsState
 import androidx.compose.foundation.layout.fillMaxWidth
-import androidx.compose.foundation.layout.padding
-import androidx.compose.foundation.layout.widthIn
 import androidx.compose.material.Button
 import androidx.compose.material.ButtonDefaults
 import androidx.compose.material.MaterialTheme
@@ -40,7 +38,7 @@ import io.dolby.rtsviewer.uikit.theme.backgroundColor
 import io.dolby.rtsviewer.uikit.theme.borderColor
 import io.dolby.rtsviewer.uikit.theme.fontColor
 import io.dolby.rtsviewer.uikit.utils.ViewState
-import io.dolby.rtsviewer.uikit.utils.listItemHeight
+import io.dolby.rtsviewer.uikit.utils.buttonHeight
 import io.dolby.uikit.R
 
 internal val buttonContentDescriptionId = R.string.button_contentDescription
@@ -63,16 +61,14 @@ fun StyledButton(
     val context = LocalContext.current
     val viewState = ViewState.from(isPressed, isSelected, isFocused, isEnabled)
 
-    val fontColor = fontColor(viewState)
     val backgroundColor = backgroundColor(state = viewState, isPrimary = isPrimary)
+    val fontColor = if (isEnabled) fontColor(backgroundColor) else MaterialTheme.colors.onSurface
     val borderColor = borderColor(viewState, isPrimary)
     val buttonContentDescription = "$buttonText ${ stringResource(id = buttonContentDescriptionId) }"
     Button(
         modifier = modifier
-            .padding(5.dp)
-            .listItemHeight()
+            .buttonHeight()
             .fillMaxWidth()
-            .widthIn(min = if (isLarge) 180.dp else 80.dp)
             .semantics { contentDescription = buttonContentDescription },
         interactionSource = interactionSource,
         onClick = { onClickAction?.invoke(context) },
@@ -88,7 +84,7 @@ fun StyledButton(
             contentColor = fontColor,
             backgroundColor = backgroundColor
         ),
-        shape = MaterialTheme.shapes.small,
+        shape = MaterialTheme.shapes.medium,
         border = BorderStroke(1.dp, borderColor),
         enabled = isEnabled
     )
