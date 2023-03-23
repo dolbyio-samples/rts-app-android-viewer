@@ -54,7 +54,6 @@ import io.dolby.rtsviewer.R
 import io.dolby.rtsviewer.uikit.button.StyledButton
 import io.dolby.rtsviewer.uikit.input.TextInput
 import io.dolby.rtsviewer.uikit.theme.fontColor
-import io.dolby.rtsviewer.uikit.utils.ViewState
 
 @OptIn(ExperimentalComposeUiApi::class)
 @Suppress("UnusedMaterialScaffoldPaddingParameter")

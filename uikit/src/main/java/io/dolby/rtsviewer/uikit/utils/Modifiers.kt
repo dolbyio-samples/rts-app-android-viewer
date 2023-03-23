@@ -18,8 +18,8 @@ import androidx.compose.foundation.layout.width
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.unit.dp
 
-fun Modifier.listItemHeight(): Modifier =
-    this.heightIn(min = 50.dp)
+fun Modifier.buttonHeight(): Modifier =
+    this.heightIn(min = 40.dp)
 
 fun Modifier.iconWidth(): Modifier =
     this.width(50.dp)

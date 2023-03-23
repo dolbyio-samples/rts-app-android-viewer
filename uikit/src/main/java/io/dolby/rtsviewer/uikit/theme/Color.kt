@@ -4,13 +4,9 @@ package io.dolby.rtsviewer.uikit.theme
 
 import androidx.compose.material.Colors
 import androidx.compose.material.MaterialTheme
-import androidx.compose.material.SnackbarDefaults
-import androidx.compose.material.SnackbarDefaults.backgroundColor
 import androidx.compose.material.SwitchColors
 import androidx.compose.material.SwitchDefaults
-import androidx.compose.material.contentColorFor
 import androidx.compose.material.darkColors
-import androidx.compose.material.lightColors
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.graphics.Color
 import io.dolby.rtsviewer.uikit.utils.ViewState
@@ -19,19 +15,15 @@ abstract class ColorPalette {
     open val white = Color(0xFFFFFFFF)
     open val blackDark = Color(0xFF14141A)
 
-    open val lteBlue = Color(0xFF2AA0CC)
     open val purple = Color(0xFFAA33FF)
     open val razzmatazz = Color(0xFFE52222)
-    open val green = Color(0xFF06B635)
     open val grayDark = Color(0xFF3D3D46)
-    open val grayMedium = Color(0xFF7A7A80)
+    open val grayMedium = Color(0xFF34343B)
     open val grayLight = Color(0xFFB9B9BA)
-    open val darkGrayAp3 = Color(0xFF4A4A4A)
 
     open val grayDarkFont = Color(0xFF2C2C31)
     open val grayMediumFont = Color(0xFF6A6A66)
     open val grayLightFont = Color(0xFFD8D8D8)
-    open val blueLightFont = Color(0xFF35C8FF)
 
     // Color's outside of Dolby palette
     open val transparent = Color.Transparent
@@ -41,7 +33,6 @@ abstract class ColorPalette {
     open val red = Color(0xFFFF0000)
 
     open val neutralColor25 = Color(0xFFFCFCFF)
-
     open val typographyTeritiary = Color(0xFF525259)
 
     abstract fun asList(): Colors
@@ -50,8 +41,8 @@ abstract class ColorPalette {
 class DarkThemeColors : ColorPalette() {
     override fun asList(): Colors {
         return darkColors(
-            primary = purple,
-            primaryVariant = neutralColor25,
+            primary = neutralColor25,
+            primaryVariant = purple,
             onPrimary = white,
             secondary = blackDark,
             secondaryVariant = neutralColor25,
@@ -87,7 +78,7 @@ internal fun borderColor(state: ViewState, isPrimary: Boolean): Color {
             ViewState.Selected -> backgroundColor(state, false)
             ViewState.Disabled -> MaterialTheme.colors.surface
             ViewState.Focused -> MaterialTheme.colors.secondaryVariant
-            ViewState.Unknown -> MaterialTheme.colors.primary
+            ViewState.Unknown -> MaterialTheme.colors.primaryVariant
         }
     }
 }
@@ -95,18 +86,22 @@ internal fun borderColor(state: ViewState, isPrimary: Boolean): Color {
 @Composable
 internal fun backgroundColor(state: ViewState, isPrimary: Boolean): Color {
     return when (state) {
-        ViewState.Disabled -> if (isPrimary) MaterialTheme.colors.surface else MaterialTheme.colors.secondary
-        ViewState.Pressed, ViewState.Selected -> if (isPrimary) MaterialTheme.colors.primaryVariant else MaterialTheme.colors.secondaryVariant
+        ViewState.Disabled -> {
+            if (isPrimary) MaterialTheme.colors.surface else MaterialTheme.colors.secondary
+        }
+        ViewState.Pressed, ViewState.Selected -> {
+            if (isPrimary) MaterialTheme.colors.primary else MaterialTheme.colors.secondaryVariant
+        }
         ViewState.Focused -> {
             if (isPrimary) {
-                MaterialTheme.colors.primaryVariant
+                MaterialTheme.colors.primary
             } else {
                 MaterialTheme.colors.secondaryVariant
             }
         }
         ViewState.Unknown -> {
             if (isPrimary) {
-                MaterialTheme.colors.primary
+                MaterialTheme.colors.primaryVariant
             } else {
                 MaterialTheme.colors.secondary
             }
@@ -117,13 +112,14 @@ internal fun backgroundColor(state: ViewState, isPrimary: Boolean): Color {
 @Composable
 fun fontColor(backgroundColor: Color): Color {
     return when (backgroundColor) {
-        MaterialTheme.colors.primary -> MaterialTheme.colors.onPrimary
-        MaterialTheme.colors.primaryVariant -> DarkThemeColors().grayDarkFont
+        MaterialTheme.colors.primary -> DarkThemeColors().grayDarkFont
+        MaterialTheme.colors.primaryVariant -> MaterialTheme.colors.onPrimary
         MaterialTheme.colors.secondary -> MaterialTheme.colors.onSecondary
         MaterialTheme.colors.secondaryVariant -> DarkThemeColors().grayDarkFont
         MaterialTheme.colors.background -> MaterialTheme.colors.onBackground
         MaterialTheme.colors.surface -> MaterialTheme.colors.onSurface
         MaterialTheme.colors.error -> MaterialTheme.colors.onError
+        DarkThemeColors().grayMedium -> DarkThemeColors().typographyTeritiary
         else -> Color.Unspecified
     }
 }
