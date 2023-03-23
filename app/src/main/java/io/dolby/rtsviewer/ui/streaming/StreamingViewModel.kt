@@ -7,12 +7,14 @@ import androidx.lifecycle.viewModelScope
 import dagger.hilt.android.lifecycle.HiltViewModel
 import io.dolby.rtscomponentkit.data.RTSViewerDataStore
 import io.dolby.rtscomponentkit.utils.DispatcherProvider
+import io.dolby.rtsviewer.preferenceStore.PrefsStore
 import io.dolby.rtsviewer.ui.navigation.Screen
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
+import kotlinx.coroutines.flow.collectLatest
 import kotlinx.coroutines.flow.flow
 import kotlinx.coroutines.flow.launchIn
 import kotlinx.coroutines.flow.onEach
@@ -29,7 +31,8 @@ private const val TAG = "StreamingViewModel"
 class StreamingViewModel @Inject constructor(
     private val savedStateHandle: SavedStateHandle,
     private val repository: RTSViewerDataStore,
-    private val dispatcherProvider: DispatcherProvider
+    private val dispatcherProvider: DispatcherProvider,
+    private val preferencesDataStore: PrefsStore
 ) : ViewModel() {
     private val defaultCoroutineScope = CoroutineScope(dispatcherProvider.default)
     private val _uiState = MutableStateFlow(StreamingScreenUiState())
@@ -145,6 +148,17 @@ class StreamingViewModel @Inject constructor(
                     }
                 }
             }
+        }
+
+        defaultCoroutineScope.launch {
+            preferencesDataStore.isLiveIndicatorEnabled
+                .collectLatest {
+                    _uiState.update { state ->
+                        state.copy(
+                            showLiveIndicator = it
+                        )
+                    }
+                }
         }
     }
 
