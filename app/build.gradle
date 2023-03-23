@@ -4,10 +4,30 @@ plugins {
     id 'kotlin-kapt'
     id 'com.google.dagger.hilt.android'
     id 'com.github.triplet.play' version '3.8.1'
+    id 'com.google.protobuf'
 }
 
 def appVersionCode = Integer.valueOf(System.env.VERSION_CODE ?: 1)
 def appVersionName = System.env.VERSION_NAME ?: "0.0"
+
+protobuf {
+    protoc {
+        artifact = "com.google.protobuf:protoc:3.20.1"
+    }
+
+    generateProtoTasks {
+        all().each { task ->
+            task.builtins {
+                java {
+                    option 'lite'
+                }
+                kotlin {
+                    option 'lite'
+                }
+            }
+        }
+    }
+}
 
 android {
     namespace 'io.dolby.rtsviewer'
@@ -95,6 +115,9 @@ dependencies {
     implementation 'androidx.lifecycle:lifecycle-runtime-ktx:2.5.1'
     implementation 'androidx.lifecycle:lifecycle-runtime-compose:2.6.0-rc01'
     implementation "androidx.activity:activity-compose:1.6.1"
+
+    implementation "androidx.datastore:datastore:1.0.0"
+    implementation 'com.google.protobuf:protobuf-kotlin-lite:3.21.2'
 
     testImplementation libs.junit
     testImplementation libs.robolectric

@@ -24,6 +24,8 @@ import dagger.hilt.android.qualifiers.ApplicationContext
 import io.dolby.rtscomponentkit.data.RTSViewerDataStore
 import io.dolby.rtscomponentkit.utils.DispatcherProvider
 import io.dolby.rtscomponentkit.utils.DispatcherProviderImpl
+import io.dolby.rtsviewer.datastore.RecentStreamsDataStore
+import io.dolby.rtsviewer.datastore.RecentStreamsDataStoreImpl
 
 @Module
 @InstallIn(ActivityRetainedComponent::class)
@@ -36,5 +38,10 @@ object DataModule {
     @Provides
     fun provideDispatcherProvider(): DispatcherProvider {
         return DispatcherProviderImpl
+    }
+
+    @Provides
+    fun provideRecentStreamsDataStore(@ApplicationContext context: Context): RecentStreamsDataStore {
+        return RecentStreamsDataStoreImpl(context)
     }
 }
