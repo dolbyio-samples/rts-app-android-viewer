@@ -14,5 +14,7 @@ data class StreamingScreenUiState(
     val audioTrack: AudioTrack? = null,
     val videoTrack: VideoTrack? = null,
     val viewerCount: Int = 0,
-    val error: String? = null
+    val error: String? = null,
+
+    val showLiveIndicator: Boolean = false
 )

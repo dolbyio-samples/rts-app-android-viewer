@@ -45,19 +45,23 @@ fun StreamingToolbarView(viewModel: StreamingViewModel) {
                 else stringResource(R.string.offline_label)
             val liveIndicatorBackgroundColor =
                 if (uiState.subscribed) MaterialTheme.colors.error else MaterialTheme.colors.surface
-            Text(
-                text = liveIndicatorLabel.uppercase(Locale.ROOT),
-                style = MaterialTheme.typography.caption,
-                fontWeight = FontWeight.Bold,
-                color = MaterialTheme.colors.onPrimary,
-                modifier = Modifier
-                    .constrainAs(liveIndicator) {
-                        top.linkTo(parent.top, margin = 14.dp)
-                        start.linkTo(parent.start, margin = 20.dp)
-                    }
-                    .background(liveIndicatorBackgroundColor, shape = RoundedCornerShape(2.dp))
-                    .padding(horizontal = 10.dp, vertical = 3.dp)
-            )
+
+            if (uiState.showLiveIndicator) {
+                Text(
+                    text = liveIndicatorLabel.uppercase(Locale.ROOT),
+                    style = MaterialTheme.typography.caption,
+                    fontWeight = FontWeight.Bold,
+                    color = MaterialTheme.colors.onPrimary,
+                    modifier = Modifier
+                        .constrainAs(liveIndicator) {
+                            top.linkTo(parent.top, margin = 14.dp)
+                            start.linkTo(parent.start, margin = 20.dp)
+                        }
+                        .background(liveIndicatorBackgroundColor, shape = RoundedCornerShape(2.dp))
+                        .padding(horizontal = 10.dp, vertical = 3.dp)
+                )
+            }
+
             AnimatedVisibility(
                 visible = showToolbarState,
                 modifier = Modifier

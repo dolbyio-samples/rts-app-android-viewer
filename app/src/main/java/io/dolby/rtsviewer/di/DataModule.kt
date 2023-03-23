@@ -26,6 +26,8 @@ import io.dolby.rtscomponentkit.utils.DispatcherProvider
 import io.dolby.rtscomponentkit.utils.DispatcherProviderImpl
 import io.dolby.rtsviewer.datastore.RecentStreamsDataStore
 import io.dolby.rtsviewer.datastore.RecentStreamsDataStoreImpl
+import io.dolby.rtsviewer.preferenceStore.PrefsStore
+import io.dolby.rtsviewer.preferenceStore.PrefsStoreImpl
 
 @Module
 @InstallIn(ActivityRetainedComponent::class)
@@ -43,5 +45,10 @@ object DataModule {
     @Provides
     fun provideRecentStreamsDataStore(@ApplicationContext context: Context): RecentStreamsDataStore {
         return RecentStreamsDataStoreImpl(context)
+    }
+
+    @Provides
+    fun providePrefencesDataStore(@ApplicationContext context: Context): PrefsStore {
+        return PrefsStoreImpl(context)
     }
 }
