@@ -2,4 +2,5 @@
 <resources>
     <string name="button_contentDescription">Button</string>
     <string name="textInput_contentDescription">Input</string>
+    <string name="switch_contentDescription">Switch</string>
 </resources>

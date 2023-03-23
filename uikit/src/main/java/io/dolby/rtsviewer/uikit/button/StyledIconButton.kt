@@ -12,6 +12,7 @@
 package io.dolby.rtsviewer.uikit.button
 
 import androidx.compose.foundation.Image
+import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.padding
 import androidx.compose.material.IconButton
@@ -25,6 +26,7 @@ import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
+import io.dolby.rtsviewer.uikit.theme.DarkThemeColors
 import io.dolby.rtsviewer.uikit.theme.fontColor
 
 @Composable
@@ -55,7 +57,8 @@ fun StyledIconButton(
         }
         IconButton(
             modifier = modifier
-                .padding(10.dp),
+                .padding(10.dp)
+                .background(DarkThemeColors().transparent),
             enabled = enabled,
             onClick = onClick
         ) {

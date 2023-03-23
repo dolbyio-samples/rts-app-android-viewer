@@ -29,4 +29,7 @@
     <string name="saved_streams_section_header_lastPlayed">Last played</string>
     <string name="saved_streams_section_header_all">All</string>
 
+    <string name="streaming_statistics_title">Streaming statistics</string>
+    <string name="live_indicator_title">Live indicator</string>
+    <string name="simulcast_title">Simulcast</string>
 </resources>

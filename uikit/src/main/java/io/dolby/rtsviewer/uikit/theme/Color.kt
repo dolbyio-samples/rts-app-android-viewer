@@ -34,6 +34,7 @@ abstract class ColorPalette {
     open val red = Color(0xFFFF0000)
 
     open val neutralColor25 = Color(0xFFFCFCFF)
+    open val neutralColor800 = Color(0xFF292930)
     open val typographyTeritiary = Color(0xFF525259)
 
     abstract fun asList(): Colors
@@ -62,12 +63,22 @@ class DarkThemeColors : ColorPalette() {
 fun switchColours(): SwitchColors {
     val colours = getColorPalette()
     return SwitchDefaults.colors(
-        // From Figma, but I guess they'll change
         uncheckedTrackColor = colours.grayDark,
         checkedTrackColor = MaterialTheme.colors.primary,
         uncheckedThumbColor = colours.grayLight,
         checkedThumbColor = colours.grayLight
     )
+}
+
+@Composable
+fun selectableButtonBackgroundColor(state: ViewState): Color {
+    return when (state) {
+        ViewState.Pressed,
+        ViewState.Selected -> backgroundColor(state, false)
+        ViewState.Disabled -> MaterialTheme.colors.surface
+        ViewState.Focused -> MaterialTheme.colors.secondaryVariant
+        ViewState.Unknown -> MaterialTheme.colors.secondary
+    }
 }
 
 @Composable
