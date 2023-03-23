@@ -26,17 +26,11 @@ import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
-import androidx.compose.ui.ExperimentalComposeUiApi
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.focus.FocusDirection
 import androidx.compose.ui.focus.FocusRequester
 import androidx.compose.ui.focus.focusRequester
-import androidx.compose.ui.input.key.Key
-import androidx.compose.ui.input.key.KeyEventType
-import androidx.compose.ui.input.key.key
-import androidx.compose.ui.input.key.onKeyEvent
-import androidx.compose.ui.input.key.type
 import androidx.compose.ui.platform.LocalFocusManager
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.semantics.contentDescription
@@ -56,8 +50,6 @@ import io.dolby.rtsviewer.uikit.button.StyledButton
 import io.dolby.rtsviewer.uikit.input.TextInput
 import io.dolby.rtsviewer.uikit.theme.fontColor
 
-@OptIn(ExperimentalComposeUiApi::class)
-@Suppress("UnusedMaterialScaffoldPaddingParameter")
 @Composable
 fun DetailInputScreen(
     onPlayClick: (StreamingData) -> Unit,
@@ -106,9 +98,10 @@ fun DetailInputScreen(
             DolbyCopyrightFooterView()
         },
         modifier = modifier
-    ) {
+    ) { paddingValues ->
         DolbyBackgroundBox(
             modifier = modifier
+                .padding(paddingValues)
                 .semantics { contentDescription = screenName }
         ) {
             val localFocusManager = LocalFocusManager.current
@@ -128,16 +121,6 @@ fun DetailInputScreen(
                     .clip(MaterialTheme.shapes.large)
                     .padding(horizontal = 55.dp)
                     .padding(vertical = 16.dp)
-                    .onKeyEvent {
-                        if (it.type == KeyEventType.KeyUp && it.key == Key.DirectionDown) {
-                            localFocusManager.moveFocus(FocusDirection.Down)
-                            return@onKeyEvent true
-                        } else if (it.type == KeyEventType.KeyUp && it.key == Key.DirectionUp) {
-                            localFocusManager.moveFocus(FocusDirection.Up)
-                            return@onKeyEvent true
-                        }
-                        return@onKeyEvent true
-                    }
             ) {
                 Text(
                     stringResource(id = R.string.stream_detail_header),
@@ -177,7 +160,7 @@ fun DetailInputScreen(
                     keyboardActions = KeyboardActions(
                         onNext = { localFocusManager.moveFocus(FocusDirection.Down) }
                     ),
-                    modifier = modifier.focusRequester(focusRequester)
+                    modifier = Modifier.focusRequester(focusRequester)
                 )
 
                 Spacer(modifier = modifier.height(8.dp))
@@ -188,9 +171,9 @@ fun DetailInputScreen(
                     onValueChange = {
                         accountId = it
                     },
-                    keyboardOptions = KeyboardOptions(imeAction = ImeAction.Done),
+                    keyboardOptions = KeyboardOptions(imeAction = ImeAction.Next),
                     keyboardActions = KeyboardActions(
-                        onDone = { localFocusManager.clearFocus() }
+                        onNext = { localFocusManager.moveFocus(FocusDirection.Down) }
                     )
                 )
 
