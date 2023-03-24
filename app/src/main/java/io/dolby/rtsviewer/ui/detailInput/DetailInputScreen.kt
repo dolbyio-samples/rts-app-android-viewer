@@ -14,7 +14,6 @@ import androidx.compose.foundation.text.KeyboardActions
 import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.AlertDialog
-import androidx.compose.material.Button
 import androidx.compose.material.MaterialTheme
 import androidx.compose.material.Scaffold
 import androidx.compose.material.Text
@@ -78,13 +77,13 @@ fun DetailInputScreen(
                         .fillMaxWidth(),
                     horizontalAlignment = Alignment.CenterHorizontally
                 ) {
-                    Button(
+                    StyledButton(
+                        buttonText = stringResource(id = R.string.missing_stream_detail_dismiss_button),
+                        onClickAction = { showMissingStreamDetailDialog = false },
+                        isPrimary = false,
                         modifier = Modifier
-                            .width(200.dp),
-                        onClick = { showMissingStreamDetailDialog = false }
-                    ) {
-                        Text(stringResource(id = R.string.missing_stream_detail_dismiss_button))
-                    }
+                            .width(200.dp)
+                    )
                 }
             }
         )
