@@ -51,7 +51,8 @@ class DarkThemeColors : ColorPalette() {
             onBackground = white,
             surface = grayMedium,
             onSurface = grayLightFont,
-            error = razzmatazz
+            error = razzmatazz,
+            onError = white
         )
     }
 }
@@ -69,13 +70,17 @@ fun switchColours(): SwitchColors {
 }
 
 @Composable
-internal fun borderColor(state: ViewState, isPrimary: Boolean): Color {
-    return if (isPrimary) {
-        backgroundColor(state, true)
+internal fun borderColor(state: ViewState, isPrimary: Boolean, isBasic: Boolean, isDanger: Boolean): Color {
+    return if (isDanger) {
+        backgroundColor(state, isPrimary = false, isBasic = false, isDanger = true)
+    } else if (isBasic) {
+        backgroundColor(state, isPrimary = false, isBasic = true, isDanger = false)
+    } else if (isPrimary) {
+        backgroundColor(state, isPrimary = true, isBasic = false, isDanger = false)
     } else {
         return when (state) {
             ViewState.Pressed,
-            ViewState.Selected -> backgroundColor(state, false)
+            ViewState.Selected -> backgroundColor(state, false, isBasic = false, isDanger = false)
             ViewState.Disabled -> MaterialTheme.colors.surface
             ViewState.Focused -> MaterialTheme.colors.secondaryVariant
             ViewState.Unknown -> MaterialTheme.colors.primaryVariant
@@ -84,7 +89,7 @@ internal fun borderColor(state: ViewState, isPrimary: Boolean): Color {
 }
 
 @Composable
-internal fun backgroundColor(state: ViewState, isPrimary: Boolean): Color {
+internal fun backgroundColor(state: ViewState, isPrimary: Boolean, isBasic: Boolean, isDanger: Boolean): Color {
     return when (state) {
         ViewState.Disabled -> {
             if (isPrimary) MaterialTheme.colors.surface else MaterialTheme.colors.secondary
@@ -100,7 +105,11 @@ internal fun backgroundColor(state: ViewState, isPrimary: Boolean): Color {
             }
         }
         ViewState.Unknown -> {
-            if (isPrimary) {
+            if (isDanger) {
+                MaterialTheme.colors.error
+            } else if (isBasic) {
+                MaterialTheme.colors.surface
+            } else if (isPrimary) {
                 MaterialTheme.colors.primaryVariant
             } else {
                 MaterialTheme.colors.secondary

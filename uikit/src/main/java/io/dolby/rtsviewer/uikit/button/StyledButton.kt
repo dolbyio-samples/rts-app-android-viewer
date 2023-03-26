@@ -52,7 +52,10 @@ fun StyledButton(
     isSelected: Boolean = false,
     isEnabled: Boolean = true,
     isPrimary: Boolean = false,
-    isLarge: Boolean = false
+    isLarge: Boolean = false,
+    isBasic: Boolean = false,
+    isDanger: Boolean = false,
+    capitalize: Boolean = true
 ) {
     val interactionSource = remember { MutableInteractionSource() }
     val isPressed by interactionSource.collectIsPressedAsState()
@@ -61,9 +64,9 @@ fun StyledButton(
     val context = LocalContext.current
     val viewState = ViewState.from(isPressed, isSelected, isFocused, isEnabled)
 
-    val backgroundColor = backgroundColor(state = viewState, isPrimary = isPrimary)
+    val backgroundColor = backgroundColor(state = viewState, isPrimary = isPrimary, isBasic = isBasic, isDanger = isDanger)
     val fontColor = if (isEnabled) fontColor(backgroundColor) else MaterialTheme.colors.onSurface
-    val borderColor = borderColor(viewState, isPrimary)
+    val borderColor = borderColor(viewState, isPrimary, isBasic, isDanger)
     val buttonContentDescription = "$buttonText ${ stringResource(id = buttonContentDescriptionId) }"
     Button(
         modifier = modifier
@@ -74,7 +77,7 @@ fun StyledButton(
         onClick = { onClickAction?.invoke(context) },
         content = {
             Text(
-                text = buttonText.uppercase(),
+                text = if (capitalize) buttonText.uppercase() else buttonText,
                 style = MaterialTheme.typography.button,
                 textAlign = TextAlign.Center,
                 color = fontColor
