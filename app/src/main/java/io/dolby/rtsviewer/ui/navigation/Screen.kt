@@ -14,4 +14,6 @@ sealed class Screen(val route: String) {
             return "streaming/streamName=$streamName&accountId=$accountId"
         }
     }
+
+    object SavedStreams : Screen(route = "savedStreams")
 }

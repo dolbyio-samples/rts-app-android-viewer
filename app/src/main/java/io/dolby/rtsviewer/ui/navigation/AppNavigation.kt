@@ -1,12 +1,16 @@
 package io.dolby.rtsviewer.ui.navigation
 
 import androidx.compose.runtime.Composable
+import androidx.navigation.NavDirections
 import androidx.navigation.NavHostController
 import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
+import io.dolby.rtsviewer.datastore.StreamDetail
 import io.dolby.rtsviewer.ui.detailInput.DetailInputScreen
+import io.dolby.rtsviewer.ui.savedStreams.SavedStreamScreen
 import io.dolby.rtsviewer.ui.streaming.StreamingScreen
 
+private const val STREAM_DETAIL_TO_PLAY = "streamDetailToPlay"
 @Composable
 fun AppNavigation(navController: NavHostController) {
     NavHost(
@@ -16,12 +20,18 @@ fun AppNavigation(navController: NavHostController) {
         composable(
             route = Screen.DetailInputScreen.route
         ) {
+            var streamDetail: StreamDetail? = null
+            if (navController.currentBackStackEntry?.savedStateHandle?.contains(STREAM_DETAIL_TO_PLAY) == true) {
+                streamDetail = navController.currentBackStackEntry!!.savedStateHandle.get<StreamDetail>(STREAM_DETAIL_TO_PLAY)
+            }
+
             DetailInputScreen(
+                selectedStreamDetail = streamDetail,
                 onPlayClick = {
                     navController.navigate(Screen.StreamingScreen.route(it))
                 },
                 onSavedStreamsClick = {
-                    /* Do something! */
+                    navController.navigate(Screen.SavedStreams.route)
                 }
             )
         }
@@ -35,6 +45,20 @@ fun AppNavigation(navController: NavHostController) {
                 throw IllegalArgumentException()
             }
             StreamingScreen()
+        }
+
+        composable(
+            route = Screen.SavedStreams.route
+        ) {
+            SavedStreamScreen(
+                onPlayStream = { streamDetail ->
+                    navController.previousBackStackEntry
+                        ?.savedStateHandle
+                        ?.set(STREAM_DETAIL_TO_PLAY, streamDetail)
+
+                    navController.popBackStack()
+                }
+            )
         }
     }
 }

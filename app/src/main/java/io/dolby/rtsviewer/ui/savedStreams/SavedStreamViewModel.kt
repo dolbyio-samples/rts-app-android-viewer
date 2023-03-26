@@ -1,10 +1,10 @@
-package io.dolby.rtsviewer.ui.detailInput
+package io.dolby.rtsviewer.ui.savedStreams
 
 import androidx.lifecycle.ViewModel
 import dagger.hilt.android.lifecycle.HiltViewModel
-import io.dolby.rtscomponentkit.data.RTSViewerDataStore
 import io.dolby.rtscomponentkit.utils.DispatcherProvider
 import io.dolby.rtsviewer.datastore.RecentStreamsDataStore
+import io.dolby.rtsviewer.ui.detailInput.DetailInputScreenUiState
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
@@ -15,15 +15,15 @@ import kotlinx.coroutines.launch
 import javax.inject.Inject
 
 @HiltViewModel
-class DetailInputViewModel @Inject constructor(
-    private val repository: RTSViewerDataStore,
+class SavedStreamViewModel @Inject constructor(
     private val dispatcherProvider: DispatcherProvider,
     private val recentStreamsDataStore: RecentStreamsDataStore
 ) : ViewModel() {
+
     private val defaultCoroutineScope = CoroutineScope(dispatcherProvider.default)
 
-    private val _uiState = MutableStateFlow(DetailInputScreenUiState())
-    val uiState: StateFlow<DetailInputScreenUiState> = _uiState.asStateFlow()
+    private val _uiState = MutableStateFlow(SavedStreamScreenUiState())
+    val uiState: StateFlow<SavedStreamScreenUiState> = _uiState.asStateFlow()
 
     init {
         defaultCoroutineScope.launch {
@@ -35,21 +35,6 @@ class DetailInputViewModel @Inject constructor(
                         )
                     }
                 }
-        }
-    }
-
-    fun connect(streamName: String, accountId: String) {
-        defaultCoroutineScope.launch {
-            repository.connect(streamName, accountId)
-
-            // Save the stream detail
-            recentStreamsDataStore.addStreamDetail(streamName, accountId)
-        }
-    }
-
-    fun clearAllStreams() {
-        defaultCoroutineScope.launch {
-            recentStreamsDataStore.clearAll()
         }
     }
 }
