@@ -26,9 +26,9 @@ class PrefsStoreImpl @Inject constructor(
         val SHOW_LIVE_INDICATOR = booleanPreferencesKey("show_live_indicator")
     }
 
-    private val Context.dataStore by preferencesDataStore(
-        name = USER_PREFERENCES_STORE_NAME
-    )
+    companion object {
+        private val Context.dataStore by preferencesDataStore(name = USER_PREFERENCES_STORE_NAME)
+    }
 
     init {
         // Register default preference values, if it does not exist
