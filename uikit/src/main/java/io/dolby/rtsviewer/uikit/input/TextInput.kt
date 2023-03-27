@@ -10,7 +10,10 @@ import androidx.compose.material.TextFieldDefaults
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
+import androidx.compose.ui.ExperimentalComposeUiApi
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.focus.onFocusChanged
+import androidx.compose.ui.platform.LocalSoftwareKeyboardController
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.semantics.contentDescription
 import androidx.compose.ui.semantics.semantics
@@ -20,6 +23,7 @@ import io.dolby.uikit.R
 
 internal val textInputContentDescriptionId = R.string.textInput_contentDescription
 
+@OptIn(ExperimentalComposeUiApi::class)
 @Preview(showBackground = true)
 @Composable
 fun TextInput(
@@ -35,11 +39,17 @@ fun TextInput(
     val textState = remember { mutableStateOf(TextFieldValue(value)) }
     val textInputContentDescription =
         "${label.ifEmpty { textState.value.text }} ${stringResource(id = textInputContentDescriptionId)}"
+    val keyboardController = LocalSoftwareKeyboardController.current
 
     OutlinedTextField(
         modifier = modifier
             .fillMaxWidth()
-            .semantics { contentDescription = textInputContentDescription },
+            .semantics { contentDescription = textInputContentDescription }
+            .onFocusChanged {
+                if (it.isFocused) {
+                    keyboardController?.hide()
+                }
+            },
         value = textState.value,
         label = { Text(text = label, style = MaterialTheme.typography.body1) },
         onValueChange = {

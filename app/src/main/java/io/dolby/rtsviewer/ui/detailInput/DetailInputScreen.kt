@@ -25,16 +25,11 @@ import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
-import androidx.compose.ui.ExperimentalComposeUiApi
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.focus.FocusDirection
 import androidx.compose.ui.focus.FocusRequester
 import androidx.compose.ui.focus.focusRequester
-import androidx.compose.ui.input.key.KeyEvent
-import androidx.compose.ui.input.key.key
-import androidx.compose.ui.input.key.nativeKeyCode
-import androidx.compose.ui.input.key.onKeyEvent
 import androidx.compose.ui.platform.LocalFocusManager
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.semantics.contentDescription
@@ -54,7 +49,6 @@ import io.dolby.rtsviewer.uikit.button.StyledButton
 import io.dolby.rtsviewer.uikit.input.TextInput
 import io.dolby.rtsviewer.uikit.theme.fontColor
 
-@OptIn(ExperimentalComposeUiApi::class)
 @Composable
 fun DetailInputScreen(
     onPlayClick: (StreamingData) -> Unit,
@@ -126,26 +120,6 @@ fun DetailInputScreen(
                     .clip(MaterialTheme.shapes.large)
                     .padding(horizontal = 55.dp)
                     .padding(vertical = 16.dp)
-                    .onKeyEvent {
-                        if (it.key.nativeKeyCode == android.view.KeyEvent.KEYCODE_DPAD_DOWN) {
-                            if (it.nativeKeyEvent.action == android.view.KeyEvent.ACTION_UP) {
-                                localFocusManager.moveFocus(FocusDirection.Down)
-                                return@onKeyEvent true
-                            } else if (it.nativeKeyEvent.action == android.view.KeyEvent.ACTION_DOWN) {
-                                // Bypass the event
-                                return@onKeyEvent true
-                            }
-                        } else if (it.key.nativeKeyCode == android.view.KeyEvent.KEYCODE_DPAD_UP) {
-                            if (it.nativeKeyEvent.action == android.view.KeyEvent.ACTION_UP) {
-                                localFocusManager.moveFocus(FocusDirection.Up)
-                                return@onKeyEvent true
-                            } else if (it.nativeKeyEvent.action == android.view.KeyEvent.ACTION_DOWN) {
-                                // Bypass the event
-                                return@onKeyEvent true
-                            }
-                        }
-                        return@onKeyEvent false
-                    }
             ) {
                 Text(
                     stringResource(id = R.string.stream_detail_header),
