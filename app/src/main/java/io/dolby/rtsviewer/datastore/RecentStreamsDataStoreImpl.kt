@@ -23,8 +23,9 @@ class RecentStreamsDataStoreImpl @Inject constructor(
         }
 
     override suspend fun addStreamDetail(streamName: String, accountID: String) {
-        val removeMatchingStreamJob = appCoroutineScope.launch {
+        appCoroutineScope.launch {
             dataStore.updateData {
+                // Remove existing stream matching the new stream details
                 val matchingIndex = it.streamDetailList
                     .indexOfFirst { streamDetail ->
                         streamDetail.streamName == streamName && streamDetail.accountID == accountID
@@ -35,19 +36,9 @@ class RecentStreamsDataStoreImpl @Inject constructor(
                     builder = builder.removeStreamDetail(matchingIndex)
                 }
 
-                builder.build()
-            }
-        }
-
-        // Remove streams from index - 25 onwards to keep the saved streams to a max limit of 25
-        val removeStreamsBeyondMaxLimit = appCoroutineScope.launch {
-            removeMatchingStreamJob.join()
-
-            dataStore.updateData {
+                // Remove streams from index - 25 onwards to keep the saved streams to a max limit of 25
                 val numberOfSavedStreams = it.streamDetailList.count()
                 val maxPermissibleIndex = MAX_SAVED_STREAMS_LIMIT - 1
-
-                var builder = it.toBuilder()
                 var indexOfLastStream = numberOfSavedStreams - 1
 
                 while (indexOfLastStream >= maxPermissibleIndex) {
@@ -55,14 +46,7 @@ class RecentStreamsDataStoreImpl @Inject constructor(
                     indexOfLastStream -= 1
                 }
 
-                builder.build()
-            }
-        }
-
-        appCoroutineScope.launch {
-            removeStreamsBeyondMaxLimit.join()
-
-            dataStore.updateData {
+                // Add the stream detail
                 val unixTime = System.currentTimeMillis()
                 val timeStamp = com.google.protobuf.Timestamp
                     .newBuilder()
@@ -73,7 +57,10 @@ class RecentStreamsDataStoreImpl @Inject constructor(
                     .setAccountID(accountID)
                     .setLastUsedDate(timeStamp)
                     .build()
-                it.toBuilder().addStreamDetail(0, streamDetail).build()
+                builder = builder.addStreamDetail(0, streamDetail)
+
+                // Commit the changes
+                builder.build()
             }
         }
     }
