@@ -13,7 +13,6 @@ import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.text.KeyboardActions
 import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.foundation.verticalScroll
-import androidx.compose.material.AlertDialog
 import androidx.compose.material.MaterialTheme
 import androidx.compose.material.Scaffold
 import androidx.compose.material.Text
@@ -45,12 +44,16 @@ import io.dolby.rtscomponentkit.ui.DolbyBackgroundBox
 import io.dolby.rtscomponentkit.ui.DolbyCopyrightFooterView
 import io.dolby.rtscomponentkit.ui.TopActionBar
 import io.dolby.rtsviewer.R
+import io.dolby.rtsviewer.ui.alert.ClearStreamConfirmationAlert
+import io.dolby.rtsviewer.ui.alert.DetailInputValidationAlert
+import io.dolby.rtsviewer.uikit.button.ButtonType
 import io.dolby.rtsviewer.uikit.button.StyledButton
 import io.dolby.rtsviewer.uikit.input.TextInput
 import io.dolby.rtsviewer.uikit.theme.fontColor
 
 @Composable
 fun DetailInputScreen(
+    streamingData: StreamingData? = null,
     onPlayClick: (StreamingData) -> Unit,
     onSavedStreamsClick: () -> Unit,
     modifier: Modifier = Modifier,
@@ -59,33 +62,56 @@ fun DetailInputScreen(
     var streamName by remember { mutableStateOf("") }
     var accountId by remember { mutableStateOf("") }
     var showMissingStreamDetailDialog by remember { mutableStateOf(false) }
+    var showClearStreamsConfirmationDialog by remember { mutableStateOf(false) }
+
     val screenName = stringResource(id = R.string.stream_detail_screen_name)
     val uiState by viewModel.uiState.collectAsStateWithLifecycle()
 
+    val localFocusManager = LocalFocusManager.current
+    val focusRequester = remember { FocusRequester() }
+    val background = MaterialTheme.colors.background
+
+    fun playStream(streamName: String, accountID: String) {
+        if (streamName.isEmpty() || accountID.isEmpty()) {
+            showMissingStreamDetailDialog = true
+        } else {
+            viewModel.connect(streamName = streamName, accountId = accountID)
+            onPlayClick(
+                StreamingData(
+                    streamName = streamName,
+                    accountId = accountID
+                )
+            )
+        }
+    }
+
+    LaunchedEffect(Unit) {
+        focusRequester.requestFocus()
+    }
+
+    LaunchedEffect(Unit) {
+        streamingData?.let {
+            playStream(streamingData.streamName, streamingData.accountId)
+        }
+    }
+
     if (showMissingStreamDetailDialog) {
-        AlertDialog(
-            onDismissRequest = {
-                showMissingStreamDetailDialog = false
+        DetailInputValidationAlert(
+            onDismiss = { showMissingStreamDetailDialog = false },
+            modifier = modifier
+        )
+    }
+
+    if (showClearStreamsConfirmationDialog) {
+        ClearStreamConfirmationAlert(
+            onClear = {
+                viewModel.clearAllStreams()
+                showClearStreamsConfirmationDialog = false
             },
-            text = {
-                Text(text = stringResource(id = R.string.missing_stream_name_or_account_id))
+            onDismiss = {
+                showClearStreamsConfirmationDialog = false
             },
-            buttons = {
-                Column(
-                    modifier = Modifier
-                        .padding(all = 8.dp)
-                        .fillMaxWidth(),
-                    horizontalAlignment = Alignment.CenterHorizontally
-                ) {
-                    StyledButton(
-                        buttonText = stringResource(id = R.string.missing_stream_detail_dismiss_button),
-                        onClickAction = { showMissingStreamDetailDialog = false },
-                        isPrimary = false,
-                        modifier = Modifier
-                            .width(200.dp)
-                    )
-                }
-            }
+            modifier = modifier
         )
     }
 
@@ -103,13 +129,6 @@ fun DetailInputScreen(
                 .padding(paddingValues)
                 .semantics { contentDescription = screenName }
         ) {
-            val localFocusManager = LocalFocusManager.current
-            val focusRequester = remember { FocusRequester() }
-            val background = MaterialTheme.colors.background
-            LaunchedEffect(Unit) {
-                focusRequester.requestFocus()
-            }
-
             Column(
                 horizontalAlignment = Alignment.CenterHorizontally,
                 modifier = modifier
@@ -184,7 +203,7 @@ fun DetailInputScreen(
                         onClickAction = {
                             onSavedStreamsClick()
                         },
-                        isPrimary = false
+                        buttonType = ButtonType.SECONDARY
                     )
                 }
 
@@ -193,19 +212,9 @@ fun DetailInputScreen(
                 StyledButton(
                     buttonText = stringResource(id = R.string.play_button),
                     onClickAction = {
-                        if (streamName.isEmpty() || accountId.isEmpty()) {
-                            showMissingStreamDetailDialog = true
-                        } else {
-                            viewModel.connect(streamName = streamName, accountId = accountId)
-                            onPlayClick(
-                                StreamingData(
-                                    streamName = streamName,
-                                    accountId = accountId
-                                )
-                            )
-                        }
+                        playStream(streamName, accountId)
                     },
-                    isPrimary = true
+                    buttonType = ButtonType.PRIMARY
                 )
 
                 if (uiState.recentStreams.isNotEmpty()) {
@@ -214,7 +223,7 @@ fun DetailInputScreen(
                             .fillMaxWidth()
                     ) {
                         TextButton(
-                            onClick = { /* Do something! */ }
+                            onClick = { showClearStreamsConfirmationDialog = true }
                         ) {
                             Text(
                                 stringResource(id = R.string.clear_stream_history_button),

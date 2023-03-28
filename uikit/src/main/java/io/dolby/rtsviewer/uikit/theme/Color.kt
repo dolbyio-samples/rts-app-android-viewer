@@ -9,6 +9,7 @@ import androidx.compose.material.SwitchDefaults
 import androidx.compose.material.darkColors
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.graphics.Color
+import io.dolby.rtsviewer.uikit.button.ButtonType
 import io.dolby.rtsviewer.uikit.utils.ViewState
 
 abstract class ColorPalette {
@@ -51,7 +52,8 @@ class DarkThemeColors : ColorPalette() {
             onBackground = white,
             surface = grayMedium,
             onSurface = grayLightFont,
-            error = razzmatazz
+            error = razzmatazz,
+            onError = white
         )
     }
 }
@@ -69,13 +71,12 @@ fun switchColours(): SwitchColors {
 }
 
 @Composable
-internal fun borderColor(state: ViewState, isPrimary: Boolean): Color {
-    return if (isPrimary) {
-        backgroundColor(state, true)
-    } else {
-        return when (state) {
+internal fun borderColor(state: ViewState, buttonType: ButtonType): Color {
+    return when (buttonType) {
+        ButtonType.PRIMARY, ButtonType.DANGER, ButtonType.BASIC -> backgroundColor(state, buttonType = buttonType)
+        ButtonType.SECONDARY -> when (state) {
             ViewState.Pressed,
-            ViewState.Selected -> backgroundColor(state, false)
+            ViewState.Selected -> backgroundColor(state, buttonType)
             ViewState.Disabled -> MaterialTheme.colors.surface
             ViewState.Focused -> MaterialTheme.colors.secondaryVariant
             ViewState.Unknown -> MaterialTheme.colors.primaryVariant
@@ -84,26 +85,32 @@ internal fun borderColor(state: ViewState, isPrimary: Boolean): Color {
 }
 
 @Composable
-internal fun backgroundColor(state: ViewState, isPrimary: Boolean): Color {
+internal fun backgroundColor(state: ViewState, buttonType: ButtonType): Color {
     return when (state) {
         ViewState.Disabled -> {
-            if (isPrimary) MaterialTheme.colors.surface else MaterialTheme.colors.secondary
+            return when (buttonType) {
+                ButtonType.PRIMARY -> MaterialTheme.colors.surface
+                else -> MaterialTheme.colors.secondary
+            }
         }
         ViewState.Pressed, ViewState.Selected -> {
-            if (isPrimary) MaterialTheme.colors.primary else MaterialTheme.colors.secondaryVariant
+            return when (buttonType) {
+                ButtonType.PRIMARY -> MaterialTheme.colors.primary
+                else -> MaterialTheme.colors.secondaryVariant
+            }
         }
         ViewState.Focused -> {
-            if (isPrimary) {
-                MaterialTheme.colors.primary
-            } else {
-                MaterialTheme.colors.secondaryVariant
+            return when (buttonType) {
+                ButtonType.PRIMARY -> MaterialTheme.colors.primary
+                else -> MaterialTheme.colors.secondaryVariant
             }
         }
         ViewState.Unknown -> {
-            if (isPrimary) {
-                MaterialTheme.colors.primaryVariant
-            } else {
-                MaterialTheme.colors.secondary
+            return when (buttonType) {
+                ButtonType.PRIMARY -> MaterialTheme.colors.primaryVariant
+                ButtonType.DANGER -> MaterialTheme.colors.error
+                ButtonType.BASIC -> MaterialTheme.colors.surface
+                ButtonType.SECONDARY -> MaterialTheme.colors.secondary
             }
         }
     }

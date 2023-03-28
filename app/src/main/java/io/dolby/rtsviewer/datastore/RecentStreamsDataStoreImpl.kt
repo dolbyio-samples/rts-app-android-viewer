@@ -9,6 +9,8 @@ import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.launch
 import javax.inject.Inject
 
+private const val MAX_SAVED_STREAMS_LIMIT = 25
+
 class RecentStreamsDataStoreImpl @Inject constructor(
     @ApplicationContext private val context: Context
 ) : RecentStreamsDataStore {
@@ -17,21 +19,34 @@ class RecentStreamsDataStoreImpl @Inject constructor(
 
     override var recentStreams: Flow<List<StreamDetail>> =
         dataStore.data.map {
-            it.streamDetailList.sortedBy { streamDetail -> streamDetail.lastUsedDate.seconds }
+            it.streamDetailList.sortedByDescending { streamDetail -> streamDetail.lastUsedDate.seconds }
         }
 
     override suspend fun addStreamDetail(streamName: String, accountID: String) {
         appCoroutineScope.launch {
             dataStore.updateData {
+                // Remove existing stream matching the new stream details
                 val matchingIndex = it.streamDetailList
                     .indexOfFirst { streamDetail ->
                         streamDetail.streamName == streamName && streamDetail.accountID == accountID
                     }
 
+                var builder = it.toBuilder()
                 if (matchingIndex != -1) {
-                    it.toBuilder().removeStreamDetail(matchingIndex).build()
+                    builder = builder.removeStreamDetail(matchingIndex)
                 }
 
+                // Remove streams from index - 25 onwards to keep the saved streams to a max limit of 25
+                val numberOfSavedStreams = it.streamDetailList.count()
+                val maxPermissibleIndex = MAX_SAVED_STREAMS_LIMIT - 1
+                var indexOfLastStream = numberOfSavedStreams - 1
+
+                while (indexOfLastStream >= maxPermissibleIndex) {
+                    builder = builder.removeStreamDetail(indexOfLastStream)
+                    indexOfLastStream -= 1
+                }
+
+                // Add the stream detail
                 val unixTime = System.currentTimeMillis()
                 val timeStamp = com.google.protobuf.Timestamp
                     .newBuilder()
@@ -42,7 +57,10 @@ class RecentStreamsDataStoreImpl @Inject constructor(
                     .setAccountID(accountID)
                     .setLastUsedDate(timeStamp)
                     .build()
-                it.toBuilder().addStreamDetail(0, streamDetail).build()
+                builder = builder.addStreamDetail(0, streamDetail)
+
+                // Commit the changes
+                builder.build()
             }
         }
     }
