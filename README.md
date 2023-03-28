@@ -61,6 +61,8 @@ For more information on how to create and use a PAT
 
 Start the Android Studio, and open the folder of the project root.
 
+From the top of the Android Studio, click Build -> Select Build Variant, select the correct Active Build Variant for the app. The `tvDebug` is selected for the Android TV app target.
+
 From the top of the Android Studio, select the actual target to be run on.
 
 > **_Info:_** To run on a real device, you need to connect it to the Android Studio with the [ADB](https://developer.android.com/studio/command-line/adb#:~:text=Connect%20to%20a%20device%20over%20Wi-Fi%20%28Android%2011%2B%29,and%20port%20number%20from%20step%205.%20See%20More.)
