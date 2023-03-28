@@ -1,4 +1,5 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
     <string name="footer_text">Copyright © 2023 Dolby.io — All Rights Reserved</string>
+    <string name="gradient_background_image">Background Image</string>
 </resources>

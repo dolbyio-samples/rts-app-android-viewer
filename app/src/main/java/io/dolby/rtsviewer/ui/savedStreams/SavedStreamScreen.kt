@@ -1,12 +1,15 @@
 package io.dolby.rtsviewer.ui.savedStreams
 
+import androidx.compose.foundation.ExperimentalFoundationApi
+import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Spacer
-import androidx.compose.foundation.layout.fillMaxSize
+import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
+import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.width
-import androidx.compose.foundation.rememberScrollState
-import androidx.compose.foundation.verticalScroll
+import androidx.compose.foundation.lazy.LazyColumn
+import androidx.compose.foundation.lazy.items
 import androidx.compose.material.MaterialTheme
 import androidx.compose.material.Text
 import androidx.compose.runtime.Composable
@@ -26,10 +29,12 @@ import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import io.dolby.rtscomponentkit.ui.DolbyBackgroundBox
 import io.dolby.rtsviewer.R
 import io.dolby.rtsviewer.datastore.StreamDetail
+import io.dolby.rtsviewer.uikit.button.ButtonType
 import io.dolby.rtsviewer.uikit.button.StyledButton
 import io.dolby.rtsviewer.uikit.theme.fontColor
 import kotlinx.coroutines.delay
 
+@OptIn(ExperimentalFoundationApi::class)
 @Composable
 fun SavedStreamScreen(
     modifier: Modifier = Modifier,
@@ -44,33 +49,43 @@ fun SavedStreamScreen(
         focusRequester.requestFocus()
     }
 
-    DolbyBackgroundBox(showGradientBackground = false, modifier = modifier) {
-        Column(
+    DolbyBackgroundBox(
+        showGradientBackground = false,
+        modifier = modifier
+    ) {
+        val background = MaterialTheme.colors.background
+
+        LazyColumn(
             horizontalAlignment = Alignment.CenterHorizontally,
             modifier = modifier
-                .align(Alignment.Center)
-                .fillMaxSize()
+                .width(450.dp)
+                .align(Alignment.TopCenter)
+                .padding(top = 16.dp, bottom = 16.dp)
         ) {
-            val background = MaterialTheme.colors.background
+            // Header - Title
 
-            Spacer(modifier = modifier.height(16.dp))
+            stickyHeader {
+                Column(
+                    horizontalAlignment = Alignment.CenterHorizontally,
+                    modifier = modifier
+                        .background(background)
+                        .fillMaxWidth()
+                ) {
+                    Text(
+                        stringResource(id = R.string.saved_streams_screen_title),
+                        style = MaterialTheme.typography.h2,
+                        fontWeight = FontWeight.Bold,
+                        color = fontColor(background),
+                        textAlign = TextAlign.Center
+                    )
 
-            Text(
-                stringResource(id = R.string.saved_streams_screen_title),
-                style = MaterialTheme.typography.h2,
-                fontWeight = FontWeight.Bold,
-                color = fontColor(background),
-                textAlign = TextAlign.Center
-            )
+                    Spacer(modifier = modifier.height(8.dp))
+                }
+            }
 
-            Spacer(modifier = modifier.height(8.dp))
+            // Section - Last played stream
 
-            Column(
-                horizontalAlignment = Alignment.Start,
-                modifier = modifier
-                    .verticalScroll(rememberScrollState())
-                    .width(450.dp)
-            ) {
+            item {
                 Spacer(modifier = modifier.height(8.dp))
 
                 Text(
@@ -91,13 +106,17 @@ fun SavedStreamScreen(
                         onClickAction = {
                             onPlayStream(lastPlayedStream)
                         },
-                        isBasic = true,
+                        buttonType = ButtonType.BASIC,
                         capitalize = false,
                         modifier = modifier
                             .focusRequester(focusRequester)
                     )
                 }
+            }
 
+            // Section - All Streams
+
+            item {
                 Spacer(modifier = modifier.height(16.dp))
 
                 Text(
@@ -109,23 +128,19 @@ fun SavedStreamScreen(
                 )
 
                 Spacer(modifier = modifier.height(8.dp))
+            }
 
-                Column {
-                    uiState.recentStreams.forEach { streamDetail ->
-                        StyledButton(
-                            buttonText = "${streamDetail.streamName} / ID ${streamDetail.accountID}",
-                            onClickAction = {
-                                onPlayStream(streamDetail)
-                            },
-                            isBasic = true,
-                            capitalize = false
-                        )
+            items(items = uiState.recentStreams) { streamDetail ->
+                StyledButton(
+                    buttonText = "${streamDetail.streamName} / ID ${streamDetail.accountID}",
+                    onClickAction = {
+                        onPlayStream(streamDetail)
+                    },
+                    buttonType = ButtonType.BASIC,
+                    capitalize = false
+                )
 
-                        Spacer(modifier = modifier.height(8.dp))
-                    }
-                }
-
-                Spacer(modifier = modifier.height(16.dp))
+                Spacer(modifier = modifier.height(8.dp))
             }
         }
     }

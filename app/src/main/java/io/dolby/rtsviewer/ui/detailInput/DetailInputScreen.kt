@@ -1,7 +1,6 @@
 package io.dolby.rtsviewer.ui.detailInput
 
 import androidx.compose.foundation.background
-import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
@@ -14,7 +13,6 @@ import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.text.KeyboardActions
 import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.foundation.verticalScroll
-import androidx.compose.material.AlertDialog
 import androidx.compose.material.MaterialTheme
 import androidx.compose.material.Scaffold
 import androidx.compose.material.Text
@@ -46,6 +44,9 @@ import io.dolby.rtscomponentkit.ui.DolbyBackgroundBox
 import io.dolby.rtscomponentkit.ui.DolbyCopyrightFooterView
 import io.dolby.rtscomponentkit.ui.TopActionBar
 import io.dolby.rtsviewer.R
+import io.dolby.rtsviewer.ui.alert.ClearStreamConfirmationAlert
+import io.dolby.rtsviewer.ui.alert.DetailInputValidationAlert
+import io.dolby.rtsviewer.uikit.button.ButtonType
 import io.dolby.rtsviewer.uikit.button.StyledButton
 import io.dolby.rtsviewer.uikit.input.TextInput
 import io.dolby.rtsviewer.uikit.theme.fontColor
@@ -95,71 +96,22 @@ fun DetailInputScreen(
     }
 
     if (showMissingStreamDetailDialog) {
-        AlertDialog(
-            onDismissRequest = {
-                showMissingStreamDetailDialog = false
-            },
-            text = {
-                Text(text = stringResource(id = R.string.missing_stream_name_or_account_id))
-            },
-            buttons = {
-                Column(
-                    modifier = Modifier
-                        .padding(all = 8.dp)
-                        .fillMaxWidth(),
-                    horizontalAlignment = Alignment.CenterHorizontally
-                ) {
-                    StyledButton(
-                        buttonText = stringResource(id = R.string.missing_stream_detail_dismiss_button),
-                        onClickAction = { showMissingStreamDetailDialog = false },
-                        isPrimary = false,
-                        modifier = Modifier
-                            .width(200.dp)
-                    )
-                }
-            }
+        DetailInputValidationAlert(
+            onDismiss = { showMissingStreamDetailDialog = false },
+            modifier = modifier
         )
     }
 
     if (showClearStreamsConfirmationDialog) {
-        AlertDialog(
-            onDismissRequest = {
+        ClearStreamConfirmationAlert(
+            onClear = {
+                viewModel.clearAllStreams()
                 showClearStreamsConfirmationDialog = false
             },
-            text = {
-                Text(text = stringResource(id = R.string.delete_all_streams_dialog_label))
+            onDismiss = {
+                showClearStreamsConfirmationDialog = false
             },
-            buttons = {
-                Row(
-                    horizontalArrangement = Arrangement.Center,
-                    modifier = Modifier
-                        .padding(all = 8.dp)
-                        .fillMaxWidth()
-                ) {
-                    StyledButton(
-                        buttonText = stringResource(id = R.string.delete_all_streams_clear_button),
-                        onClickAction = {
-                            viewModel.clearAllStreams()
-                            showClearStreamsConfirmationDialog = false
-                        },
-                        isDanger = true,
-                        modifier = Modifier
-                            .width(200.dp)
-                    )
-
-                    Spacer(modifier = modifier.width(8.dp))
-
-                    StyledButton(
-                        buttonText = stringResource(id = R.string.delete_all_streams_cancel_button),
-                        onClickAction = {
-                            showClearStreamsConfirmationDialog = false
-                        },
-                        isPrimary = false,
-                        modifier = Modifier
-                            .width(200.dp)
-                    )
-                }
-            }
+            modifier = modifier
         )
     }
 
@@ -251,7 +203,7 @@ fun DetailInputScreen(
                         onClickAction = {
                             onSavedStreamsClick()
                         },
-                        isPrimary = false
+                        buttonType = ButtonType.SECONDARY
                     )
                 }
 
@@ -262,7 +214,7 @@ fun DetailInputScreen(
                     onClickAction = {
                         playStream(streamName, accountId)
                     },
-                    isPrimary = true
+                    buttonType = ButtonType.PRIMARY
                 )
 
                 if (uiState.recentStreams.isNotEmpty()) {

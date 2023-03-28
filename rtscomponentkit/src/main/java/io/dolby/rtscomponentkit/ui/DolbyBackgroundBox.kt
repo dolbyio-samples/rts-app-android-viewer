@@ -10,6 +10,7 @@ import androidx.compose.runtime.Composable
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.res.painterResource
+import androidx.compose.ui.res.stringResource
 import io.dolby.rtscomponentkit.R
 
 @Composable
@@ -26,7 +27,7 @@ fun DolbyBackgroundBox(
         if (showGradientBackground) {
             Image(
                 painter = painterResource(id = R.drawable.gradient_background),
-                contentDescription = "Background Image",
+                contentDescription = stringResource(id = R.string.gradient_background_image),
                 modifier = Modifier
                     .matchParentSize(),
                 contentScale = ContentScale.Crop

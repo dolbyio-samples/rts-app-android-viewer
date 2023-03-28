@@ -43,18 +43,20 @@ import io.dolby.uikit.R
 
 internal val buttonContentDescriptionId = R.string.button_contentDescription
 
+enum class ButtonType {
+    PRIMARY, SECONDARY, DANGER, BASIC
+}
+
 @Preview
 @Composable
 fun StyledButton(
     modifier: Modifier = Modifier,
     buttonText: String = "",
     onClickAction: ((Context) -> Unit)? = null,
+    buttonType: ButtonType = ButtonType.PRIMARY,
     isSelected: Boolean = false,
     isEnabled: Boolean = true,
-    isPrimary: Boolean = false,
     isLarge: Boolean = false,
-    isBasic: Boolean = false,
-    isDanger: Boolean = false,
     capitalize: Boolean = true
 ) {
     val interactionSource = remember { MutableInteractionSource() }
@@ -64,9 +66,9 @@ fun StyledButton(
     val context = LocalContext.current
     val viewState = ViewState.from(isPressed, isSelected, isFocused, isEnabled)
 
-    val backgroundColor = backgroundColor(state = viewState, isPrimary = isPrimary, isBasic = isBasic, isDanger = isDanger)
+    val backgroundColor = backgroundColor(state = viewState, buttonType = buttonType)
     val fontColor = if (isEnabled) fontColor(backgroundColor) else MaterialTheme.colors.onSurface
-    val borderColor = borderColor(viewState, isPrimary, isBasic, isDanger)
+    val borderColor = borderColor(viewState, buttonType)
     val buttonContentDescription = "$buttonText ${ stringResource(id = buttonContentDescriptionId) }"
     Button(
         modifier = modifier
