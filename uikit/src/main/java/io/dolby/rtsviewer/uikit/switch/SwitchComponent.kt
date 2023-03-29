@@ -89,7 +89,6 @@ fun SwitchComponent(
             "$text ${stringResource(id = R.string.switch_contentDescription)}"
         startIcon?.let {
             Image(
-                modifier = Modifier.align(alignment = Alignment.CenterVertically),
                 painter = it,
                 contentDescription = switchContentDescription,
                 colorFilter = ColorFilter.tint(getColorPalette().neutralColor300)
@@ -97,9 +96,7 @@ fun SwitchComponent(
             Spacer(modifier = Modifier.width(12.dp))
         }
         Text(
-            modifier = Modifier
-                .weight(1f)
-                .align(alignment = Alignment.CenterVertically),
+            modifier = Modifier.weight(1f),
             text = text,
             color = fontColor
         )
