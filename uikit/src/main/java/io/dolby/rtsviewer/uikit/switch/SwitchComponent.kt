@@ -37,8 +37,10 @@ import androidx.compose.ui.graphics.painter.Painter
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.semantics.Role
 import androidx.compose.ui.unit.dp
-import io.dolby.rtsviewer.uikit.theme.fontColor
+import io.dolby.rtsviewer.uikit.theme.getColorPalette
 import io.dolby.rtsviewer.uikit.theme.selectableButtonBackgroundColor
+import io.dolby.rtsviewer.uikit.theme.selectableButtonBorderColor
+import io.dolby.rtsviewer.uikit.theme.selectableButtonFontColor
 import io.dolby.rtsviewer.uikit.theme.switchColours
 import io.dolby.rtsviewer.uikit.utils.ViewState
 import io.dolby.uikit.R
@@ -50,7 +52,7 @@ fun SwitchComponent(
     isEnabled: Boolean,
     onCheckChange: (Boolean) -> Unit,
     modifier: Modifier = Modifier,
-    icon: Painter? = null
+    startIcon: Painter? = null
 ) {
     val interactionSource = remember { MutableInteractionSource() }
     val isPressed by interactionSource.collectIsPressedAsState()
@@ -58,7 +60,8 @@ fun SwitchComponent(
     val viewState = ViewState.from(isPressed, false, isFocused, isEnabled)
 
     val backgroundColor = selectableButtonBackgroundColor(state = viewState)
-    val fontColor = if (isEnabled) fontColor(backgroundColor) else MaterialTheme.colors.onSurface
+    val borderColor = selectableButtonBorderColor(state = viewState)
+    val fontColor = selectableButtonFontColor(state = viewState, isPrimary = true)
 
     Row(
         modifier = modifier
@@ -68,7 +71,7 @@ fun SwitchComponent(
             )
             .border(
                 width = 1.dp,
-                color = fontColor,
+                color = borderColor,
                 shape = MaterialTheme.shapes.large
             )
             .padding(horizontal = 15.dp)
@@ -76,20 +79,18 @@ fun SwitchComponent(
                 interactionSource = interactionSource,
                 indication = null,
                 role = Role.Switch,
-                onClick = {
-                    onCheckChange(!checked)
-                }
+                onClick = { onCheckChange(!checked) }
             ),
         verticalAlignment = Alignment.CenterVertically
     ) {
         val switchContentDescription =
             "$text ${stringResource(id = R.string.switch_contentDescription)}"
-        icon?.let {
+        startIcon?.let {
             Image(
                 modifier = Modifier.align(alignment = Alignment.CenterVertically),
-                painter = icon,
+                painter = it,
                 contentDescription = switchContentDescription,
-                colorFilter = ColorFilter.tint(fontColor)
+                colorFilter = ColorFilter.tint(getColorPalette().neutralColor300)
             )
             Spacer(modifier = Modifier.width(12.dp))
         }
@@ -104,7 +105,7 @@ fun SwitchComponent(
             checked = checked,
             onCheckedChange = onCheckChange,
             enabled = isEnabled,
-            colors = switchColours()
+            colors = switchColours(state = viewState)
         )
     }
 }

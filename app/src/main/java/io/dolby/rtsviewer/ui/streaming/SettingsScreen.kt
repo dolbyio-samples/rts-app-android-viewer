@@ -39,6 +39,7 @@ fun SettingsScreen(viewModel: StreamingViewModel, showStatistics: MutableState<B
         modifier = Modifier
             .fillMaxWidth()
             .background(Color.Black.copy(alpha = .75f))
+            .focusRequester(focusRequester)
     ) {
         Column(
             modifier = Modifier
@@ -51,26 +52,24 @@ fun SettingsScreen(viewModel: StreamingViewModel, showStatistics: MutableState<B
         ) {
             StateButton(
                 text = stringResource(id = R.string.simulcast_title),
-                icon = painterResource(id = io.dolby.uikit.R.drawable.icon_simulcast),
+                startIcon = painterResource(id = io.dolby.uikit.R.drawable.icon_simulcast),
+                endIcon = painterResource(id = io.dolby.uikit.R.drawable.ic_arrow_right),
                 stateText = "Auto",
-                isEnabled = true,
+                isEnabled = false,
                 onClick = { /*TODO*/ }
             )
             Spacer(modifier = Modifier.height(12.dp))
             SwitchComponent(
-                modifier = Modifier.focusRequester(focusRequester),
                 text = stringResource(id = R.string.streaming_statistics_title),
-                icon = painterResource(id = io.dolby.uikit.R.drawable.icon_info),
+                startIcon = painterResource(id = io.dolby.uikit.R.drawable.icon_info),
                 checked = showStatistics.value,
                 isEnabled = true,
-                onCheckChange = {
-                    showStatistics.value = it
-                }
+                onCheckChange = { showStatistics.value = it }
             )
             Spacer(modifier = Modifier.height(12.dp))
             SwitchComponent(
                 text = stringResource(id = R.string.live_indicator_title),
-                icon = painterResource(id = io.dolby.uikit.R.drawable.icon_live_indicator),
+                startIcon = painterResource(id = io.dolby.uikit.R.drawable.icon_live_indicator),
                 checked = uiState.showLiveIndicator,
                 isEnabled = true,
                 onCheckChange = { viewModel.updateShowLiveIndicator(it) }
