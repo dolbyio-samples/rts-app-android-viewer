@@ -44,12 +44,12 @@ fun TextInput(
     OutlinedTextField(
         modifier = modifier
             .fillMaxWidth()
-            .semantics { contentDescription = textInputContentDescription }
             .onFocusChanged {
                 if (it.isFocused) {
                     keyboardController?.hide()
                 }
-            },
+            }
+            .semantics { contentDescription = textInputContentDescription },
         value = textState.value,
         label = { Text(text = label, style = MaterialTheme.typography.body1) },
         onValueChange = {

@@ -34,7 +34,10 @@ abstract class ColorPalette {
     open val red = Color(0xFFFF0000)
 
     open val neutralColor25 = Color(0xFFFCFCFF)
-    open val typographyTeritiary = Color(0xFF525259)
+    open val neutralColor300 = Color(0xFF959599)
+    open val neutralColor600 = Color(0xFF525259)
+    open val neutralColor800 = Color(0xFF292930)
+    open val typographyTeritiary = Color(0xFFBBBBBF)
 
     abstract fun asList(): Colors
 }
@@ -59,21 +62,77 @@ class DarkThemeColors : ColorPalette() {
 }
 
 @Composable
-fun switchColours(): SwitchColors {
+fun switchColours(state: ViewState): SwitchColors {
     val colours = getColorPalette()
-    return SwitchDefaults.colors(
-        // From Figma, but I guess they'll change
-        uncheckedTrackColor = colours.grayDark,
-        checkedTrackColor = MaterialTheme.colors.primary,
-        uncheckedThumbColor = colours.grayLight,
-        checkedThumbColor = colours.grayLight
-    )
+    return when (state) {
+        ViewState.Pressed,
+        ViewState.Focused,
+        ViewState.Selected ->
+            SwitchDefaults.colors(
+                uncheckedTrackColor = colours.grayDark,
+                checkedTrackColor = MaterialTheme.colors.primaryVariant,
+                uncheckedThumbColor = colours.grayLight,
+                checkedThumbColor = colours.grayMedium
+            )
+        ViewState.Disabled ->
+            SwitchDefaults.colors(
+                uncheckedTrackColor = colours.grayMedium,
+                checkedTrackColor = colours.grayMedium,
+                uncheckedThumbColor = colours.grayMedium,
+                checkedThumbColor = colours.grayMedium
+            )
+        ViewState.Unknown ->
+            SwitchDefaults.colors(
+                uncheckedTrackColor = colours.grayLight,
+                checkedTrackColor = MaterialTheme.colors.primaryVariant,
+                uncheckedThumbColor = colours.grayLight,
+                checkedThumbColor = colours.grayLight
+            )
+    }
+}
+
+@Composable
+fun selectableButtonBackgroundColor(state: ViewState): Color {
+    return when (state) {
+        ViewState.Pressed,
+        ViewState.Focused,
+        ViewState.Selected -> backgroundColor(state, ButtonType.BASIC)
+        ViewState.Disabled -> MaterialTheme.colors.surface
+        ViewState.Unknown -> getColorPalette().neutralColor800
+    }
+}
+
+@Composable
+fun selectableButtonBorderColor(state: ViewState): Color {
+    return when (state) {
+        ViewState.Pressed,
+        ViewState.Focused,
+        ViewState.Selected -> backgroundColor(state, ButtonType.BASIC)
+        ViewState.Disabled,
+        ViewState.Unknown -> getColorPalette().neutralColor600
+    }
+}
+
+@Composable
+fun selectableButtonFontColor(state: ViewState, isPrimary: Boolean): Color {
+    return when (state) {
+        ViewState.Pressed,
+        ViewState.Focused,
+        ViewState.Selected -> getColorPalette().grayDarkFont
+        ViewState.Disabled -> MaterialTheme.colors.onSurface
+        ViewState.Unknown -> if (isPrimary) {
+            MaterialTheme.colors.onPrimary
+        } else getColorPalette().neutralColor600
+    }
 }
 
 @Composable
 internal fun borderColor(state: ViewState, buttonType: ButtonType): Color {
     return when (buttonType) {
-        ButtonType.PRIMARY, ButtonType.DANGER, ButtonType.BASIC -> backgroundColor(state, buttonType = buttonType)
+        ButtonType.PRIMARY, ButtonType.DANGER, ButtonType.BASIC -> backgroundColor(
+            state,
+            buttonType = buttonType
+        )
         ButtonType.SECONDARY -> when (state) {
             ViewState.Pressed,
             ViewState.Selected -> backgroundColor(state, buttonType)
@@ -88,25 +147,25 @@ internal fun borderColor(state: ViewState, buttonType: ButtonType): Color {
 internal fun backgroundColor(state: ViewState, buttonType: ButtonType): Color {
     return when (state) {
         ViewState.Disabled -> {
-            return when (buttonType) {
+            when (buttonType) {
                 ButtonType.PRIMARY -> MaterialTheme.colors.surface
                 else -> MaterialTheme.colors.secondary
             }
         }
         ViewState.Pressed, ViewState.Selected -> {
-            return when (buttonType) {
+            when (buttonType) {
                 ButtonType.PRIMARY -> MaterialTheme.colors.primary
                 else -> MaterialTheme.colors.secondaryVariant
             }
         }
         ViewState.Focused -> {
-            return when (buttonType) {
+            when (buttonType) {
                 ButtonType.PRIMARY -> MaterialTheme.colors.primary
                 else -> MaterialTheme.colors.secondaryVariant
             }
         }
         ViewState.Unknown -> {
-            return when (buttonType) {
+            when (buttonType) {
                 ButtonType.PRIMARY -> MaterialTheme.colors.primaryVariant
                 ButtonType.DANGER -> MaterialTheme.colors.error
                 ButtonType.BASIC -> MaterialTheme.colors.surface
@@ -126,7 +185,7 @@ fun fontColor(backgroundColor: Color): Color {
         MaterialTheme.colors.background -> MaterialTheme.colors.onBackground
         MaterialTheme.colors.surface -> MaterialTheme.colors.onSurface
         MaterialTheme.colors.error -> MaterialTheme.colors.onError
-        DarkThemeColors().grayMedium -> DarkThemeColors().typographyTeritiary
+        DarkThemeColors().grayMedium -> MaterialTheme.colors.onPrimary
         else -> Color.Unspecified
     }
 }

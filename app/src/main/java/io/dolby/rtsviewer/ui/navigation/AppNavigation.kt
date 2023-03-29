@@ -49,7 +49,7 @@ fun AppNavigation(navController: NavHostController) {
             if (streamName.isNullOrEmpty() || accountId.isNullOrEmpty()) {
                 throw IllegalArgumentException()
             }
-            StreamingScreen()
+            StreamingScreen(onBack = { navController.popBackStack() })
         }
 
         composable(

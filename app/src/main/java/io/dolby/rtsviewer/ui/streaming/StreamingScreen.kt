@@ -1,10 +1,13 @@
 package io.dolby.rtsviewer.ui.streaming
 
+import androidx.activity.compose.BackHandler
 import androidx.compose.foundation.layout.Box
 import androidx.compose.material.MaterialTheme
 import androidx.compose.material.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.remember
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.LocalContext
@@ -25,10 +28,16 @@ import io.dolby.rtsviewer.utils.findActivity
 import org.webrtc.RendererCommon
 
 @Composable
-fun StreamingScreen(viewModel: StreamingViewModel = hiltViewModel()) {
+fun StreamingScreen(viewModel: StreamingViewModel = hiltViewModel(), onBack: () -> Unit) {
     val uiState by viewModel.uiState.collectAsStateWithLifecycle()
+    val showSettings = remember { mutableStateOf(false) }
+    val showStatistics = remember { mutableStateOf(false) }
     val screenContentDescription = stringResource(id = R.string.streaming_screen_contentDescription)
-    DolbyBackgroundBox(modifier = Modifier.semantics { contentDescription = screenContentDescription }) {
+    DolbyBackgroundBox(
+        modifier = Modifier.semantics {
+            contentDescription = screenContentDescription
+        }
+    ) {
         val context = LocalContext.current
         when {
             uiState.error != null -> {
@@ -69,6 +78,18 @@ fun StreamingScreen(viewModel: StreamingViewModel = hiltViewModel()) {
             KeepScreenOn(enabled = false)
         }
 
-        StreamingToolbarView(viewModel = viewModel)
+        StreamingToolbarView(viewModel = viewModel, showSettings = showSettings)
+
+        if (showSettings.value) {
+            SettingsScreen(viewModel, showStatistics)
+        }
+
+        BackHandler {
+            if (showSettings.value) {
+                showSettings.value = false
+            } else {
+                onBack.invoke()
+            }
+        }
     }
 }

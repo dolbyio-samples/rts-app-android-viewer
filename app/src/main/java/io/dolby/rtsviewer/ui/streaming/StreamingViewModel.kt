@@ -26,6 +26,7 @@ import kotlin.time.Duration
 import kotlin.time.Duration.Companion.seconds
 
 private const val TAG = "StreamingViewModel"
+private const val SHOW_TOOLBAR_TIMEOUT: Long = 5_000
 
 @HiltViewModel
 class StreamingViewModel @Inject constructor(
@@ -37,7 +38,8 @@ class StreamingViewModel @Inject constructor(
     private val defaultCoroutineScope = CoroutineScope(dispatcherProvider.default)
     private val _uiState = MutableStateFlow(StreamingScreenUiState())
     val uiState: StateFlow<StreamingScreenUiState> = _uiState.asStateFlow()
-    private val _showToolbarState = MutableStateFlow<Boolean>(false)
+    private val _showToolbarState = MutableStateFlow(false)
+    private val _showToolbarDelayState = MutableStateFlow(0L)
     var showToolbarState = _showToolbarState.asStateFlow()
 
     init {
@@ -190,10 +192,24 @@ class StreamingViewModel @Inject constructor(
     }
 
     fun showToolbar() {
-        viewModelScope.launch {
-            _showToolbarState.update { true }
-            delay(5_000)
-            _showToolbarState.update { false }
+        _showToolbarDelayState.update { _showToolbarDelayState.value + 1 }
+        if (!_showToolbarState.value) {
+            viewModelScope.launch {
+                _showToolbarState.update { true }
+                while (_showToolbarDelayState.value > 0) {
+                    delay(SHOW_TOOLBAR_TIMEOUT)
+                    _showToolbarDelayState.update { _showToolbarDelayState.value - 1 }
+                }
+                _showToolbarState.update { false }
+            }
         }
+    }
+
+    fun hideToolbar() {
+        _showToolbarState.update { false }
+    }
+
+    fun updateShowLiveIndicator(show: Boolean) {
+        // TODO
     }
 }
