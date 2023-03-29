@@ -5,5 +5,5 @@ import kotlinx.coroutines.flow.Flow
 interface PrefsStore {
     var isLiveIndicatorEnabled: Flow<Boolean>
 
-    suspend fun toggleLiveIndicator()
+    suspend fun updateLiveIndicator(checked: Boolean)
 }

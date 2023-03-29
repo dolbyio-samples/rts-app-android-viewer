@@ -76,7 +76,7 @@ fun switchColours(state: ViewState): SwitchColors {
             )
         ViewState.Disabled ->
             SwitchDefaults.colors(
-                uncheckedTrackColor = colours.grayMedium,
+                uncheckedTrackColor = colours.grayLight,
                 checkedTrackColor = colours.grayMedium,
                 uncheckedThumbColor = colours.grayMedium,
                 checkedThumbColor = colours.grayMedium

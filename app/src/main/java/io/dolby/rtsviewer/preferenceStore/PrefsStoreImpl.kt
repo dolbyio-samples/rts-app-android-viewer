@@ -5,7 +5,7 @@ import androidx.datastore.preferences.core.booleanPreferencesKey
 import androidx.datastore.preferences.core.edit
 import androidx.datastore.preferences.core.emptyPreferences
 import androidx.datastore.preferences.preferencesDataStore
-import dagger.hilt.android.qualifiers.ApplicationContext
+import io.dolby.rtscomponentkit.utils.SingletonHolder
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.flow.Flow
@@ -13,21 +13,18 @@ import kotlinx.coroutines.flow.catch
 import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.launch
 import java.io.IOException
-import javax.inject.Inject
 
 private const val USER_PREFERENCES_STORE_NAME = "user_preferences"
 
-class PrefsStoreImpl @Inject constructor(
-    @ApplicationContext private val context: Context
-) : PrefsStore {
+class PrefsStoreImpl private constructor(private val context: Context) : PrefsStore {
+    companion object : SingletonHolder<PrefsStore, Context>(::PrefsStoreImpl)
 
     private val coroutineScope = CoroutineScope(Dispatchers.IO)
+
+    private val Context.dataStore by preferencesDataStore(name = USER_PREFERENCES_STORE_NAME)
+
     private object PreferencesKeys {
         val SHOW_LIVE_INDICATOR = booleanPreferencesKey("show_live_indicator")
-    }
-
-    companion object {
-        private val Context.dataStore by preferencesDataStore(name = USER_PREFERENCES_STORE_NAME)
     }
 
     init {
@@ -55,14 +52,14 @@ class PrefsStoreImpl @Inject constructor(
             UserPreferences(showLiveIndicator)
         }
 
-    override var isLiveIndicatorEnabled: Flow<Boolean> = userPreferencesFlow.map { userPreferences ->
-        userPreferences.showLiveIndicator
-    }
+    override var isLiveIndicatorEnabled: Flow<Boolean> =
+        userPreferencesFlow.map { userPreferences ->
+            userPreferences.showLiveIndicator
+        }
 
-    override suspend fun toggleLiveIndicator() {
+    override suspend fun updateLiveIndicator(checked: Boolean) {
         context.dataStore.edit { userPreferences ->
-            val currentLiveIndicatorValue = userPreferences[PreferencesKeys.SHOW_LIVE_INDICATOR]
-            userPreferences[PreferencesKeys.SHOW_LIVE_INDICATOR] = currentLiveIndicatorValue?.let { !it } ?: false
+            userPreferences[PreferencesKeys.SHOW_LIVE_INDICATOR] = checked
         }
     }
 }

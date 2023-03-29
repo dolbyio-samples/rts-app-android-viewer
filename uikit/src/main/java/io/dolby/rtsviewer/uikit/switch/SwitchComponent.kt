@@ -62,32 +62,33 @@ fun SwitchComponent(
     val backgroundColor = selectableButtonBackgroundColor(state = viewState)
     val borderColor = selectableButtonBorderColor(state = viewState)
     val fontColor = selectableButtonFontColor(state = viewState, isPrimary = true)
-
+    var switchComponentModifier = modifier
+        .background(
+            color = backgroundColor,
+            shape = MaterialTheme.shapes.large
+        )
+        .border(
+            width = 1.dp,
+            color = borderColor,
+            shape = MaterialTheme.shapes.large
+        )
+        .padding(horizontal = 15.dp)
+    if (isEnabled) {
+        switchComponentModifier = switchComponentModifier.clickable(
+            interactionSource = interactionSource,
+            indication = null,
+            role = Role.Switch,
+            onClick = { onCheckChange(!checked) }
+        )
+    }
     Row(
-        modifier = modifier
-            .background(
-                color = backgroundColor,
-                shape = MaterialTheme.shapes.large
-            )
-            .border(
-                width = 1.dp,
-                color = borderColor,
-                shape = MaterialTheme.shapes.large
-            )
-            .padding(horizontal = 15.dp)
-            .clickable(
-                interactionSource = interactionSource,
-                indication = null,
-                role = Role.Switch,
-                onClick = { onCheckChange(!checked) }
-            ),
+        modifier = switchComponentModifier,
         verticalAlignment = Alignment.CenterVertically
     ) {
         val switchContentDescription =
             "$text ${stringResource(id = R.string.switch_contentDescription)}"
         startIcon?.let {
             Image(
-                modifier = Modifier.align(alignment = Alignment.CenterVertically),
                 painter = it,
                 contentDescription = switchContentDescription,
                 colorFilter = ColorFilter.tint(getColorPalette().neutralColor300)
@@ -95,9 +96,7 @@ fun SwitchComponent(
             Spacer(modifier = Modifier.width(12.dp))
         }
         Text(
-            modifier = Modifier
-                .weight(1f)
-                .align(alignment = Alignment.CenterVertically),
+            modifier = Modifier.weight(1f),
             text = text,
             color = fontColor
         )
