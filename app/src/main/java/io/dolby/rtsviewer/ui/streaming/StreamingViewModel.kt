@@ -210,6 +210,8 @@ class StreamingViewModel @Inject constructor(
     }
 
     fun updateShowLiveIndicator(show: Boolean) {
-        // TODO
+        defaultCoroutineScope.launch {
+            preferencesDataStore.updateLiveIndicator(show)
+        }
     }
 }

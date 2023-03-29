@@ -48,7 +48,7 @@ object DataModule {
     }
 
     @Provides
-    fun providePrefencesDataStore(@ApplicationContext context: Context): PrefsStore {
-        return PrefsStoreImpl(context)
+    fun providePreferencesDataStore(@ApplicationContext context: Context): PrefsStore {
+        return PrefsStoreImpl.getInstance(context)
     }
 }

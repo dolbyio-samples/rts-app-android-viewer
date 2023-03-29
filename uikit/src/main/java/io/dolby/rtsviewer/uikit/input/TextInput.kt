@@ -61,6 +61,7 @@ fun TextInput(
         keyboardActions = keyboardActions,
         enabled = enabled,
         readOnly = readOnly,
-        colors = TextFieldDefaults.textFieldColors(MaterialTheme.colors.onBackground)
+        colors = TextFieldDefaults.textFieldColors(MaterialTheme.colors.onBackground),
+        maxLines = 1
     )
 }

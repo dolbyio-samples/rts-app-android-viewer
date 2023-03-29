@@ -63,7 +63,7 @@ fun SettingsScreen(viewModel: StreamingViewModel, showStatistics: MutableState<B
                 text = stringResource(id = R.string.streaming_statistics_title),
                 startIcon = painterResource(id = io.dolby.uikit.R.drawable.icon_info),
                 checked = showStatistics.value,
-                isEnabled = true,
+                isEnabled = false,
                 onCheckChange = { showStatistics.value = it }
             )
             Spacer(modifier = Modifier.height(12.dp))
