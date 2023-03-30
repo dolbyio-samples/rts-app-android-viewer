@@ -2,7 +2,6 @@ package io.dolby.rtsviewer.ui.savedStreams
 
 import androidx.compose.foundation.ExperimentalFoundationApi
 import androidx.compose.foundation.background
-import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
@@ -80,22 +79,17 @@ fun SavedStreamScreen(
             // Header - Title
 
             stickyHeader {
-                Column(
-                    horizontalAlignment = Alignment.CenterHorizontally,
+                Text(
+                    stringResource(id = R.string.saved_streams_screen_title),
+                    style = MaterialTheme.typography.h2,
+                    fontWeight = FontWeight.Bold,
+                    color = fontColor(background),
+                    textAlign = TextAlign.Center,
                     modifier = Modifier
-                        .background(background)
                         .fillMaxWidth()
-                ) {
-                    Text(
-                        stringResource(id = R.string.saved_streams_screen_title),
-                        style = MaterialTheme.typography.h2,
-                        fontWeight = FontWeight.Bold,
-                        color = fontColor(background),
-                        textAlign = TextAlign.Center
-                    )
-
-                    Spacer(modifier = modifier.height(8.dp))
-                }
+                        .padding(bottom = 8.dp)
+                        .background(background)
+                )
             }
 
             // Section - Last played stream
@@ -163,7 +157,10 @@ fun SavedStreamScreen(
                 Spacer(modifier = Modifier.height(8.dp))
             }
 
-            items(items = uiState.recentStreams) { streamDetail ->
+            items(
+                items = uiState.recentStreams,
+                key = { it.streamName + it.accountID }
+            ) { streamDetail ->
                 StyledButton(
                     buttonText = "${streamDetail.streamName} / ID ${streamDetail.accountID}",
                     onClickAction = {
