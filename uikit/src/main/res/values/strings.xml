@@ -3,4 +3,10 @@
     <string name="button_contentDescription">Button</string>
     <string name="textInput_contentDescription">Input</string>
     <string name="switch_contentDescription">Switch</string>
+    <string name="stateButton_contentDescription">State Button</string>
+    <string name="stateButton_startIcon_contentDescription">State Button Start Icon</string>
+    <string name="stateButton_endIcon_contentDescription">State Button End Icon</string>
+    <string name="iconButton_contentDescription">Icon Button</string>
+    <string name="icon_contentDescription">Icon</string>
+    <string name="text_contentDescription">Text</string>
 </resources>

@@ -4,17 +4,14 @@ import android.content.Context
 import android.util.Log
 import com.millicast.AudioPlayback
 import com.millicast.AudioTrack
-import com.millicast.Client
 import com.millicast.LayerData
 import com.millicast.Media
 import com.millicast.Subscriber
 import com.millicast.VideoTrack
-import io.dolby.rtscomponentkit.manager.SubscriptionManager
 import io.dolby.rtscomponentkit.manager.SubscriptionManagerInterface
 import io.dolby.rtscomponentkit.manager.TAG
 import io.dolby.rtscomponentkit.utils.DispatcherProvider
 import io.dolby.rtscomponentkit.utils.DispatcherProviderImpl
-import io.dolby.rtscomponentkit.utils.SingletonHolder
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Job
 import kotlinx.coroutines.flow.Flow
@@ -23,8 +20,9 @@ import kotlinx.coroutines.launch
 import org.webrtc.RTCStatsReport
 import java.util.Optional
 
-class RTSViewerDataStore private constructor(
+class RTSViewerDataStore constructor(
     context: Context,
+    millicastSdk: MillicastSdk,
     dispatcherProvider: DispatcherProvider = DispatcherProviderImpl
 ) {
     private val apiScope = CoroutineScope(dispatcherProvider.default + Job())
@@ -79,7 +77,6 @@ class RTSViewerDataStore private constructor(
 
         override fun onVad(p0: String?, p1: Optional<String>?) {
             Log.d(TAG, "onVad")
-            TODO("Not yet implemented")
         }
 
         override fun onConnectionError(reason: String) {
@@ -97,7 +94,7 @@ class RTSViewerDataStore private constructor(
     }
 
     private val subscriptionManager: SubscriptionManagerInterface =
-        SubscriptionManager(subscriptionDelegate)
+        millicastSdk.initSubscriptionManager(subscriptionDelegate)
 
     private var _state: MutableStateFlow<State> = MutableStateFlow(State.Disconnected)
     val state: Flow<State> = _state
@@ -105,11 +102,9 @@ class RTSViewerDataStore private constructor(
     private var media: Media
     private var audioPlayback: ArrayList<AudioPlayback>? = null
 
-    companion object : SingletonHolder<RTSViewerDataStore, Context>(::RTSViewerDataStore)
-
     init {
-        Client.initMillicastSdk(context)
-        media = Media.getInstance(context)
+        millicastSdk.init(context)
+        media = millicastSdk.getMedia(context)
         audioPlayback = media.audioPlayback
     }
 

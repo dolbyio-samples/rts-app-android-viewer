@@ -10,6 +10,8 @@ import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.res.stringResource
+import androidx.compose.ui.semantics.contentDescription
+import androidx.compose.ui.semantics.semantics
 import androidx.compose.ui.unit.dp
 import io.dolby.rtsviewer.R
 import io.dolby.rtsviewer.uikit.button.ButtonType
@@ -18,9 +20,12 @@ import io.dolby.rtsviewer.uikit.button.StyledButton
 @Composable
 fun DetailInputValidationAlert(
     onDismiss: () -> Unit,
-    modifier: Modifier
+    modifier: Modifier = Modifier
 ) {
     AlertDialog(
+        modifier = modifier.semantics {
+            contentDescription = "Validation Alert"
+        },
         onDismissRequest = onDismiss,
         text = {
             Text(text = stringResource(id = R.string.missing_stream_name_or_account_id))

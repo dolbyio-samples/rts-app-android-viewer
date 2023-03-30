@@ -14,9 +14,9 @@
 package io.dolby.rtsviewer.uikit.switch
 
 import androidx.compose.foundation.Image
+import androidx.compose.foundation.LocalIndication
 import androidx.compose.foundation.background
 import androidx.compose.foundation.border
-import androidx.compose.foundation.clickable
 import androidx.compose.foundation.interaction.MutableInteractionSource
 import androidx.compose.foundation.interaction.collectIsFocusedAsState
 import androidx.compose.foundation.interaction.collectIsPressedAsState
@@ -24,6 +24,7 @@ import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.width
+import androidx.compose.foundation.selection.toggleable
 import androidx.compose.material.MaterialTheme
 import androidx.compose.material.Switch
 import androidx.compose.material.Text
@@ -36,6 +37,10 @@ import androidx.compose.ui.graphics.ColorFilter
 import androidx.compose.ui.graphics.painter.Painter
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.semantics.Role
+import androidx.compose.ui.semantics.contentDescription
+import androidx.compose.ui.semantics.semantics
+import androidx.compose.ui.semantics.toggleableState
+import androidx.compose.ui.state.ToggleableState
 import androidx.compose.ui.unit.dp
 import io.dolby.rtsviewer.uikit.theme.getColorPalette
 import io.dolby.rtsviewer.uikit.theme.selectableButtonBackgroundColor
@@ -49,9 +54,9 @@ import io.dolby.uikit.R
 fun SwitchComponent(
     text: String,
     checked: Boolean,
-    isEnabled: Boolean,
-    onCheckChange: (Boolean) -> Unit,
+    onCheckedChange: (Boolean) -> Unit,
     modifier: Modifier = Modifier,
+    isEnabled: Boolean = true,
     startIcon: Painter? = null
 ) {
     val interactionSource = remember { MutableInteractionSource() }
@@ -62,27 +67,33 @@ fun SwitchComponent(
     val backgroundColor = selectableButtonBackgroundColor(state = viewState)
     val borderColor = selectableButtonBorderColor(state = viewState)
     val fontColor = selectableButtonFontColor(state = viewState, isPrimary = true)
-    var switchComponentModifier = modifier
-        .background(
-            color = backgroundColor,
-            shape = MaterialTheme.shapes.large
-        )
-        .border(
-            width = 1.dp,
-            color = borderColor,
-            shape = MaterialTheme.shapes.large
-        )
-        .padding(horizontal = 15.dp)
-    if (isEnabled) {
-        switchComponentModifier = switchComponentModifier.clickable(
-            interactionSource = interactionSource,
-            indication = null,
-            role = Role.Switch,
-            onClick = { onCheckChange(!checked) }
-        )
-    }
+    val switchComponentContentDescription =
+        "$text ${stringResource(id = R.string.switch_contentDescription)}"
+
     Row(
-        modifier = switchComponentModifier,
+        modifier = modifier
+            .background(
+                color = backgroundColor,
+                shape = MaterialTheme.shapes.large
+            )
+            .border(
+                width = 1.dp,
+                color = borderColor,
+                shape = MaterialTheme.shapes.large
+            )
+            .padding(horizontal = 15.dp)
+            .semantics {
+                contentDescription = switchComponentContentDescription
+                toggleableState = if (checked) ToggleableState.On else ToggleableState.Off
+            }
+            .toggleable(
+                value = checked,
+                interactionSource = interactionSource,
+                indication = LocalIndication.current,
+                enabled = isEnabled,
+                role = Role.Switch,
+                onValueChange = { onCheckedChange(!checked) }
+            ),
         verticalAlignment = Alignment.CenterVertically
     ) {
         val switchContentDescription =
@@ -102,7 +113,7 @@ fun SwitchComponent(
         )
         Switch(
             checked = checked,
-            onCheckedChange = onCheckChange,
+            onCheckedChange = onCheckedChange,
             enabled = isEnabled,
             colors = switchColours(state = viewState)
         )

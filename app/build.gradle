@@ -36,11 +36,26 @@ android {
     defaultConfig {
         applicationId "io.dolby.rtsviewer"
         minSdk 27
-        targetSdk 32
+        targetSdk 33
         versionCode appVersionCode
         versionName appVersionName
 
         testInstrumentationRunner "androidx.test.runner.AndroidJUnitRunner"
+    }
+
+    sourceSets {
+        String sharedTestDir = 'src/testCommon/java'
+        test {
+            java.srcDir(java.srcDirs + new File(projectDir, sharedTestDir))
+        }
+    }
+
+    lint {
+        abortOnError = true
+        ignoreWarnings = false
+        checkAllWarnings true
+        warningsAsErrors false
+        checkDependencies = true
     }
 
     signingConfigs {
@@ -127,9 +142,21 @@ dependencies {
     testImplementation libs.androidx.compose.ui.test.junit
     debugImplementation libs.androidx.compose.ui.test.manifest
     testImplementation "androidx.navigation:navigation-testing:2.5.3"
+    testImplementation "org.mockito.kotlin:mockito-kotlin:4.1.0"
+    testImplementation 'org.mockito:mockito-inline:5.2.0'
+    debugImplementation "androidx.compose.ui:ui-tooling:$compose_version"
+    testImplementation("com.google.dagger:hilt-android-testing:2.44")
+    kaptTest("com.google.dagger:hilt-android-compiler:2.44")
+    testAnnotationProcessor("com.google.dagger:hilt-android-compiler:2.44")
 
     androidTestImplementation 'androidx.test.ext:junit:1.1.5'
     androidTestImplementation 'androidx.test.espresso:espresso-core:3.5.1'
+    androidTestImplementation libs.androidx.compose.ui.test.junit
+    androidTestImplementation("com.google.dagger:hilt-android-testing:2.44")
+    kaptAndroidTest("com.google.dagger:hilt-android-compiler:2.44")
+    androidTestImplementation "androidx.navigation:navigation-testing:2.5.3"
+    androidTestImplementation "org.mockito.kotlin:mockito-kotlin:4.1.0"
+    androidTestImplementation 'org.mockito:mockito-android:3.10.0'
 }
 
 // Allow references to generated code

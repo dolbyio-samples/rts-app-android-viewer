@@ -1,9 +1,11 @@
 package io.dolby.rtsviewer.uikit.input
 
+import androidx.compose.foundation.ExperimentalFoundationApi
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.text.KeyboardActions
 import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.material.MaterialTheme
+import androidx.compose.material.MaterialTheme.colors
 import androidx.compose.material.OutlinedTextField
 import androidx.compose.material.Text
 import androidx.compose.material.TextFieldDefaults
@@ -23,7 +25,7 @@ import io.dolby.uikit.R
 
 internal val textInputContentDescriptionId = R.string.textInput_contentDescription
 
-@OptIn(ExperimentalComposeUiApi::class)
+@OptIn(ExperimentalComposeUiApi::class, ExperimentalFoundationApi::class)
 @Preview(showBackground = true)
 @Composable
 fun TextInput(
@@ -40,7 +42,6 @@ fun TextInput(
     val textInputContentDescription =
         "${label.ifEmpty { textState.value.text }} ${stringResource(id = textInputContentDescriptionId)}"
     val keyboardController = LocalSoftwareKeyboardController.current
-
     OutlinedTextField(
         modifier = modifier
             .fillMaxWidth()

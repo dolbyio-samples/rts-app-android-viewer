@@ -11,6 +11,8 @@ import androidx.compose.material.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.res.stringResource
+import androidx.compose.ui.semantics.contentDescription
+import androidx.compose.ui.semantics.semantics
 import androidx.compose.ui.unit.dp
 import io.dolby.rtsviewer.R
 import io.dolby.rtsviewer.uikit.button.ButtonType
@@ -20,9 +22,12 @@ import io.dolby.rtsviewer.uikit.button.StyledButton
 fun ClearStreamConfirmationAlert(
     onClear: () -> Unit,
     onDismiss: () -> Unit,
-    modifier: Modifier
+    modifier: Modifier = Modifier
 ) {
     AlertDialog(
+        modifier = modifier.semantics {
+            contentDescription = "Clear Stream Alert"
+        },
         onDismissRequest = onDismiss,
         text = {
             Text(text = stringResource(id = R.string.delete_all_streams_dialog_label))

@@ -12,39 +12,62 @@
 package io.dolby.rtsviewer.uikit.button
 
 import androidx.compose.foundation.Image
-import androidx.compose.foundation.background
+import androidx.compose.foundation.clickable
+import androidx.compose.foundation.interaction.MutableInteractionSource
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.padding
-import androidx.compose.material.IconButton
 import androidx.compose.material.MaterialTheme
 import androidx.compose.material.Text
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.remember
 import androidx.compose.ui.Alignment.Companion.CenterVertically
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.ColorFilter
-import androidx.compose.ui.res.painterResource
+import androidx.compose.ui.graphics.painter.Painter
+import androidx.compose.ui.res.stringResource
+import androidx.compose.ui.semantics.Role
+import androidx.compose.ui.semantics.contentDescription
+import androidx.compose.ui.semantics.semantics
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
-import io.dolby.rtsviewer.uikit.theme.DarkThemeColors
 import io.dolby.rtsviewer.uikit.theme.fontColor
+import io.dolby.uikit.R
 
 @Composable
 fun StyledIconButton(
-    modifier: Modifier,
-    contentDescription: String,
-    iconRes: Int,
+    icon: Painter,
+    modifier: Modifier = Modifier,
     text: String? = null,
     selected: Boolean = false,
     enabled: Boolean = true,
-    onClick: () -> Unit
+    onClick: () -> Unit = {}
 ) {
+    val mutableInteractionSource = remember { MutableInteractionSource() }
+
     val tintColor = when {
         selected -> MaterialTheme.colors.onPrimary
         !enabled -> MaterialTheme.colors.onSecondary
         else -> MaterialTheme.colors.onBackground
     }
-    Row {
+    val iconButtonContentDescription =
+        "${text?.let { "$text " } ?: ""}${stringResource(id = R.string.iconButton_contentDescription)}"
+    val iconContentDescription =
+        "${text?.let { "$text " } ?: ""}${stringResource(id = R.string.icon_contentDescription)}"
+
+    Row(
+        modifier = modifier
+            .clickable(
+                interactionSource = mutableInteractionSource,
+                indication = null,
+                enabled = enabled,
+                onClickLabel = text,
+                role = Role.Button,
+                onClick = onClick
+            )
+            .padding(17.dp)
+            .semantics { contentDescription = iconButtonContentDescription }
+    ) {
         text?.let {
             Text(
                 text = it,
@@ -52,21 +75,16 @@ fun StyledIconButton(
                 fontWeight = FontWeight.Medium,
                 color = fontColor(MaterialTheme.colors.background),
                 textAlign = TextAlign.End,
-                modifier = Modifier.align(CenterVertically)
+                modifier = Modifier
+                    .align(CenterVertically)
+                    .semantics { contentDescription = iconButtonContentDescription }
+                    .padding(horizontal = 10.dp)
             )
         }
-        IconButton(
-            modifier = modifier
-                .padding(10.dp)
-                .background(DarkThemeColors().transparent),
-            enabled = enabled,
-            onClick = onClick
-        ) {
-            Image(
-                painter = painterResource(iconRes),
-                contentDescription = contentDescription,
-                colorFilter = ColorFilter.tint(tintColor)
-            )
-        }
+        Image(
+            painter = icon,
+            contentDescription = iconContentDescription,
+            colorFilter = ColorFilter.tint(tintColor)
+        )
     }
 }
