@@ -36,16 +36,6 @@ class RecentStreamsDataStoreImpl @Inject constructor(
                     builder = builder.removeStreamDetail(matchingIndex)
                 }
 
-                // Remove streams from index - 25 onwards to keep the saved streams to a max limit of 25
-                val numberOfSavedStreams = it.streamDetailList.count()
-                val maxPermissibleIndex = MAX_SAVED_STREAMS_LIMIT - 1
-                var indexOfLastStream = numberOfSavedStreams - 1
-
-                while (indexOfLastStream >= maxPermissibleIndex) {
-                    builder = builder.removeStreamDetail(indexOfLastStream)
-                    indexOfLastStream -= 1
-                }
-
                 // Add the stream detail
                 val unixTime = System.currentTimeMillis()
                 val timeStamp = com.google.protobuf.Timestamp
@@ -58,6 +48,16 @@ class RecentStreamsDataStoreImpl @Inject constructor(
                     .setLastUsedDate(timeStamp)
                     .build()
                 builder = builder.addStreamDetail(0, streamDetail)
+
+                // Remove streams from index - 25 onwards to keep the saved streams to a max limit of 25
+                val numberOfSavedStreams = it.streamDetailList.count()
+                val maxPermissibleIndex = MAX_SAVED_STREAMS_LIMIT - 1
+                var lastIndex = numberOfSavedStreams - 1
+
+                while (lastIndex > maxPermissibleIndex) {
+                    builder = builder.removeStreamDetail(lastIndex)
+                    lastIndex -= 1
+                }
 
                 // Commit the changes
                 builder.build()
