@@ -7,14 +7,18 @@ import androidx.lifecycle.viewModelScope
 import dagger.hilt.android.lifecycle.HiltViewModel
 import io.dolby.rtscomponentkit.data.RTSViewerDataStore
 import io.dolby.rtscomponentkit.utils.DispatcherProvider
+import io.dolby.rtsviewer.R
 import io.dolby.rtsviewer.preferenceStore.PrefsStore
 import io.dolby.rtsviewer.ui.navigation.Screen
+import io.dolby.rtsviewer.utils.NetworkStatusObserver
+import io.dolby.rtsviewer.utils.ResourcesProvider
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.collectLatest
+import kotlinx.coroutines.flow.combine
 import kotlinx.coroutines.flow.flow
 import kotlinx.coroutines.flow.launchIn
 import kotlinx.coroutines.flow.onEach
@@ -33,7 +37,9 @@ class StreamingViewModel @Inject constructor(
     private val savedStateHandle: SavedStateHandle,
     private val repository: RTSViewerDataStore,
     private val dispatcherProvider: DispatcherProvider,
-    private val preferencesDataStore: PrefsStore
+    private val preferencesDataStore: PrefsStore,
+    private val networkStatusObserver: NetworkStatusObserver,
+    private val resourcesProvider: ResourcesProvider
 ) : ViewModel() {
     private val defaultCoroutineScope = CoroutineScope(dispatcherProvider.default)
     private val _uiState = MutableStateFlow(StreamingScreenUiState())
@@ -55,110 +61,134 @@ class StreamingViewModel @Inject constructor(
         }
 
         defaultCoroutineScope.launch {
-            repository.state.collect {
-                when (it) {
-                    RTSViewerDataStore.State.Connecting -> {
-                        Log.d(TAG, "Connecting")
-                        withContext(dispatcherProvider.main) {
-                            _uiState.update { state ->
-                                state.copy(
-                                    connecting = true
-                                )
-                            }
-                        }
-                    }
-                    RTSViewerDataStore.State.Subscribed -> {
-                        Log.d(TAG, "Subscribed")
-                        repository.audioPlaybackStart()
-                        withContext(dispatcherProvider.main) {
-                            _uiState.update { state ->
-                                state.copy(
-                                    subscribed = true,
-                                    connecting = false,
-                                    error = null,
-                                    disconnected = false
-                                )
-                            }
-                        }
-                    }
-                    RTSViewerDataStore.State.StreamActive -> {
-                        Log.d(TAG, "StreamActive")
-                        withContext(dispatcherProvider.main) {
-                            _uiState.update { state ->
-                                state.copy(
-                                    subscribed = true,
-                                    connecting = false,
-                                    error = null,
-                                    disconnected = false
-                                )
-                            }
-                        }
-                    }
-                    RTSViewerDataStore.State.StreamInactive -> {
-                        Log.d(TAG, "StreamInactive")
-                        repository.stopSubscribe()
-                        withContext(dispatcherProvider.main) {
-                            _uiState.update { state ->
-                                state.copy(
-                                    subscribed = false,
-                                    disconnected = true
-                                )
-                            }
-                        }
-                    }
-                    is RTSViewerDataStore.State.AudioTrackReady -> {
-                        Log.d(TAG, "AudioTrackReady")
-                        withContext(dispatcherProvider.main) {
-                            _uiState.update { state ->
-                                state.copy(
-                                    audioTrack = it.audioTrack
-                                )
-                            }
-                        }
-                    }
-                    is RTSViewerDataStore.State.VideoTrackReady -> {
-                        Log.d(TAG, "VideoTrackReady")
-                        withContext(dispatcherProvider.main) {
-                            _uiState.update { state ->
-                                state.copy(
-                                    videoTrack = it.videoTrack
-                                )
-                            }
-                        }
-                    }
-                    RTSViewerDataStore.State.Disconnected -> {
-                        Log.d(TAG, "Disconnected")
-                        withContext(dispatcherProvider.main) {
+            repository.state.combine(networkStatusObserver.status) { f1, f2 -> Pair(f1, f2) }
+                .collect { (state, networkStatus) ->
+                    when (networkStatus) {
+                        NetworkStatusObserver.Status.Unavailable -> withContext(dispatcherProvider.main) {
+                            Log.d(TAG, "Internet connection error")
                             _uiState.update { state ->
                                 state.copy(
                                     connecting = false,
-                                    disconnected = true
+                                    error = Error(
+                                        title = resourcesProvider.getString(R.string.stream_network_disconnected_label),
+                                        subtitle = null
+                                    )
                                 )
                             }
                         }
-                    }
-                    is RTSViewerDataStore.State.Error -> {
-                        Log.d(TAG, "Error")
-                        withContext(dispatcherProvider.main) {
-                            _uiState.update { state ->
-                                state.copy(
-                                    connecting = false,
-                                    error = it.error.reason
-                                )
+                        NetworkStatusObserver.Status.Available -> {
+                            when (state) {
+                                RTSViewerDataStore.State.Connecting -> {
+                                    Log.d(TAG, "Connecting")
+                                    withContext(dispatcherProvider.main) {
+                                        _uiState.update { state ->
+                                            state.copy(
+                                                connecting = true
+                                            )
+                                        }
+                                    }
+                                }
+                                RTSViewerDataStore.State.Subscribed -> {
+                                    Log.d(TAG, "Subscribed")
+                                    repository.audioPlaybackStart()
+                                    withContext(dispatcherProvider.main) {
+                                        _uiState.update { state ->
+                                            state.copy(
+                                                subscribed = true,
+                                                connecting = false,
+                                                error = null,
+                                                disconnected = false
+                                            )
+                                        }
+                                    }
+                                }
+                                RTSViewerDataStore.State.StreamActive -> {
+                                    Log.d(TAG, "StreamActive")
+                                    withContext(dispatcherProvider.main) {
+                                        _uiState.update { state ->
+                                            state.copy(
+                                                subscribed = true,
+                                                connecting = false,
+                                                error = null,
+                                                disconnected = false
+                                            )
+                                        }
+                                    }
+                                }
+                                RTSViewerDataStore.State.StreamInactive -> {
+                                    Log.d(TAG, "StreamInactive")
+                                    repository.stopSubscribe()
+                                    withContext(dispatcherProvider.main) {
+                                        _uiState.update { state ->
+                                            state.copy(
+                                                subscribed = false,
+                                                disconnected = true
+                                            )
+                                        }
+                                    }
+                                }
+                                is RTSViewerDataStore.State.AudioTrackReady -> {
+                                    Log.d(TAG, "AudioTrackReady")
+                                    withContext(dispatcherProvider.main) {
+                                        _uiState.update { state ->
+                                            state.copy(
+                                                audioTrack = state.audioTrack
+                                            )
+                                        }
+                                    }
+                                }
+                                is RTSViewerDataStore.State.VideoTrackReady -> {
+                                    Log.d(TAG, "VideoTrackReady")
+                                    withContext(dispatcherProvider.main) {
+                                        _uiState.update { state ->
+                                            state.copy(
+                                                videoTrack = state.videoTrack
+                                            )
+                                        }
+                                    }
+                                }
+                                RTSViewerDataStore.State.Disconnected -> {
+                                    Log.d(TAG, "Disconnected")
+                                    withContext(dispatcherProvider.main) {
+                                        _uiState.update { state ->
+                                            state.copy(
+                                                connecting = false,
+                                                disconnected = true
+                                            )
+                                        }
+                                    }
+                                }
+                                is RTSViewerDataStore.State.Error -> {
+                                    Log.d(TAG, "Error")
+                                    withContext(dispatcherProvider.main) {
+                                        if (networkStatus == NetworkStatusObserver.Status.Available) {
+                                            _uiState.update { state ->
+                                                state.copy(
+                                                    connecting = false,
+                                                    error = Error(
+                                                        title = resourcesProvider.getString(R.string.stream_offline_title_label),
+                                                        subtitle = resourcesProvider.getString(R.string.stream_offline_subtitle_label)
+                                                    )
+                                                )
+                                            }
+                                        }
+                                    }
+                                }
                             }
                         }
                     }
                 }
-            }
         }
 
         defaultCoroutineScope.launch {
             preferencesDataStore.isLiveIndicatorEnabled
                 .collectLatest {
-                    _uiState.update { state ->
-                        state.copy(
-                            showLiveIndicator = it
-                        )
+                    withContext(dispatcherProvider.main) {
+                        _uiState.update { state ->
+                            state.copy(
+                                showLiveIndicator = it
+                            )
+                        }
                     }
                 }
         }

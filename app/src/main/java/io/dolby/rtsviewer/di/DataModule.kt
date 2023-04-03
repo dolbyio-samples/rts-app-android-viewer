@@ -28,6 +28,9 @@ import io.dolby.rtsviewer.datastore.RecentStreamsDataStore
 import io.dolby.rtsviewer.datastore.RecentStreamsDataStoreImpl
 import io.dolby.rtsviewer.preferenceStore.PrefsStore
 import io.dolby.rtsviewer.preferenceStore.PrefsStoreImpl
+import io.dolby.rtsviewer.utils.NetworkStatusObserver
+import io.dolby.rtsviewer.utils.NetworkStatusObserverImpl
+import io.dolby.rtsviewer.utils.ResourcesProvider
 
 @Module
 @InstallIn(ActivityRetainedComponent::class)
@@ -50,5 +53,15 @@ object DataModule {
     @Provides
     fun providePreferencesDataStore(@ApplicationContext context: Context): PrefsStore {
         return PrefsStoreImpl.getInstance(context)
+    }
+
+    @Provides
+    fun provideNetworkStatusObserver(@ApplicationContext context: Context): NetworkStatusObserver {
+        return NetworkStatusObserverImpl(context)
+    }
+
+    @Provides
+    fun provideResourcesProvider(@ApplicationContext context: Context): ResourcesProvider {
+        return ResourcesProvider(context)
     }
 }

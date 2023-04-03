@@ -3,7 +3,10 @@ package io.dolby.rtsviewer.ui.streaming
 import com.millicast.AudioTrack
 import com.millicast.VideoTrack
 
+data class Error(val title: String, val subtitle: String?)
+
 data class StreamingScreenUiState(
+
     val accountId: String = "",
     val streamName: String = "",
 
@@ -14,7 +17,7 @@ data class StreamingScreenUiState(
     val audioTrack: AudioTrack? = null,
     val videoTrack: VideoTrack? = null,
     val viewerCount: Int = 0,
-    val error: String? = null,
+    val error: Error? = null,
 
     val showLiveIndicator: Boolean = false
 )
