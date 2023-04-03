@@ -16,12 +16,18 @@
 package io.dolby.rtsviewer.di
 
 import android.content.Context
+import com.millicast.Client
+import com.millicast.Media
+import com.millicast.Subscriber
 import dagger.Module
 import dagger.Provides
 import dagger.hilt.InstallIn
-import dagger.hilt.android.components.ActivityRetainedComponent
 import dagger.hilt.android.qualifiers.ApplicationContext
+import dagger.hilt.components.SingletonComponent
+import io.dolby.rtscomponentkit.data.MillicastSdk
 import io.dolby.rtscomponentkit.data.RTSViewerDataStore
+import io.dolby.rtscomponentkit.manager.SubscriptionManager
+import io.dolby.rtscomponentkit.manager.SubscriptionManagerInterface
 import io.dolby.rtscomponentkit.utils.DispatcherProvider
 import io.dolby.rtscomponentkit.utils.DispatcherProviderImpl
 import io.dolby.rtsviewer.datastore.RecentStreamsDataStore
@@ -30,16 +36,28 @@ import io.dolby.rtsviewer.preferenceStore.PrefsStore
 import io.dolby.rtsviewer.preferenceStore.PrefsStoreImpl
 
 @Module
-@InstallIn(ActivityRetainedComponent::class)
+@InstallIn(SingletonComponent::class)
 object DataModule {
+
     @Provides
-    fun provideRTSRepository(@ApplicationContext context: Context): RTSViewerDataStore {
-        return RTSViewerDataStore.getInstance(context)
+    fun provideMillicastSdk(): MillicastSdk = object : MillicastSdk {
+        override fun init(context: Context) = Client.initMillicastSdk(context)
+
+        override fun getMedia(context: Context): Media = Media.getInstance(context)
+
+        override fun initSubscriptionManager(subscriptionDelegate: Subscriber.Listener): SubscriptionManagerInterface =
+            SubscriptionManager(subscriptionDelegate)
     }
 
     @Provides
-    fun provideDispatcherProvider(): DispatcherProvider {
-        return DispatcherProviderImpl
+    fun provideRTSRepository(
+        @ApplicationContext context: Context,
+        millicastSdk: MillicastSdk
+    ): RTSViewerDataStore = RTSViewerDataStore(context, millicastSdk)
+
+    @Provides
+    fun providePreferencesDataStore(@ApplicationContext context: Context): PrefsStore {
+        return PrefsStoreImpl.getInstance(context)
     }
 
     @Provides
@@ -48,7 +66,7 @@ object DataModule {
     }
 
     @Provides
-    fun providePreferencesDataStore(@ApplicationContext context: Context): PrefsStore {
-        return PrefsStoreImpl.getInstance(context)
+    fun provideDispatcherProvider(): DispatcherProvider {
+        return DispatcherProviderImpl
     }
 }

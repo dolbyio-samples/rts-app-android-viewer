@@ -1,6 +1,7 @@
 package io.dolby.rtsviewer.uikit.button
 
 import androidx.compose.foundation.Image
+import androidx.compose.foundation.LocalIndication
 import androidx.compose.foundation.background
 import androidx.compose.foundation.border
 import androidx.compose.foundation.clickable
@@ -12,6 +13,7 @@ import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.width
 import androidx.compose.material.MaterialTheme
+import androidx.compose.material.SnackbarDefaults.backgroundColor
 import androidx.compose.material.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
@@ -22,6 +24,8 @@ import androidx.compose.ui.graphics.ColorFilter
 import androidx.compose.ui.graphics.painter.Painter
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.semantics.Role
+import androidx.compose.ui.semantics.contentDescription
+import androidx.compose.ui.semantics.semantics
 import androidx.compose.ui.unit.dp
 import io.dolby.rtsviewer.uikit.theme.getColorPalette
 import io.dolby.rtsviewer.uikit.theme.selectableButtonBackgroundColor
@@ -34,11 +38,11 @@ import io.dolby.uikit.R
 fun StateButton(
     text: String,
     stateText: String,
-    isEnabled: Boolean,
-    onClick: () -> Unit,
     modifier: Modifier = Modifier,
     startIcon: Painter? = null,
-    endIcon: Painter? = null
+    endIcon: Painter? = null,
+    isEnabled: Boolean = true,
+    onClick: () -> Unit = {}
 ) {
     val interactionSource = remember { MutableInteractionSource() }
     val isPressed by interactionSource.collectIsPressedAsState()
@@ -50,6 +54,8 @@ fun StateButton(
     val primaryFontColor = selectableButtonFontColor(state = viewState, isPrimary = true)
     val secondaryFontColor = selectableButtonFontColor(state = viewState, isPrimary = false)
 
+    val stateButtonContentDescription =
+        "$text ${stringResource(id = R.string.stateButton_contentDescription)}"
     var stateButtonModifier = modifier
         .background(
             color = backgroundColor,
@@ -61,11 +67,12 @@ fun StateButton(
             shape = MaterialTheme.shapes.large
         )
         .padding(horizontal = 15.dp, vertical = 12.dp)
+        .semantics { contentDescription = stateButtonContentDescription }
     if (isEnabled) {
         stateButtonModifier = stateButtonModifier.clickable(
             interactionSource = interactionSource,
-            indication = null,
-            role = Role.Switch,
+            indication = LocalIndication.current,
+            role = Role.Button,
             onClick = onClick,
             enabled = true
         )
@@ -74,12 +81,14 @@ fun StateButton(
         modifier = stateButtonModifier,
         verticalAlignment = Alignment.CenterVertically
     ) {
-        val switchContentDescription =
-            "$text ${stringResource(id = R.string.switch_contentDescription)}"
+        val startIconContentDescription =
+            stringResource(id = R.string.stateButton_startIcon_contentDescription)
+        val endIconContentDescription =
+            stringResource(id = R.string.stateButton_endIcon_contentDescription)
         startIcon?.let {
             Image(
                 painter = it,
-                contentDescription = switchContentDescription,
+                contentDescription = startIconContentDescription,
                 colorFilter = ColorFilter.tint(getColorPalette().neutralColor300)
             )
             Spacer(modifier = Modifier.width(12.dp))
@@ -98,7 +107,7 @@ fun StateButton(
             Image(
                 modifier = Modifier.align(alignment = Alignment.CenterVertically),
                 painter = endIcon,
-                contentDescription = switchContentDescription,
+                contentDescription = endIconContentDescription,
                 colorFilter = ColorFilter.tint(secondaryFontColor)
             )
         }

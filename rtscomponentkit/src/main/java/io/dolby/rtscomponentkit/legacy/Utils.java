@@ -178,7 +178,7 @@ public class Utils {
     public static void setSaved(String key, String value, Context context) {
         SharedPreferences.Editor editor = getPref(context).edit();
         editor.putString(key, value);
-        editor.commit();
+        editor.apply();
         String log = "[Utils][String][Set] " + key + ": " + value + ".";
         logD(TAG, log);
     }

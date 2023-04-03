@@ -47,17 +47,7 @@ fun Context.findActivity(): Activity? {
 
 fun Modifier.anyDpadKeyEvent(action: () -> Unit): Modifier =
     this.onKeyEvent {
-        if (
-            it.key.nativeKeyCode == KeyEvent.KEYCODE_DPAD_CENTER ||
-            it.key.nativeKeyCode == KeyEvent.KEYCODE_DPAD_UP ||
-            it.key.nativeKeyCode == KeyEvent.KEYCODE_DPAD_DOWN ||
-            it.key.nativeKeyCode == KeyEvent.KEYCODE_DPAD_LEFT ||
-            it.key.nativeKeyCode == KeyEvent.KEYCODE_DPAD_RIGHT ||
-            it.key.nativeKeyCode == KeyEvent.KEYCODE_DPAD_UP_LEFT ||
-            it.key.nativeKeyCode == KeyEvent.KEYCODE_DPAD_UP_RIGHT ||
-            it.key.nativeKeyCode == KeyEvent.KEYCODE_DPAD_DOWN_LEFT ||
-            it.key.nativeKeyCode == KeyEvent.KEYCODE_DPAD_DOWN_RIGHT
-        ) {
+        if (it.key.nativeKeyCode != KeyEvent.KEYCODE_BACK) {
             action()
             return@onKeyEvent true
         }

@@ -18,7 +18,6 @@
     <string name="clear_stream_history_button">Clear stream history</string>
     <string name="missing_stream_name_or_account_id">Please enter a Stream name and Account ID</string>
     <string name="missing_stream_detail_dismiss_button">OK</string>
-    <string name="settings_contentDescription">Settings Button</string>
     <string name="settings_title">Settings</string>
     <string name="delete_all_streams_dialog_label">Are you sure you want to clear the saved streams?</string>
     <string name="delete_all_streams_clear_button">Clear</string>
@@ -32,4 +31,7 @@
     <string name="streaming_statistics_title">Streaming statistics</string>
     <string name="live_indicator_title">Live indicator</string>
     <string name="simulcast_title">Simulcast</string>
+    <string name="streamingToolbar_contentDescription">Streaming Toolbar</string>
+    <string name="settingsScreen_contentDescription">Settings Screen</string>
+    <string name="liveIndicator_contentDescription">Status Indicator</string>
 </resources>

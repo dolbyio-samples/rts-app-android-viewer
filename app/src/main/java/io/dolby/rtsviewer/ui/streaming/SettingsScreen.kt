@@ -9,6 +9,8 @@ import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.width
+import androidx.compose.foundation.rememberScrollState
+import androidx.compose.foundation.verticalScroll
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.MutableState
@@ -21,6 +23,8 @@ import androidx.compose.ui.focus.focusRequester
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.res.stringResource
+import androidx.compose.ui.semantics.contentDescription
+import androidx.compose.ui.semantics.semantics
 import androidx.compose.ui.unit.dp
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import io.dolby.rtsviewer.R
@@ -32,14 +36,18 @@ import io.dolby.rtsviewer.uikit.theme.DarkThemeColors
 fun SettingsScreen(viewModel: StreamingViewModel, showStatistics: MutableState<Boolean>) {
     val uiState by viewModel.uiState.collectAsStateWithLifecycle()
     val focusRequester = remember { FocusRequester() }
+    val screenContentDescription = stringResource(id = R.string.settingsScreen_contentDescription)
+
     LaunchedEffect(Unit) {
         focusRequester.requestFocus()
     }
+
     Box(
         modifier = Modifier
             .fillMaxWidth()
             .background(Color.Black.copy(alpha = .75f))
             .focusRequester(focusRequester)
+            .semantics { contentDescription = screenContentDescription }
     ) {
         Column(
             modifier = Modifier
@@ -47,6 +55,7 @@ fun SettingsScreen(viewModel: StreamingViewModel, showStatistics: MutableState<B
                 .width(325.dp)
                 .align(Alignment.TopEnd)
                 .background(DarkThemeColors().neutralColor800)
+                .verticalScroll(rememberScrollState())
                 .padding(vertical = 42.dp)
                 .padding(start = 25.dp, end = 22.dp)
         ) {
@@ -64,7 +73,7 @@ fun SettingsScreen(viewModel: StreamingViewModel, showStatistics: MutableState<B
                 startIcon = painterResource(id = io.dolby.uikit.R.drawable.icon_info),
                 checked = showStatistics.value,
                 isEnabled = false,
-                onCheckChange = { showStatistics.value = it }
+                onCheckedChange = { showStatistics.value = it }
             )
             Spacer(modifier = Modifier.height(12.dp))
             SwitchComponent(
@@ -72,7 +81,7 @@ fun SettingsScreen(viewModel: StreamingViewModel, showStatistics: MutableState<B
                 startIcon = painterResource(id = io.dolby.uikit.R.drawable.icon_live_indicator),
                 checked = uiState.showLiveIndicator,
                 isEnabled = true,
-                onCheckChange = { viewModel.updateShowLiveIndicator(it) }
+                onCheckedChange = { viewModel.updateShowLiveIndicator(it) }
             )
         }
     }
