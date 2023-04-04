@@ -5,6 +5,9 @@
     <string name="streaming_screen_contentDescription">Streaming Screen</string>
     <string name="live_label">Live</string>
     <string name="offline_label">Offline</string>
+    <string name="stream_offline_title_label">Stream is offline</string>
+    <string name="stream_offline_subtitle_label">Please wait for livestream to begin.</string>
+    <string name="stream_network_disconnected_label">Disconnected from the network</string>
 
     <!-- Stream Detail Input Screen -->
     <string name="stream_detail_screen_name">Stream Detail Input Screen</string>

@@ -34,6 +34,8 @@ import io.dolby.rtsviewer.datastore.RecentStreamsDataStore
 import io.dolby.rtsviewer.datastore.RecentStreamsDataStoreImpl
 import io.dolby.rtsviewer.preferenceStore.PrefsStore
 import io.dolby.rtsviewer.preferenceStore.PrefsStoreImpl
+import io.dolby.rtsviewer.utils.NetworkStatusObserver
+import io.dolby.rtsviewer.utils.NetworkStatusObserverImpl
 
 @Module
 @InstallIn(SingletonComponent::class)
@@ -68,5 +70,10 @@ object DataModule {
     @Provides
     fun provideDispatcherProvider(): DispatcherProvider {
         return DispatcherProviderImpl
+    }
+
+    @Provides
+    fun provideNetworkStatusObserver(@ApplicationContext context: Context): NetworkStatusObserver {
+        return NetworkStatusObserverImpl(context)
     }
 }
