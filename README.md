@@ -15,18 +15,19 @@ This setup guide is validated on both Intel/M1-based MacBook Pro running macOS 1
 ### Android
 
 * Android Studio Electric Eel | 2022.1.1 Patch 1
-* Android TV (1080p) API 13 simulator
+* Android/Google TV (4K) API 31 simulator
+* Android/Google TV (4K) API 33 simulator
 * Chomecast with Google TV 4K 2020
 
 ### Other
 
 * A [Dolby.io](https://dashboard.dolby.io/signup/) account
-* Start a video streaming broadcasting, see [here](https://docs.dolby.io/streaming-apis/docs/how-to-broadcast-in-dashboard) 
+* Start a video streaming broadcasting, see [here](https://docs.dolby.io/streaming-apis/docs/how-to-broadcast-in-dashboard)
 * The Stream name and Account ID pair from the video streaming above
 
 ### How to get a Dolby.io account
 
-To setup your Dolby.io account, go to the [Dolby.io dashboard](https://dashboard.dolby.io/signup/) and complete the form. After confirming your email address, you will be logged in.  
+To setup your Dolby.io account, go to the [Dolby.io dashboard](https://dashboard.dolby.io/signup/) and complete the form. After confirming your email address, you will be logged in.
 
 ## Cloning the repo
 
@@ -54,7 +55,7 @@ The GitHub's user's Personal Access Token (PAT) with the read:packages scope.
 githubPat=[GitHub_Personal_Access_Token]
 ```
 
-For more information on how to create and use a PAT
+For more information on how to create and use a classic PAT
 > **_Info:_** [Creating a personal access token](https://docs.github.com/en/authentication/keeping-your-account-and-data-secure/creating-a-personal-access-token) and [Working with the Gardle registry](https://docs.github.com/en/packages/working-with-a-github-packages-registry/working-with-the-gradle-registry)
 
 ## Building and running the app
@@ -65,9 +66,22 @@ From the top of the Android Studio, click Build -> Select Build Variant, select 
 
 From the top of the Android Studio, select the actual target to be run on.
 
-> **_Info:_** To run on a real device, you need to connect it to the Android Studio with the [ADB](https://developer.android.com/studio/command-line/adb#:~:text=Connect%20to%20a%20device%20over%20Wi-Fi%20%28Android%2011%2B%29,and%20port%20number%20from%20step%205.%20See%20More.)
-
 Click on the `Start` ► button on top of the Android Studio to start running and debugging the app.
+
+> **_Info:_** To run on a real device, you need to connect it to the Android Studio with the [ADB](https://developer.android.com/studio/command-line/adb#:~:text=Connect%20to%20a%20device%20over%20Wi-Fi%20%28Android%2011%2B%29,and%20port%20number%20from%20step%205.%20See%20More.)
+>  
+> ### Connecting a real Chromecast device
+> 
+* Power up the Chromecast device and connect it to a display unit.
+* Navigate to "Settings > System > About > Android TV OS build" and click on this options 7 times to turn on "Developers option"
+* You should see a "You are now a developer!"
+* Connect your local host and chromecast device in same wifi network
+* Navigate to "System > About > Status"
+* Make a note of the Chromecast device IP address as "chromecast-ip-address"
+* Open a terminal on your local host machine
+* Enter the command "adb connect chromecast-ip-address:5555"
+* Click "Yes" button in a pop up displayed to enable debugging of the chromecast using your computer
+* Verify the chromecast device is connected using command "adb devices"
 
 ## Known Issues
 
