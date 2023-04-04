@@ -36,6 +36,7 @@ import io.dolby.rtsviewer.preferenceStore.PrefsStore
 import io.dolby.rtsviewer.preferenceStore.PrefsStoreImpl
 import io.dolby.rtsviewer.utils.NetworkStatusObserver
 import io.dolby.rtsviewer.utils.NetworkStatusObserverImpl
+import javax.inject.Singleton
 
 @Module
 @InstallIn(SingletonComponent::class)
@@ -52,14 +53,16 @@ object DataModule {
     }
 
     @Provides
+    @Singleton
     fun provideRTSRepository(
         @ApplicationContext context: Context,
         millicastSdk: MillicastSdk
     ): RTSViewerDataStore = RTSViewerDataStore(context, millicastSdk)
 
     @Provides
+    @Singleton
     fun providePreferencesDataStore(@ApplicationContext context: Context): PrefsStore {
-        return PrefsStoreImpl.getInstance(context)
+        return PrefsStoreImpl(context)
     }
 
     @Provides

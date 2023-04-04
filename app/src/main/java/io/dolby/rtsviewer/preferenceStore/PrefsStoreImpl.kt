@@ -5,7 +5,6 @@ import androidx.datastore.preferences.core.booleanPreferencesKey
 import androidx.datastore.preferences.core.edit
 import androidx.datastore.preferences.core.emptyPreferences
 import androidx.datastore.preferences.preferencesDataStore
-import io.dolby.rtscomponentkit.utils.SingletonHolder
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.flow.Flow
@@ -16,9 +15,7 @@ import java.io.IOException
 
 private const val USER_PREFERENCES_STORE_NAME = "user_preferences"
 
-class PrefsStoreImpl private constructor(private val context: Context) : PrefsStore {
-    companion object : SingletonHolder<PrefsStore, Context>(::PrefsStoreImpl)
-
+class PrefsStoreImpl constructor(private val context: Context) : PrefsStore {
     private val coroutineScope = CoroutineScope(Dispatchers.IO)
 
     private val Context.dataStore by preferencesDataStore(name = USER_PREFERENCES_STORE_NAME)
