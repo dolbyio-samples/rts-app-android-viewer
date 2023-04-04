@@ -48,15 +48,15 @@ import io.dolby.rtsviewer.ui.alert.ClearStreamConfirmationAlert
 import io.dolby.rtsviewer.ui.alert.DetailInputValidationAlert
 import io.dolby.rtsviewer.uikit.button.ButtonType
 import io.dolby.rtsviewer.uikit.button.StyledButton
-import io.dolby.rtsviewer.uikit.input.TextInput
+import io.dolby.rtsviewer.uikit.input.TvTextInput
 import io.dolby.rtsviewer.uikit.theme.fontColor
 
 @Composable
 fun DetailInputScreen(
-    streamingData: StreamingData? = null,
     onPlayClick: (StreamingData) -> Unit,
     onSavedStreamsClick: () -> Unit,
     modifier: Modifier = Modifier,
+    streamingData: StreamingData? = null,
     viewModel: DetailInputViewModel = hiltViewModel()
 ) {
     var streamName by remember { mutableStateOf("") }
@@ -84,7 +84,6 @@ fun DetailInputScreen(
             )
         }
     }
-
     LaunchedEffect(Unit) {
         focusRequester.requestFocus()
     }
@@ -168,7 +167,7 @@ fun DetailInputScreen(
 
                 Spacer(modifier = modifier.height(12.dp))
 
-                TextInput(
+                TvTextInput(
                     value = streamName,
                     label = stringResource(id = R.string.stream_name_placeholder),
                     onValueChange = {
@@ -183,15 +182,15 @@ fun DetailInputScreen(
 
                 Spacer(modifier = modifier.height(8.dp))
 
-                TextInput(
+                TvTextInput(
                     value = accountId,
                     label = stringResource(id = R.string.account_id_placeholder),
                     onValueChange = {
                         accountId = it
                     },
-                    keyboardOptions = KeyboardOptions(imeAction = ImeAction.Next),
+                    keyboardOptions = KeyboardOptions(imeAction = ImeAction.Done),
                     keyboardActions = KeyboardActions(
-                        onNext = { localFocusManager.moveFocus(FocusDirection.Down) }
+                        onDone = { playStream(streamName, accountId) }
                     )
                 )
 
