@@ -11,6 +11,8 @@ import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.verticalScroll
+import androidx.compose.material.MaterialTheme
+import androidx.compose.material.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.MutableState
@@ -59,6 +61,12 @@ fun SettingsScreen(viewModel: StreamingViewModel, showStatistics: MutableState<B
                 .padding(vertical = 42.dp)
                 .padding(start = 25.dp, end = 22.dp)
         ) {
+            Text(
+                text = stringResource(id = R.string.settings_title),
+                style = MaterialTheme.typography.h2,
+                color = MaterialTheme.colors.onBackground
+            )
+            Spacer(modifier = Modifier.height(26.dp))
             StateButton(
                 text = stringResource(id = R.string.simulcast_title),
                 startIcon = painterResource(id = io.dolby.uikit.R.drawable.icon_simulcast),
