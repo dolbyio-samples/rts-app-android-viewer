@@ -33,7 +33,7 @@ android {
 }
 
 dependencies {
-    api 'com.millicast:millicast-sdk-android:1.4.2'
+    api 'com.millicast:millicast-sdk-android:1.5.0'
 
     implementation libs.androidx.core.ktx
 
