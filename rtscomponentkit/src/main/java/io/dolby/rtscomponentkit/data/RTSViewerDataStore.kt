@@ -16,6 +16,7 @@ import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Job
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.MutableStateFlow
+import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.launch
 import org.webrtc.RTCStatsReport
 import java.util.Optional
@@ -48,7 +49,8 @@ class RTSViewerDataStore constructor(
         }
 
         override fun onStatsReport(report: RTCStatsReport) {
-            Log.d(TAG, "onStatsReport")
+            Log.d(TAG, "onStatsReport + $report")
+            _statistics.value = StatisticsData.from(report)
         }
 
         override fun onViewerCount(p0: Int) {
@@ -96,8 +98,10 @@ class RTSViewerDataStore constructor(
     private val subscriptionManager: SubscriptionManagerInterface =
         millicastSdk.initSubscriptionManager(subscriptionDelegate)
 
-    private var _state: MutableStateFlow<State> = MutableStateFlow(State.Disconnected)
-    val state: Flow<State> = _state
+    private val _state: MutableStateFlow<State> = MutableStateFlow(State.Disconnected)
+    val state: Flow<State> = _state.asStateFlow()
+
+    private val _statistics: MutableStateFlow<StatisticsData?> = MutableStateFlow(null)
 
     private var media: Media
     private var audioPlayback: ArrayList<AudioPlayback>? = null
