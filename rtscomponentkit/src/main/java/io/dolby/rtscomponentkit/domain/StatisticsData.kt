@@ -5,11 +5,12 @@ import java.math.BigInteger
 
 class StatisticsData(
     val roundTripTime: Double?,
+    val timestamp: Double?,
     val audio: StatsInboundRtp?,
     val video: StatsInboundRtp?
 ) {
     companion object {
-        fun from(report: RTCStatsReport): StatisticsData? {
+        fun from(report: RTCStatsReport): StatisticsData {
             val rtt: Double? = getStatisticsRoundTripTime(report)
             var audio: StatsInboundRtp? = null
             var video: StatsInboundRtp? = null
@@ -33,12 +34,18 @@ class StatisticsData(
                         frameHeight = statsMembers["frameHeight"] as Long?,
                         fps = statsMembers.getOrDefault("framesPerSecond", null) as Double?,
                         audioLevel = statsMembers.getOrDefault("audioLevel", null) as Double?,
-                        totalEnergy = statsMembers.getOrDefault("totalAudioEnergy", null) as Double?,
+                        totalEnergy = statsMembers.getOrDefault(
+                            "totalAudioEnergy",
+                            null
+                        ) as Double?,
                         framesReceived = statsMembers.getOrDefault("framesReceived", null) as Int?,
                         framesDecoded = statsMembers.getOrDefault("framesDecoded", null) as Long?,
                         nackCount = statsMembers.getOrDefault("nackCount", null) as Long?,
                         bytesReceived = statsMembers.get("bytesReceived") as BigInteger,
-                        totalSampleDuration = statsMembers.getOrDefault("totalSamplesDuration", null) as Double?,
+                        totalSampleDuration = statsMembers.getOrDefault(
+                            "totalSamplesDuration",
+                            null
+                        ) as Double?,
                         codecId = codecId,
                         jitter = statsMembers["jitter"] as Double,
                         packetsReceived = statsMembers["packetsReceived"] as Long,
@@ -53,7 +60,12 @@ class StatisticsData(
                     }
                 }
             }
-            return StatisticsData(roundTripTime = rtt, audio = audio, video = video)
+            return StatisticsData(
+                roundTripTime = rtt,
+                audio = audio,
+                video = video,
+                timestamp = report.timestampUs
+            )
         }
 
         private fun getStatisticsRoundTripTime(report: RTCStatsReport): Double? {

@@ -15,7 +15,7 @@ import androidx.compose.material.MaterialTheme
 import androidx.compose.material.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
-import androidx.compose.runtime.MutableState
+import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.remember
 import androidx.compose.ui.Alignment
@@ -35,10 +35,11 @@ import io.dolby.rtsviewer.uikit.switch.SwitchComponent
 import io.dolby.rtsviewer.uikit.theme.DarkThemeColors
 
 @Composable
-fun SettingsScreen(viewModel: StreamingViewModel, showStatistics: MutableState<Boolean>) {
+fun SettingsScreen(viewModel: StreamingViewModel) {
     val uiState by viewModel.uiState.collectAsStateWithLifecycle()
     val focusRequester = remember { FocusRequester() }
     val screenContentDescription = stringResource(id = R.string.settingsScreen_contentDescription)
+    val showStatistics = viewModel.showStatistics.collectAsState()
 
     LaunchedEffect(Unit) {
         focusRequester.requestFocus()
@@ -80,8 +81,8 @@ fun SettingsScreen(viewModel: StreamingViewModel, showStatistics: MutableState<B
                 text = stringResource(id = R.string.streaming_statistics_title),
                 startIcon = painterResource(id = io.dolby.uikit.R.drawable.icon_info),
                 checked = showStatistics.value,
-                isEnabled = false,
-                onCheckedChange = { showStatistics.value = it }
+                isEnabled = uiState.subscribed,
+                onCheckedChange = { viewModel.updateStatistics(state = it) }
             )
             Spacer(modifier = Modifier.height(12.dp))
             SwitchComponent(

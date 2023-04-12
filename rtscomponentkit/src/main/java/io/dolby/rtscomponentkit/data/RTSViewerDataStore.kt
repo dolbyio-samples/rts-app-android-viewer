@@ -102,6 +102,7 @@ class RTSViewerDataStore constructor(
     val state: Flow<State> = _state.asStateFlow()
 
     private val _statistics: MutableStateFlow<StatisticsData?> = MutableStateFlow(null)
+    val statistics: Flow<StatisticsData?> = _statistics.asStateFlow()
 
     private var media: Media
     private var audioPlayback: ArrayList<AudioPlayback>? = null

@@ -36,5 +36,26 @@
     <string name="simulcast_title">Simulcast</string>
     <string name="streamingToolbar_contentDescription">Streaming Toolbar</string>
     <string name="settingsScreen_contentDescription">Settings Screen</string>
+    <string name="statisticsScreen_contentDescription">Statistics Screen</string>
     <string name="liveIndicator_contentDescription">Status Indicator</string>
+
+    <string name="statisticsScreen_title">Streaming statistics</string>
+    <string name="statisticsScreen_name">Name</string>
+    <string name="statisticsScreen_value">Value</string>
+    <string name="statisticsScreen_no_data">No data</string>
+
+    <string name="statisticsScreen_rtt">RTT</string>
+    <string name="statisticsScreen_videoResolution">Video Resolution</string>
+    <string name="statisticsScreen_fps">FPS</string>
+    <string name="statisticsScreen_videoBitrate">Video Bitrate</string>
+    <string name="statisticsScreen_audioBitrate">Audio Bitrate</string>
+    <string name="statisticsScreen_videoTotal">Video Total Received</string>
+    <string name="statisticsScreen_audioTotal">Audio Total Received</string>
+    <string name="statisticsScreen_videoLoss">Video Packet Loss</string>
+    <string name="statisticsScreen_audioLoss">Audio Packet Loss</string>
+    <string name="statisticsScreen_videoJitter">Video Jitter</string>
+    <string name="statisticsScreen_audioJitter">Audio Jitter</string>
+    <string name="statisticsScreen_codecs">Codecs</string>
+    <string name="statisticsScreen_timestamp">Timestamp</string>
+
 </resources>

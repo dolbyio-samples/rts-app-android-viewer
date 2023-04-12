@@ -42,8 +42,12 @@ class StreamingViewModel @Inject constructor(
     private val _uiState = MutableStateFlow(StreamingScreenUiState())
     val uiState: StateFlow<StreamingScreenUiState> = _uiState.asStateFlow()
     private val _showToolbarState = MutableStateFlow(false)
+    private val _showStatistics = MutableStateFlow(false)
     private val _showToolbarDelayState = MutableStateFlow(0L)
     var showToolbarState = _showToolbarState.asStateFlow()
+    var showStatistics = _showStatistics.asStateFlow()
+
+    val statisticsData = repository.statistics
 
     init {
         defaultCoroutineScope.launch {
@@ -223,6 +227,10 @@ class StreamingViewModel @Inject constructor(
 
     fun hideToolbar() {
         _showToolbarState.update { false }
+    }
+
+    fun updateStatistics(state: Boolean) {
+        _showStatistics.update { state }
     }
 
     fun updateShowLiveIndicator(show: Boolean) {

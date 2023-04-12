@@ -2,7 +2,9 @@ package io.dolby.rtsviewer.ui.streaming
 
 import androidx.activity.compose.BackHandler
 import androidx.compose.foundation.layout.Box
+import androidx.compose.foundation.layout.padding
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
@@ -12,6 +14,7 @@ import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.semantics.contentDescription
 import androidx.compose.ui.semantics.semantics
+import androidx.compose.ui.unit.dp
 import androidx.compose.ui.viewinterop.AndroidView
 import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
@@ -28,7 +31,7 @@ import org.webrtc.RendererCommon
 fun StreamingScreen(viewModel: StreamingViewModel = hiltViewModel(), onBack: () -> Unit) {
     val uiState by viewModel.uiState.collectAsStateWithLifecycle()
     val showSettings = remember { mutableStateOf(false) }
-    val showStatistics = remember { mutableStateOf(false) }
+    val showStatistics = viewModel.showStatistics.collectAsState()
     val screenContentDescription = stringResource(id = R.string.streaming_screen_contentDescription)
     DolbyBackgroundBox(
         modifier = Modifier.semantics {
@@ -72,7 +75,16 @@ fun StreamingScreen(viewModel: StreamingViewModel = hiltViewModel(), onBack: () 
         StreamingToolbarView(viewModel = viewModel, showSettings = showSettings)
 
         if (showSettings.value) {
-            SettingsScreen(viewModel, showStatistics)
+            SettingsScreen(viewModel)
+        }
+
+        if (showStatistics.value) {
+            StatisticsView(
+                viewModel = viewModel,
+                modifier = Modifier
+                    .align(Alignment.BottomStart)
+                    .padding(horizontal = 22.dp, vertical = 15.dp)
+            )
         }
 
         BackHandler {
