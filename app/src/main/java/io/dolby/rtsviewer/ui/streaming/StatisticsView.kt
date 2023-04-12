@@ -84,27 +84,31 @@ fun StatisticsView(viewModel: StreamingViewModel, modifier: Modifier = Modifier)
                 statisticsData.roundTripTime?.let {
                     StatisticsRow(
                         title = stringResource(id = R.string.statisticsScreen_rtt),
-                        value = "$it ms"
+                        value = "${it.times(1000).toLong()} ms"
                     )
                 }
-                statisticsData.video?.let {
+                statisticsData.video?.videoResolution?.let {
                     StatisticsRow(
                         title = stringResource(id = R.string.statisticsScreen_videoResolution),
-                        value = it.videoResolution ?: ""
+                        value = it
                     )
+                }
+                statisticsData.video?.fps?.let {
                     StatisticsRow(
                         title = stringResource(id = R.string.statisticsScreen_fps),
-                        value = "${it.fps}"
-                    )
-                    StatisticsRow(
-                        title = stringResource(id = R.string.statisticsScreen_videoBitrate),
-                        value = "0 kbps"
+                        value = "${it.toLong()}"
                     )
                 }
                 StatisticsRow(
-                    title = stringResource(id = R.string.statisticsScreen_audioBitrate),
+                    title = stringResource(id = R.string.statisticsScreen_videoBitrate),
                     value = "0 kbps"
                 )
+                statisticsData.audio?.let {
+                    StatisticsRow(
+                        title = stringResource(id = R.string.statisticsScreen_audioBitrate),
+                        value = "0 kbps"
+                    )
+                }
                 statisticsData.video?.bytesReceived?.let {
                     StatisticsRow(
                         title = stringResource(id = R.string.statisticsScreen_videoTotal),
@@ -129,16 +133,16 @@ fun StatisticsView(viewModel: StreamingViewModel, modifier: Modifier = Modifier)
                         value = "$it"
                     )
                 }
-                statisticsData.video?.jitter.let {
+                statisticsData.video?.jitter?.let {
                     StatisticsRow(
                         title = stringResource(id = R.string.statisticsScreen_videoJitter),
-                        value = "$it ms"
+                        value = "${it.times(1000)} ms"
                     )
                 }
-                statisticsData.audio?.jitter.let {
+                statisticsData.audio?.jitter?.let {
                     StatisticsRow(
                         title = stringResource(id = R.string.statisticsScreen_audioJitter),
-                        value = "$it ms"
+                        value = "${it.times(1000)} ms"
                     )
                 }
                 var codecNames = ""
@@ -211,6 +215,7 @@ private fun getDateTime(timeStamp: Double): String? {
         null
     }
 }
+
 fun formattedByteCount(bytes: Long): String {
     var value = bytes
     if (-1000 < value && value < 1000) {

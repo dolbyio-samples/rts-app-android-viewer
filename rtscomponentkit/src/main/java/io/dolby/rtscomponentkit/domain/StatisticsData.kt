@@ -5,13 +5,15 @@ import java.math.BigInteger
 
 class StatisticsData(
     val roundTripTime: Double?,
+    val availableOutgoingBitrate: Double?,
     val timestamp: Double?,
     val audio: StatsInboundRtp?,
     val video: StatsInboundRtp?
 ) {
     companion object {
         fun from(report: RTCStatsReport): StatisticsData {
-            val rtt: Double? = getStatisticsRoundTripTime(report)
+            val rtt = getStatisticsRoundTripTime(report)
+            val bitrate = getBitrate(report)
             var audio: StatsInboundRtp? = null
             var video: StatsInboundRtp? = null
 
@@ -20,8 +22,6 @@ class StatisticsData(
                     val statsMembers = statsData.members
                     val codecId = statsMembers["codecId"] as String
                     val codecName = getStatisticsCodec(codecId, report)
-
-                    val trackId = statsMembers["trackId"] as String
 
                     val statsInboundRtp = StatsInboundRtp(
                         sid = statsMembers["id"] as String?,
@@ -62,6 +62,7 @@ class StatisticsData(
             }
             return StatisticsData(
                 roundTripTime = rtt,
+                availableOutgoingBitrate = bitrate,
                 audio = audio,
                 video = video,
                 timestamp = report.timestampUs
@@ -69,8 +70,19 @@ class StatisticsData(
         }
 
         private fun getStatisticsRoundTripTime(report: RTCStatsReport): Double? {
-//            report.statsMap.
-            return 0.0
+            report.statsMap.values.filter { it.type == "candidate-pair" }.forEach {
+                if (it.members["state"] == "succeeded")
+                    return it.members["currentRoundTripTime"] as Double
+            }
+            return null
+        }
+
+        private fun getBitrate(report: RTCStatsReport): Double? {
+            report.statsMap.values.filter { it.type == "candidate-pair" }.forEach {
+                if (it.members.containsKey("availableOutgoingBitrate"))
+                    return it.members["availableOutgoingBitrate"] as Double?
+            }
+            return null
         }
 
         private fun getStatisticsCodec(codecId: String, report: RTCStatsReport): String =
