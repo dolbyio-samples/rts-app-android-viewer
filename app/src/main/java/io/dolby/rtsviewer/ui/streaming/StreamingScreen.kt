@@ -30,6 +30,8 @@ fun StreamingScreen(viewModel: StreamingViewModel = hiltViewModel(), onBack: () 
     val uiState by viewModel.uiState.collectAsStateWithLifecycle()
     val showSettings = viewModel.showSettings.collectAsState()
     val showStatistics = viewModel.showStatistics.collectAsState()
+    val showSimulcastSettings = viewModel.showSimulcastSettings.collectAsState()
+
     val screenContentDescription = stringResource(id = R.string.streaming_screen_contentDescription)
     DolbyBackgroundBox(
         modifier = Modifier.semantics {
@@ -72,7 +74,9 @@ fun StreamingScreen(viewModel: StreamingViewModel = hiltViewModel(), onBack: () 
 
         StreamingToolbarView(viewModel = viewModel)
 
-        if (showSettings.value) {
+        if (showSimulcastSettings.value) {
+            SimulcastScreen(viewModel)
+        } else if (showSettings.value) {
             SettingsScreen(viewModel)
         }
 
@@ -86,7 +90,9 @@ fun StreamingScreen(viewModel: StreamingViewModel = hiltViewModel(), onBack: () 
         }
 
         BackHandler {
-            if (showSettings.value) {
+            if (showSimulcastSettings.value) {
+                viewModel.updateShowSimulcastSettings(false)
+            } else if (showSettings.value) {
                 viewModel.settingsVisibility(false)
             } else {
                 onBack.invoke()

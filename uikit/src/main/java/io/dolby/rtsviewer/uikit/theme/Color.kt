@@ -2,6 +2,8 @@
 
 package io.dolby.rtsviewer.uikit.theme
 
+import androidx.compose.material.CheckboxColors
+import androidx.compose.material.CheckboxDefaults
 import androidx.compose.material.Colors
 import androidx.compose.material.MaterialTheme
 import androidx.compose.material.SwitchColors
@@ -87,6 +89,33 @@ fun switchColours(state: ViewState): SwitchColors {
                 checkedTrackColor = MaterialTheme.colors.primaryVariant,
                 uncheckedThumbColor = colours.grayLight,
                 checkedThumbColor = colours.grayLight
+            )
+    }
+}
+
+@Composable
+fun checkboxColours(state: ViewState): CheckboxColors {
+    val colours = getColorPalette()
+    return when (state) {
+        ViewState.Pressed,
+        ViewState.Focused,
+        ViewState.Selected ->
+            CheckboxDefaults.colors(
+                checkedColor = colours.white,
+                uncheckedColor = colours.transparent,
+                checkmarkColor = colours.grayMedium
+            )
+        ViewState.Disabled ->
+            CheckboxDefaults.colors(
+                checkedColor = colours.transparent,
+                uncheckedColor = colours.transparent,
+                checkmarkColor = colours.grayMedium
+            )
+        ViewState.Unknown ->
+            CheckboxDefaults.colors(
+                checkedColor = colours.transparent,
+                uncheckedColor = colours.transparent,
+                checkmarkColor = colours.grayLight
             )
     }
 }

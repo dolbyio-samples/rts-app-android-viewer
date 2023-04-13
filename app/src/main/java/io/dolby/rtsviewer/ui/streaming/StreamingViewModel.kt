@@ -59,6 +59,9 @@ class StreamingViewModel @Inject constructor(
 
     val streamingStatistics: Flow<List<Pair<Int, String>>?> = streamingStatistics()
 
+    private val _showSimulcastSettings = MutableStateFlow(false)
+    var showSimulcastSettings = _showSimulcastSettings.asStateFlow()
+
     init {
         defaultCoroutineScope.launch {
             tickerFlow(5.seconds)
@@ -187,6 +190,32 @@ class StreamingViewModel @Inject constructor(
                         _uiState.update { state ->
                             state.copy(
                                 showLiveIndicator = it
+                            )
+                        }
+                    }
+                }
+        }
+
+        defaultCoroutineScope.launch {
+            repository.streamQualityTypes
+                .collectLatest {
+                    withContext(dispatcherProvider.main) {
+                        _uiState.update { state ->
+                            state.copy(
+                                streamQualityTypes = it
+                            )
+                        }
+                    }
+                }
+        }
+
+        defaultCoroutineScope.launch {
+            repository.selectedStreamQualityType
+                .collectLatest {
+                    withContext(dispatcherProvider.main) {
+                        _uiState.update { state ->
+                            state.copy(
+                                selectedStreamQualityType = it
                             )
                         }
                     }
@@ -362,5 +391,12 @@ class StreamingViewModel @Inject constructor(
             ci.next()
         }
         return String.format("%.1f %cB", value / 1000.0, ci.current())
+    }
+    fun updateShowSimulcastSettings(show: Boolean) {
+        _showSimulcastSettings.update { show }
+    }
+
+    fun selectStreamQualityType(streamQualityType: RTSViewerDataStore.StreamQualityType) {
+        repository.selectStreamQualityType(streamQualityType)
     }
 }
