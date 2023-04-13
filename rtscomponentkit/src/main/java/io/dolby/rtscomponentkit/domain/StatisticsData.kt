@@ -24,33 +24,13 @@ class StatisticsData(
                     val codecName = getStatisticsCodec(codecId, report)
 
                     val statsInboundRtp = StatsInboundRtp(
-                        sid = statsMembers["id"] as String?,
                         kind = statsMembers["kind"] as String,
-                        decoder = statsMembers.getOrDefault(
-                            "decoderImplementation",
-                            null
-                        ) as String?,
                         frameWidth = statsMembers["frameWidth"] as Long?,
                         frameHeight = statsMembers["frameHeight"] as Long?,
                         fps = statsMembers.getOrDefault("framesPerSecond", null) as Double?,
-                        audioLevel = statsMembers.getOrDefault("audioLevel", null) as Double?,
-                        totalEnergy = statsMembers.getOrDefault(
-                            "totalAudioEnergy",
-                            null
-                        ) as Double?,
-                        framesReceived = statsMembers.getOrDefault("framesReceived", null) as Int?,
-                        framesDecoded = statsMembers.getOrDefault("framesDecoded", null) as Long?,
-                        nackCount = statsMembers.getOrDefault("nackCount", null) as Long?,
                         bytesReceived = statsMembers.get("bytesReceived") as BigInteger,
-                        totalSampleDuration = statsMembers.getOrDefault(
-                            "totalSamplesDuration",
-                            null
-                        ) as Double?,
-                        codecId = codecId,
                         jitter = statsMembers["jitter"] as Double,
-                        packetsReceived = statsMembers["packetsReceived"] as Long,
                         packetsLost = statsMembers["packetsLost"] as Int,
-                        timestamp = statsMembers["timestampUs"] as Long?,
                         codecName = codecName
                     )
                     if (statsInboundRtp.isVideo) {
@@ -71,16 +51,18 @@ class StatisticsData(
 
         private fun getStatisticsRoundTripTime(report: RTCStatsReport): Double? {
             report.statsMap.values.filter { it.type == "candidate-pair" }.forEach {
-                if (it.members["state"] == "succeeded")
+                if (it.members["state"] == "succeeded") {
                     return it.members["currentRoundTripTime"] as Double
+                }
             }
             return null
         }
 
         private fun getBitrate(report: RTCStatsReport): Double? {
             report.statsMap.values.filter { it.type == "candidate-pair" }.forEach {
-                if (it.members.containsKey("availableOutgoingBitrate"))
+                if (it.members.containsKey("availableOutgoingBitrate")) {
                     return it.members["availableOutgoingBitrate"] as Double?
+                }
             }
             return null
         }
@@ -91,24 +73,13 @@ class StatisticsData(
 }
 
 class StatsInboundRtp(
-    val sid: String?,
     val kind: String,
-    val decoder: String?,
     val frameWidth: Long?,
     val frameHeight: Long?,
     val fps: Double?,
-    val audioLevel: Double?,
-    val totalEnergy: Double?,
-    val framesReceived: Int?,
-    val framesDecoded: Long?,
-    val nackCount: Long?,
     val bytesReceived: BigInteger,
-    val totalSampleDuration: Double?,
-    val codecId: String?,
     val jitter: Double,
-    val packetsReceived: Long,
     val packetsLost: Int,
-    val timestamp: Long?,
     val codecName: String?
 ) {
 

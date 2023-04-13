@@ -70,7 +70,7 @@ fun StatisticsView(viewModel: StreamingViewModel, modifier: Modifier = Modifier)
                     textAlign = TextAlign.Left,
                     modifier = Modifier.width(155.dp)
                 )
-                Spacer(modifier = Modifier.width(5.dp))
+                Spacer(modifier = Modifier.width(15.dp))
                 Text(
                     text = stringResource(id = R.string.statisticsScreen_value),
                     style = MaterialTheme.typography.h5,
@@ -99,14 +99,10 @@ fun StatisticsView(viewModel: StreamingViewModel, modifier: Modifier = Modifier)
                         value = "${it.toLong()}"
                     )
                 }
-                StatisticsRow(
-                    title = stringResource(id = R.string.statisticsScreen_videoBitrate),
-                    value = "0 kbps"
-                )
-                statisticsData.audio?.let {
+                statisticsData.availableOutgoingBitrate?.let {
                     StatisticsRow(
-                        title = stringResource(id = R.string.statisticsScreen_audioBitrate),
-                        value = "0 kbps"
+                        title = stringResource(id = R.string.statisticsScreen_outgoingBitrate),
+                        value = "${it.div(1000)} kbps"
                     )
                 }
                 statisticsData.video?.bytesReceived?.let {
@@ -193,7 +189,7 @@ fun StatisticsRow(title: String, value: String, modifier: Modifier = Modifier) {
                 .width(160.dp)
                 .align(Alignment.CenterVertically)
         )
-        Spacer(modifier = Modifier.width(5.dp))
+        Spacer(modifier = Modifier.width(15.dp))
         Text(
             text = value,
             style = MaterialTheme.typography.body1,

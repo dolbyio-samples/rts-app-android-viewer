@@ -49,7 +49,7 @@ class RTSViewerDataStore constructor(
         }
 
         override fun onStatsReport(report: RTCStatsReport) {
-            Log.d(TAG, "onStatsReport + $report")
+            Log.d(TAG, "onStatsReport")
             _statistics.value = StatisticsData.from(report)
         }
 
