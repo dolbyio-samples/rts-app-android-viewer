@@ -41,7 +41,7 @@ fun StatisticsView(viewModel: StreamingViewModel, modifier: Modifier = Modifier)
 
     Box(
         modifier = modifier
-            .size(width = 400.dp, height = 380.dp)
+            .size(width = 420.dp, height = 360.dp)
             .background(
                 color = getColorPalette().neutralColor800,
                 shape = MaterialTheme.shapes.large

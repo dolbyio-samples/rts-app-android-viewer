@@ -20,8 +20,8 @@ class StatisticsData(
             report.statsMap.values.forEach { statsData ->
                 if (statsData.type == "inbound-rtp") {
                     val statsMembers = statsData.members
-                    val codecId = statsMembers["codecId"] as String
-                    val codecName = getStatisticsCodec(codecId, report)
+                    val codecId = statsMembers["codecId"] as String?
+                    val codecName = codecId?.let { getStatisticsCodec(codecId, report) }
 
                     val statsInboundRtp = StatsInboundRtp(
                         kind = statsMembers["kind"] as String,
