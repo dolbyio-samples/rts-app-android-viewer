@@ -90,6 +90,7 @@ android {
     productFlavors {
         create("tv") {
             dimension = "target"
+            setDefault(true)
         }
         create("mobile") {
             dimension = "target"
