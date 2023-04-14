@@ -12,7 +12,6 @@ import androidx.compose.material.MaterialTheme
 import androidx.compose.material.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
-import androidx.compose.runtime.MutableState
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.remember
 import androidx.compose.ui.Modifier
@@ -36,7 +35,7 @@ import kotlinx.coroutines.delay
 import java.util.Locale
 
 @Composable
-fun StreamingToolbarView(viewModel: StreamingViewModel, showSettings: MutableState<Boolean>) {
+fun StreamingToolbarView(viewModel: StreamingViewModel) {
     val uiState by viewModel.uiState.collectAsStateWithLifecycle()
     val showToolbarState by viewModel.showToolbarState.collectAsStateWithLifecycle()
     Box(
@@ -109,7 +108,7 @@ fun StreamingToolbarView(viewModel: StreamingViewModel, showSettings: MutableSta
                     onClick = {
                         if (showToolbarState) {
                             viewModel.hideToolbar()
-                            showSettings.value = true
+                            viewModel.settingsVisibility(true)
                         }
                     }
                 )
