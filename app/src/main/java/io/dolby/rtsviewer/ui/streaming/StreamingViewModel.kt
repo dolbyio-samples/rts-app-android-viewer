@@ -18,6 +18,7 @@ import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
+import kotlinx.coroutines.flow.collectLatest
 import kotlinx.coroutines.flow.combine
 import kotlinx.coroutines.flow.flow
 import kotlinx.coroutines.flow.launchIn
@@ -192,7 +193,7 @@ class StreamingViewModel @Inject constructor(
             }
         }
 
-        defaultCoroutineScope.launch {
+        viewModelScope.launch {
             repository.streamQualityTypes
                 .collectLatest {
                     withContext(dispatcherProvider.main) {
@@ -205,7 +206,7 @@ class StreamingViewModel @Inject constructor(
                 }
         }
 
-        defaultCoroutineScope.launch {
+        viewModelScope.launch {
             repository.selectedStreamQualityType
                 .collectLatest {
                     withContext(dispatcherProvider.main) {
