@@ -3,7 +3,7 @@ package io.dolby.rtscomponentkit.data
 import org.webrtc.RTCStatsReport
 import java.math.BigInteger
 
-class StatisticsData(
+data class StatisticsData(
     val roundTripTime: Double?,
     val availableOutgoingBitrate: Double?,
     val timestamp: Double?,
@@ -21,7 +21,7 @@ class StatisticsData(
                 if (statsData.type == "inbound-rtp") {
                     val statsMembers = statsData.members
                     val codecId = statsMembers["codecId"] as String?
-                    val codecName = codecId?.let { getStatisticsCodec(codecId, report) }
+                    val codecName = codecId?.let { getCodec(codecId, report) }
 
                     val statsInboundRtp = StatsInboundRtp(
                         kind = statsMembers["kind"] as String,
@@ -50,29 +50,30 @@ class StatisticsData(
         }
 
         private fun getStatisticsRoundTripTime(report: RTCStatsReport): Double? {
-            report.statsMap.values.filter { it.type == "candidate-pair" }.forEach {
-                if (it.members["state"] == "succeeded") {
+            report.statsMap.values.firstOrNull { it.type == "candidate-pair" && it.members["state"] == "succeeded" }
+                ?.let {
                     return it.members["currentRoundTripTime"] as Double
                 }
-            }
             return null
         }
 
         private fun getBitrate(report: RTCStatsReport): Double? {
-            report.statsMap.values.filter { it.type == "candidate-pair" }.forEach {
-                if (it.members.containsKey("availableOutgoingBitrate")) {
-                    return it.members["availableOutgoingBitrate"] as Double?
-                }
+            report.statsMap.values.firstOrNull {
+                it.type == "candidate-pair" && it.members.containsKey(
+                    "availableOutgoingBitrate"
+                )
+            }?.let {
+                return it.members["availableOutgoingBitrate"] as Double?
             }
             return null
         }
 
-        private fun getStatisticsCodec(codecId: String, report: RTCStatsReport): String =
+        private fun getCodec(codecId: String, report: RTCStatsReport): String =
             report.statsMap.getValue(codecId).members["mimeType"] as String
     }
 }
 
-class StatsInboundRtp(
+data class StatsInboundRtp(
     val kind: String,
     val frameWidth: Long?,
     val frameHeight: Long?,

@@ -6,8 +6,6 @@ import androidx.compose.foundation.layout.padding
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
-import androidx.compose.runtime.mutableStateOf
-import androidx.compose.runtime.remember
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.LocalContext
@@ -30,7 +28,7 @@ import org.webrtc.RendererCommon
 @Composable
 fun StreamingScreen(viewModel: StreamingViewModel = hiltViewModel(), onBack: () -> Unit) {
     val uiState by viewModel.uiState.collectAsStateWithLifecycle()
-    val showSettings = remember { mutableStateOf(false) }
+    val showSettings = viewModel.showSettings.collectAsState()
     val showStatistics = viewModel.showStatistics.collectAsState()
     val screenContentDescription = stringResource(id = R.string.streaming_screen_contentDescription)
     DolbyBackgroundBox(
@@ -72,7 +70,7 @@ fun StreamingScreen(viewModel: StreamingViewModel = hiltViewModel(), onBack: () 
             KeepScreenOn(enabled = false)
         }
 
-        StreamingToolbarView(viewModel = viewModel, showSettings = showSettings)
+        StreamingToolbarView(viewModel = viewModel)
 
         if (showSettings.value) {
             SettingsScreen(viewModel)
@@ -89,7 +87,7 @@ fun StreamingScreen(viewModel: StreamingViewModel = hiltViewModel(), onBack: () 
 
         BackHandler {
             if (showSettings.value) {
-                showSettings.value = false
+                viewModel.settingsVisibility(false)
             } else {
                 onBack.invoke()
             }
