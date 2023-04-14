@@ -22,8 +22,6 @@ data class StreamingScreenUiState(
     val viewerCount: Int = 0,
     val error: Error? = null,
 
-    val showLiveIndicator: Boolean = false,
-
     val streamQualityTypes: List<RTSViewerDataStore.StreamQualityType> = emptyList(),
     val selectedStreamQualityType: RTSViewerDataStore.StreamQualityType = RTSViewerDataStore.StreamQualityType.Auto
 )
