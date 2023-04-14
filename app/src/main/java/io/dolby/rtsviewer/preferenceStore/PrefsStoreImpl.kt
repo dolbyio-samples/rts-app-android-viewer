@@ -35,7 +35,7 @@ class PrefsStoreImpl constructor(private val context: Context) : PrefsStore {
         }
     }
 
-    private var userPreferencesFlow: Flow<UserPreferences> = context.dataStore.data
+    override val isLiveIndicatorEnabled: Flow<Boolean> = context.dataStore.data
         .catch { exception ->
             // dataStore.data throws an IOException when an error is encountered when reading data
             if (exception is IOException) {
@@ -46,12 +46,7 @@ class PrefsStoreImpl constructor(private val context: Context) : PrefsStore {
         }.map { preferences ->
             // Defaults to `true` if the setting does not exist yet - thus shows the live indicator by default on first use
             val showLiveIndicator = preferences[PreferencesKeys.SHOW_LIVE_INDICATOR] ?: true
-            UserPreferences(showLiveIndicator)
-        }
-
-    override var isLiveIndicatorEnabled: Flow<Boolean> =
-        userPreferencesFlow.map { userPreferences ->
-            userPreferences.showLiveIndicator
+            showLiveIndicator
         }
 
     override suspend fun updateLiveIndicator(checked: Boolean) {

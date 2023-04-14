@@ -13,13 +13,11 @@ import io.dolby.rtsviewer.R
 import io.dolby.rtsviewer.preferenceStore.PrefsStore
 import io.dolby.rtsviewer.ui.navigation.Screen
 import io.dolby.rtsviewer.utils.NetworkStatusObserver
-import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
-import kotlinx.coroutines.flow.collectLatest
 import kotlinx.coroutines.flow.combine
 import kotlinx.coroutines.flow.flow
 import kotlinx.coroutines.flow.launchIn
@@ -46,16 +44,21 @@ class StreamingViewModel @Inject constructor(
     private val preferencesDataStore: PrefsStore,
     private val networkStatusObserver: NetworkStatusObserver
 ) : ViewModel() {
-    private val defaultCoroutineScope = CoroutineScope(dispatcherProvider.default)
     private val _uiState = MutableStateFlow(StreamingScreenUiState())
     val uiState: StateFlow<StreamingScreenUiState> = _uiState.asStateFlow()
+
+    private val _showLiveIndicator = MutableStateFlow(false)
+    val showLiveIndicator = _showLiveIndicator.asStateFlow()
+
     private val _showToolbarState = MutableStateFlow(false)
-    private val _showStatistics = MutableStateFlow(false)
-    private val _showSettings = MutableStateFlow(false)
+    val showToolbarState = _showToolbarState.asStateFlow()
     private val _showToolbarDelayState = MutableStateFlow(0L)
-    var showToolbarState = _showToolbarState.asStateFlow()
-    var showStatistics = _showStatistics.asStateFlow()
-    var showSettings = _showSettings.asStateFlow()
+
+    private val _showStatistics = MutableStateFlow(false)
+    val showStatistics = _showStatistics.asStateFlow()
+
+    private val _showSettings = MutableStateFlow(false)
+    val showSettings = _showSettings.asStateFlow()
 
     val streamingStatistics: Flow<List<Pair<Int, String>>?> = streamingStatistics()
 
@@ -63,7 +66,7 @@ class StreamingViewModel @Inject constructor(
     var showSimulcastSettings = _showSimulcastSettings.asStateFlow()
 
     init {
-        defaultCoroutineScope.launch {
+        viewModelScope.launch {
             tickerFlow(5.seconds)
                 .onEach {
                     if (!_uiState.value.connecting && (_uiState.value.error != null || _uiState.value.disconnected)) {
@@ -74,7 +77,7 @@ class StreamingViewModel @Inject constructor(
                 .launchIn(viewModelScope)
         }
 
-        defaultCoroutineScope.launch {
+        viewModelScope.launch {
             repository.state.combine(networkStatusObserver.status) { f1, f2 -> Pair(f1, f2) }
                 .collect { (dataStoreState, networkStatus) ->
                     when (networkStatus) {
@@ -183,17 +186,10 @@ class StreamingViewModel @Inject constructor(
                 }
         }
 
-        defaultCoroutineScope.launch {
-            preferencesDataStore.isLiveIndicatorEnabled
-                .collectLatest {
-                    withContext(dispatcherProvider.main) {
-                        _uiState.update { state ->
-                            state.copy(
-                                showLiveIndicator = it
-                            )
-                        }
-                    }
-                }
+        viewModelScope.launch {
+            preferencesDataStore.isLiveIndicatorEnabled.collect { enabled ->
+                _showLiveIndicator.update { enabled }
+            }
         }
 
         defaultCoroutineScope.launch {
@@ -273,7 +269,7 @@ class StreamingViewModel @Inject constructor(
     }
 
     fun updateShowLiveIndicator(show: Boolean) {
-        defaultCoroutineScope.launch {
+        viewModelScope.launch {
             preferencesDataStore.updateLiveIndicator(show)
         }
     }

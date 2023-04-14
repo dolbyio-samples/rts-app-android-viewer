@@ -37,7 +37,9 @@ import java.util.Locale
 @Composable
 fun StreamingToolbarView(viewModel: StreamingViewModel) {
     val uiState by viewModel.uiState.collectAsStateWithLifecycle()
+    val showLiveIndicator by viewModel.showLiveIndicator.collectAsStateWithLifecycle()
     val showToolbarState by viewModel.showToolbarState.collectAsStateWithLifecycle()
+
     Box(
         modifier = Modifier
             .fillMaxSize()
@@ -59,7 +61,7 @@ fun StreamingToolbarView(viewModel: StreamingViewModel) {
                 .semantics { contentDescription = toolbarContentDescription }
         ) {
             val (liveIndicator, toolbar, settings) = createRefs()
-            if (uiState.showLiveIndicator) {
+            if (showLiveIndicator) {
                 val liveIndicatorLabel =
                     if (uiState.subscribed) stringResource(R.string.live_label)
                     else stringResource(R.string.offline_label)
