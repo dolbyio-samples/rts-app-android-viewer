@@ -9,6 +9,14 @@
     <string name="stream_offline_subtitle_label">Please wait for livestream to begin.</string>
     <string name="stream_network_disconnected_label">Disconnected from the network</string>
 
+    <!-- Simulcast Screen -->
+    <string name="simulcastScreen_contentDescription">Simulcast Screen</string>
+    <string name="simulcast_title">Simulcast</string>
+    <string name="simulcast_auto">Auto</string>
+    <string name="simulcast_high">High</string>
+    <string name="simulcast_medium">Medium</string>
+    <string name="simulcast_low">Low</string>
+
     <!-- Stream Detail Input Screen -->
     <string name="stream_detail_screen_name">Stream Detail Input Screen</string>
     <string name="stream_detail_header">Dolby.io Remote Monitor</string>
@@ -33,7 +41,6 @@
 
     <string name="streaming_statistics_title">Streaming statistics</string>
     <string name="live_indicator_title">Live indicator</string>
-    <string name="simulcast_title">Simulcast</string>
     <string name="streamingToolbar_contentDescription">Streaming Toolbar</string>
     <string name="settingsScreen_contentDescription">Settings Screen</string>
     <string name="statisticsScreen_contentDescription">Statistics Screen</string>

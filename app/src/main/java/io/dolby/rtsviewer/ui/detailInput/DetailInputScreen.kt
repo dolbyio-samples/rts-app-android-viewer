@@ -51,6 +51,8 @@ import io.dolby.rtsviewer.uikit.button.StyledButton
 import io.dolby.rtsviewer.uikit.input.TvTextInput
 import io.dolby.rtsviewer.uikit.theme.fontColor
 
+private const val MAXIMUM_CHARACTERS: Int = 64
+
 @Composable
 fun DetailInputScreen(
     onPlayClick: (StreamingData) -> Unit,
@@ -171,7 +173,7 @@ fun DetailInputScreen(
                     value = streamName,
                     label = stringResource(id = R.string.stream_name_placeholder),
                     onValueChange = {
-                        streamName = it
+                        if (it.length <= MAXIMUM_CHARACTERS) streamName = it
                     },
                     keyboardOptions = KeyboardOptions(imeAction = ImeAction.Next),
                     keyboardActions = KeyboardActions(
@@ -186,7 +188,7 @@ fun DetailInputScreen(
                     value = accountId,
                     label = stringResource(id = R.string.account_id_placeholder),
                     onValueChange = {
-                        accountId = it
+                        if (it.length <= MAXIMUM_CHARACTERS) accountId = it
                     },
                     keyboardOptions = KeyboardOptions(imeAction = ImeAction.Done),
                     keyboardActions = KeyboardActions(

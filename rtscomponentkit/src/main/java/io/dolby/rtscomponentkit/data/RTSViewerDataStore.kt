@@ -90,8 +90,36 @@ class RTSViewerDataStore constructor(
             Log.d(TAG, "onSignalingError: $reason")
         }
 
-        override fun onLayers(p0: String?, p1: Array<out LayerData>?, p2: Array<out LayerData>?) {
-            Log.d(TAG, "onLayers: $p0")
+        override fun onLayers(mid: String?, activeLayers: Array<out LayerData>?, inactiveLayers: Array<out LayerData>?) {
+            Log.d(TAG, "onLayers: $activeLayers")
+            activeLayers?.let { activeLayers ->
+                _streamQualityTypes.value = when (activeLayers.count()) {
+                    2 -> {
+                        listOf(
+                            StreamQualityType.Auto,
+                            StreamQualityType.High(activeLayers[0]),
+                            StreamQualityType.Low(activeLayers[1])
+                        )
+                    }
+                    3 -> {
+                        listOf(
+                            StreamQualityType.Auto,
+                            StreamQualityType.High(activeLayers[0]),
+                            StreamQualityType.Medium(activeLayers[1]),
+                            StreamQualityType.Low(activeLayers[2])
+                        )
+                    }
+                    else -> emptyList()
+                }
+
+                // Update selected stream quality type everytime the `streamQualityTypes` change
+                // It preserves the current selected type if the new list has a stream matching the type `selectedStreamQualityType`
+                val updatedStreamQualityType = _streamQualityTypes.value.firstOrNull { type ->
+                    _selectedStreamQualityType.value::class == type::class
+                } ?: StreamQualityType.Auto
+
+                _selectedStreamQualityType.value = updatedStreamQualityType
+            }
         }
     }
 
@@ -106,6 +134,12 @@ class RTSViewerDataStore constructor(
 
     private var media: Media
     private var audioPlayback: ArrayList<AudioPlayback>? = null
+
+    private var _streamQualityTypes: MutableStateFlow<List<StreamQualityType>> = MutableStateFlow(emptyList())
+    val streamQualityTypes: Flow<List<StreamQualityType>> = _streamQualityTypes.asStateFlow()
+
+    private var _selectedStreamQualityType: MutableStateFlow<StreamQualityType> = MutableStateFlow(StreamQualityType.Auto)
+    val selectedStreamQualityType: Flow<StreamQualityType> = _selectedStreamQualityType.asStateFlow()
 
     init {
         millicastSdk.init(context)
@@ -124,6 +158,8 @@ class RTSViewerDataStore constructor(
 
     fun stopSubscribe() = apiScope.launch {
         subscriptionManager.stopSubscribe()
+
+        resetStreamQualityTypes()
     }
 
     /**
@@ -145,6 +181,18 @@ class RTSViewerDataStore constructor(
         }
     }
 
+    fun selectStreamQualityType(type: StreamQualityType) = apiScope.launch {
+        val success = subscriptionManager.selectLayer(type.layerData)
+        if (success) {
+            _selectedStreamQualityType.value = type
+        }
+    }
+
+    private fun resetStreamQualityTypes() {
+        _selectedStreamQualityType.value = StreamQualityType.Auto
+        _streamQualityTypes.value = emptyList()
+    }
+
     sealed class SubscriptionError(val reason: String) {
         class SubscribeError(reason: String) : SubscriptionError(reason = reason)
         class ConnectError(reason: String) : SubscriptionError(reason = reason)
@@ -159,5 +207,20 @@ class RTSViewerDataStore constructor(
         class Error(val error: SubscriptionError) : State()
         class AudioTrackReady(val audioTrack: AudioTrack) : State()
         class VideoTrackReady(val videoTrack: VideoTrack) : State()
+    }
+
+    sealed class StreamQualityType {
+        object Auto : StreamQualityType()
+        data class High(val layer: LayerData) : StreamQualityType()
+        data class Medium(val layer: LayerData) : StreamQualityType()
+        data class Low(val layer: LayerData) : StreamQualityType()
+
+        val layerData: LayerData?
+            get() = when (this) {
+                is Auto -> null
+                is High -> layer
+                is Medium -> layer
+                is Low -> layer
+            }
     }
 }

@@ -2,6 +2,7 @@ package io.dolby.rtsviewer.ui.streaming
 
 import com.millicast.AudioTrack
 import com.millicast.VideoTrack
+import io.dolby.rtscomponentkit.data.RTSViewerDataStore
 
 enum class Error {
     NO_INTERNET_CONNECTION, STREAM_NOT_ACTIVE
@@ -21,5 +22,8 @@ data class StreamingScreenUiState(
     val viewerCount: Int = 0,
     val error: Error? = null,
 
-    val showLiveIndicator: Boolean = false
+    val showLiveIndicator: Boolean = false,
+
+    val streamQualityTypes: List<RTSViewerDataStore.StreamQualityType> = emptyList(),
+    val selectedStreamQualityType: RTSViewerDataStore.StreamQualityType = RTSViewerDataStore.StreamQualityType.Auto
 )

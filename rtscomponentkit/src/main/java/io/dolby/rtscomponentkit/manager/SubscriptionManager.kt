@@ -3,6 +3,7 @@ package io.dolby.rtscomponentkit.manager
 import android.util.Log
 import com.millicast.LayerData
 import com.millicast.Subscriber
+import java.util.*
 
 internal const val TAG = "RTSSubscriptionManager"
 interface SubscriptionManagerInterface {
@@ -85,7 +86,8 @@ class SubscriptionManager(
     }
 
     override suspend fun selectLayer(layer: LayerData?): Boolean {
-        TODO("Not yet implemented")
+        val layerData: Optional<LayerData>? = layer?.let { Optional.of(it) } ?: null
+        return subscriber?.select(layerData) ?: false
     }
 
     private fun enableStatsSub(enable: Int) {

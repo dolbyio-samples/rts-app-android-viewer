@@ -13,6 +13,8 @@ import androidx.compose.ui.input.key.key
 import androidx.compose.ui.input.key.nativeKeyCode
 import androidx.compose.ui.input.key.onKeyEvent
 import androidx.compose.ui.platform.LocalContext
+import io.dolby.rtscomponentkit.data.RTSViewerDataStore
+import io.dolby.rtsviewer.R
 
 @Composable
 fun KeepScreenOn(enabled: Boolean) {
@@ -53,3 +55,12 @@ fun Modifier.anyDpadKeyEvent(action: () -> Unit): Modifier =
         }
         return@onKeyEvent false
     }
+
+fun RTSViewerDataStore.StreamQualityType.titleResourceId(): Int {
+    return when (this) {
+        RTSViewerDataStore.StreamQualityType.Auto -> R.string.simulcast_auto
+        is RTSViewerDataStore.StreamQualityType.High -> R.string.simulcast_high
+        is RTSViewerDataStore.StreamQualityType.Medium -> R.string.simulcast_medium
+        is RTSViewerDataStore.StreamQualityType.Low -> R.string.simulcast_low
+    }
+}

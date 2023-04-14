@@ -9,4 +9,5 @@
     <string name="iconButton_contentDescription">Icon Button</string>
     <string name="icon_contentDescription">Icon</string>
     <string name="text_contentDescription">Text</string>
+    <string name="checkbox_contentDescription">CheckBox Button</string>
 </resources>

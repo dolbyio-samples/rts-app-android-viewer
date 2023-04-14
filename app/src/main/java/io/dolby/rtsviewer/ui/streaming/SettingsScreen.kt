@@ -33,6 +33,7 @@ import io.dolby.rtsviewer.R
 import io.dolby.rtsviewer.uikit.button.StateButton
 import io.dolby.rtsviewer.uikit.switch.SwitchComponent
 import io.dolby.rtsviewer.uikit.theme.DarkThemeColors
+import io.dolby.rtsviewer.utils.titleResourceId
 
 @Composable
 fun SettingsScreen(viewModel: StreamingViewModel) {
@@ -72,9 +73,9 @@ fun SettingsScreen(viewModel: StreamingViewModel) {
                 text = stringResource(id = R.string.simulcast_title),
                 startIcon = painterResource(id = io.dolby.uikit.R.drawable.icon_simulcast),
                 endIcon = painterResource(id = io.dolby.uikit.R.drawable.ic_arrow_right),
-                stateText = "Auto",
-                isEnabled = false,
-                onClick = { /*TODO*/ }
+                stateText = stringResource(id = uiState.selectedStreamQualityType.titleResourceId()),
+                isEnabled = uiState.streamQualityTypes.isNotEmpty(),
+                onClick = { viewModel.updateShowSimulcastSettings(true) }
             )
             Spacer(modifier = Modifier.height(12.dp))
             SwitchComponent(
