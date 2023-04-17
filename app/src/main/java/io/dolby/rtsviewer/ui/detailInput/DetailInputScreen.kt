@@ -173,12 +173,13 @@ fun DetailInputScreen(
                     value = streamName,
                     label = stringResource(id = R.string.stream_name_placeholder),
                     onValueChange = {
-                        if (it.length <= MAXIMUM_CHARACTERS) streamName = it
+                        streamName = it
                     },
                     keyboardOptions = KeyboardOptions(imeAction = ImeAction.Next),
                     keyboardActions = KeyboardActions(
                         onNext = { localFocusManager.moveFocus(FocusDirection.Down) }
                     ),
+                    maximumCharacters = MAXIMUM_CHARACTERS,
                     modifier = Modifier.focusRequester(focusRequester)
                 )
 
@@ -188,12 +189,13 @@ fun DetailInputScreen(
                     value = accountId,
                     label = stringResource(id = R.string.account_id_placeholder),
                     onValueChange = {
-                        if (it.length <= MAXIMUM_CHARACTERS) accountId = it
+                        accountId = it
                     },
                     keyboardOptions = KeyboardOptions(imeAction = ImeAction.Done),
                     keyboardActions = KeyboardActions(
                         onDone = { playStream(streamName, accountId) }
-                    )
+                    ),
+                    maximumCharacters = MAXIMUM_CHARACTERS
                 )
 
                 Spacer(modifier = modifier.height(8.dp))
