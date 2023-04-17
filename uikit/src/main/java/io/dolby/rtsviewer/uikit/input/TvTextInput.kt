@@ -28,7 +28,8 @@ fun TvTextInput(
     enabled: Boolean = true,
     readOnly: Boolean = false,
     keyboardOptions: KeyboardOptions = KeyboardOptions.Default,
-    keyboardActions: KeyboardActions = KeyboardActions.Default
+    keyboardActions: KeyboardActions = KeyboardActions.Default,
+    maximumCharacters: Int? = null
 ) {
     val isSelectedState = remember { mutableStateOf(false) }
     val isActivatedState = remember { mutableStateOf(false) }
@@ -61,7 +62,8 @@ fun TvTextInput(
             enabled,
             readOnly,
             keyboardOptions,
-            keyboardActions
+            keyboardActions,
+            maximumCharacters
         )
     } else {
         TextInput(
@@ -90,7 +92,8 @@ fun TvTextInput(
             enabled,
             true,
             keyboardOptions,
-            keyboardActions
+            keyboardActions,
+            maximumCharacters
         )
     }
 }

@@ -37,7 +37,7 @@ fun SimulcastScreen(viewModel: StreamingViewModel) {
     val focusRequester = remember { FocusRequester() }
     val screenContentDescription = stringResource(id = R.string.simulcastScreen_contentDescription)
 
-    LaunchedEffect(Unit) {
+    LaunchedEffect(uiState.streamQualityTypes) {
         focusRequester.requestFocus()
     }
 
@@ -45,7 +45,6 @@ fun SimulcastScreen(viewModel: StreamingViewModel) {
         modifier = Modifier
             .fillMaxWidth()
             .background(Color.Black.copy(alpha = .75f))
-            .focusRequester(focusRequester)
             .semantics { contentDescription = screenContentDescription }
     ) {
         LazyColumn(
@@ -76,7 +75,14 @@ fun SimulcastScreen(viewModel: StreamingViewModel) {
                     onCheckedChange = {
                         viewModel.selectStreamQualityType(streamQualityType)
                         viewModel.updateShowSimulcastSettings(false)
-                    }
+                    },
+                    modifier = Modifier
+                        .let {
+                            if (streamQualityType == uiState.selectedStreamQualityType) {
+                                return@let it.focusRequester(focusRequester)
+                            }
+                            return@let it
+                        }
                 )
 
                 Spacer(modifier = Modifier.height(16.dp))

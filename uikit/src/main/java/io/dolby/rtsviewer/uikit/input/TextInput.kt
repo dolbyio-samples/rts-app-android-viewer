@@ -31,7 +31,8 @@ fun TextInput(
     enabled: Boolean = true,
     readOnly: Boolean = false,
     keyboardOptions: KeyboardOptions = KeyboardOptions.Default,
-    keyboardActions: KeyboardActions = KeyboardActions.Default
+    keyboardActions: KeyboardActions = KeyboardActions.Default,
+    maximumCharacters: Int? = null
 ) {
     val textState = remember { mutableStateOf(TextFieldValue(value)) }
     val textInputContentDescription =
@@ -43,8 +44,10 @@ fun TextInput(
         value = textState.value,
         label = { Text(text = label, style = MaterialTheme.typography.body1) },
         onValueChange = {
-            onValueChange(it.text)
-            textState.value = it
+            if (maximumCharacters == null || it.text.length <= maximumCharacters) {
+                textState.value = it
+                onValueChange(it.text)
+            }
         },
         shape = MaterialTheme.shapes.small,
         keyboardOptions = keyboardOptions,

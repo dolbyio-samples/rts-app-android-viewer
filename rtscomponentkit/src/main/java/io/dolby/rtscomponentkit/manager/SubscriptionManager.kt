@@ -86,7 +86,7 @@ class SubscriptionManager(
     }
 
     override suspend fun selectLayer(layer: LayerData?): Boolean {
-        val layerData: Optional<LayerData>? = layer?.let { Optional.of(it) } ?: null
+        val layerData: Optional<LayerData>? = layer?.let { Optional.of(it) } ?: Optional.empty()
         return subscriber?.select(layerData) ?: false
     }
 
