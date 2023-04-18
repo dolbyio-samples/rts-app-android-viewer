@@ -25,6 +25,12 @@ class DetailInputViewModel @Inject constructor(
     private val _uiState = MutableStateFlow(DetailInputScreenUiState())
     val uiState: StateFlow<DetailInputScreenUiState> = _uiState.asStateFlow()
 
+    private val _streamName = MutableStateFlow("")
+    var streamName = _streamName.asStateFlow()
+
+    private val _accountId = MutableStateFlow("")
+    var accountId = _accountId.asStateFlow()
+
     init {
         defaultCoroutineScope.launch {
             recentStreamsDataStore.recentStreams
@@ -38,12 +44,12 @@ class DetailInputViewModel @Inject constructor(
         }
     }
 
-    fun connect(streamName: String, accountId: String) {
+    fun connect() {
         defaultCoroutineScope.launch {
-            repository.connect(streamName, accountId)
+            repository.connect(streamName.value, accountId.value)
 
             // Save the stream detail
-            recentStreamsDataStore.addStreamDetail(streamName, accountId)
+            recentStreamsDataStore.addStreamDetail(streamName.value, accountId.value)
         }
     }
 
@@ -51,5 +57,16 @@ class DetailInputViewModel @Inject constructor(
         defaultCoroutineScope.launch {
             recentStreamsDataStore.clearAll()
         }
+    }
+
+    val shouldPlayStream: Boolean
+        get() = streamName.value.isNotEmpty() && accountId.value.isNotEmpty()
+
+    fun updateStreamName(name: String) {
+        _streamName.value = name
+    }
+
+    fun updateAccountId(id: String) {
+        _accountId.value = id
     }
 }
