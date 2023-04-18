@@ -19,9 +19,11 @@ import androidx.compose.material.Text
 import androidx.compose.material.TextButton
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
+import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
+import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
@@ -50,6 +52,8 @@ import io.dolby.rtsviewer.uikit.button.ButtonType
 import io.dolby.rtsviewer.uikit.button.StyledButton
 import io.dolby.rtsviewer.uikit.input.TvTextInput
 import io.dolby.rtsviewer.uikit.theme.fontColor
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.launch
 
 private const val MAXIMUM_CHARACTERS: Int = 64
 
@@ -61,10 +65,11 @@ fun DetailInputScreen(
     streamingData: StreamingData? = null,
     viewModel: DetailInputViewModel = hiltViewModel()
 ) {
-    var streamName by remember { mutableStateOf("") }
-    var accountId by remember { mutableStateOf("") }
     var showMissingStreamDetailDialog by remember { mutableStateOf(false) }
     var showClearStreamsConfirmationDialog by remember { mutableStateOf(false) }
+
+    val streamName = viewModel.streamName.collectAsState()
+    val accountId = viewModel.accountId.collectAsState()
 
     val screenName = stringResource(id = R.string.stream_detail_screen_name)
     val uiState by viewModel.uiState.collectAsStateWithLifecycle()
@@ -72,18 +77,22 @@ fun DetailInputScreen(
     val localFocusManager = LocalFocusManager.current
     val focusRequester = remember { FocusRequester() }
     val background = MaterialTheme.colors.background
+    val coroutineScope = rememberCoroutineScope()
 
-    fun playStream(streamName: String, accountID: String) {
-        if (streamName.isEmpty() || accountID.isEmpty()) {
+    fun playStream() {
+        if (!viewModel.shouldPlayStream) {
             showMissingStreamDetailDialog = true
         } else {
-            viewModel.connect(streamName = streamName, accountId = accountID)
-            onPlayClick(
-                StreamingData(
-                    streamName = streamName,
-                    accountId = accountID
+            viewModel.connect()
+
+            coroutineScope.launch(Dispatchers.Main) {
+                onPlayClick(
+                    StreamingData(
+                        streamName = streamName.value,
+                        accountId = accountId.value
+                    )
                 )
-            )
+            }
         }
     }
     LaunchedEffect(Unit) {
@@ -92,7 +101,9 @@ fun DetailInputScreen(
 
     LaunchedEffect(Unit) {
         streamingData?.let {
-            playStream(streamingData.streamName, streamingData.accountId)
+            viewModel.updateStreamName(it.streamName)
+            viewModel.updateAccountId(it.accountId)
+            playStream()
         }
     }
 
@@ -170,10 +181,10 @@ fun DetailInputScreen(
                 Spacer(modifier = modifier.height(12.dp))
 
                 TvTextInput(
-                    value = streamName,
+                    value = streamName.value,
                     label = stringResource(id = R.string.stream_name_placeholder),
                     onValueChange = {
-                        streamName = it
+                        viewModel.updateStreamName(it)
                     },
                     keyboardOptions = KeyboardOptions(imeAction = ImeAction.Next),
                     keyboardActions = KeyboardActions(
@@ -186,14 +197,14 @@ fun DetailInputScreen(
                 Spacer(modifier = modifier.height(8.dp))
 
                 TvTextInput(
-                    value = accountId,
+                    value = accountId.value,
                     label = stringResource(id = R.string.account_id_placeholder),
                     onValueChange = {
-                        accountId = it
+                        viewModel.updateAccountId(it)
                     },
                     keyboardOptions = KeyboardOptions(imeAction = ImeAction.Done),
                     keyboardActions = KeyboardActions(
-                        onDone = { playStream(streamName, accountId) }
+                        onDone = { playStream() }
                     ),
                     maximumCharacters = MAXIMUM_CHARACTERS
                 )
@@ -215,7 +226,7 @@ fun DetailInputScreen(
                 StyledButton(
                     buttonText = stringResource(id = R.string.play_button),
                     onClickAction = {
-                        playStream(streamName, accountId)
+                        playStream()
                     },
                     buttonType = ButtonType.PRIMARY
                 )

@@ -15,7 +15,6 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.semantics.contentDescription
 import androidx.compose.ui.semantics.semantics
-import androidx.compose.ui.text.input.TextFieldValue
 import androidx.compose.ui.tooling.preview.Preview
 import io.dolby.uikit.R
 
@@ -34,19 +33,17 @@ fun TextInput(
     keyboardActions: KeyboardActions = KeyboardActions.Default,
     maximumCharacters: Int? = null
 ) {
-    val textState = remember { mutableStateOf(TextFieldValue(value)) }
     val textInputContentDescription =
-        "${label.ifEmpty { textState.value.text }} ${stringResource(id = textInputContentDescriptionId)}"
+        "${label.ifEmpty { value }} ${stringResource(id = textInputContentDescriptionId)}"
+    val text = remember { mutableStateOf(value) }
+
     OutlinedTextField(
-        modifier = modifier
-            .fillMaxWidth()
-            .semantics { contentDescription = textInputContentDescription },
-        value = textState.value,
+        value = text.value,
         label = { Text(text = label, style = MaterialTheme.typography.body1) },
         onValueChange = {
-            if (maximumCharacters == null || it.text.length <= maximumCharacters) {
-                textState.value = it
-                onValueChange(it.text)
+            if (maximumCharacters == null || it.length <= maximumCharacters) {
+                text.value = it
+                onValueChange(it)
             }
         },
         shape = MaterialTheme.shapes.small,
@@ -55,6 +52,9 @@ fun TextInput(
         enabled = enabled,
         readOnly = readOnly,
         colors = TextFieldDefaults.textFieldColors(colors.onBackground),
-        maxLines = 1
+        maxLines = 1,
+        modifier = modifier
+            .fillMaxWidth()
+            .semantics { contentDescription = textInputContentDescription }
     )
 }
