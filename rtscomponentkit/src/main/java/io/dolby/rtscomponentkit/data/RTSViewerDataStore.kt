@@ -92,8 +92,13 @@ class RTSViewerDataStore constructor(
 
         override fun onLayers(mid: String?, activeLayers: Array<out LayerData>?, inactiveLayers: Array<out LayerData>?) {
             Log.d(TAG, "onLayers: $activeLayers")
-            activeLayers?.let { activeLayers ->
-                val newActiveLayers = when (activeLayers.count()) {
+            val filteredActiveLayers = activeLayers?.filter {
+                // For H.264 there are no temporal layers and the id is set to 255. For VP8 use the first temporal layer.
+                it.temporalLayerId == 0 || it.temporalLayerId == 255
+            }
+
+            filteredActiveLayers?.let { activeLayers ->
+                val newActiveLayers = when (activeLayers?.count()) {
                     2 -> {
                         listOf(
                             StreamQualityType.Auto,
