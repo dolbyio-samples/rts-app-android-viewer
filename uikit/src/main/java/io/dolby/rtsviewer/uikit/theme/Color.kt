@@ -148,10 +148,10 @@ fun selectableButtonFontColor(state: ViewState, isPrimary: Boolean): Color {
         ViewState.Pressed,
         ViewState.Focused,
         ViewState.Selected -> getColorPalette().grayDarkFont
-        ViewState.Disabled -> MaterialTheme.colors.onSurface
+        ViewState.Disabled -> getColorPalette().neutralColor600
         ViewState.Unknown -> if (isPrimary) {
             MaterialTheme.colors.onPrimary
-        } else getColorPalette().neutralColor600
+        } else MaterialTheme.colors.onSurface
     }
 }
 
