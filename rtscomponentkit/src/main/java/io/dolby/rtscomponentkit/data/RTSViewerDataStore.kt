@@ -93,7 +93,7 @@ class RTSViewerDataStore constructor(
         override fun onLayers(mid: String?, activeLayers: Array<out LayerData>?, inactiveLayers: Array<out LayerData>?) {
             Log.d(TAG, "onLayers: $activeLayers")
             activeLayers?.let { activeLayers ->
-                _streamQualityTypes.value = when (activeLayers.count()) {
+                val newActiveLayers = when (activeLayers.count()) {
                     2 -> {
                         listOf(
                             StreamQualityType.Auto,
@@ -112,13 +112,16 @@ class RTSViewerDataStore constructor(
                     else -> emptyList()
                 }
 
-                // Update selected stream quality type everytime the `streamQualityTypes` change
-                // It preserves the current selected type if the new list has a stream matching the type `selectedStreamQualityType`
-                val updatedStreamQualityType = _streamQualityTypes.value.firstOrNull { type ->
-                    _selectedStreamQualityType.value::class == type::class
-                } ?: StreamQualityType.Auto
+                if (_streamQualityTypes.value != newActiveLayers) {
+                    _streamQualityTypes.value = newActiveLayers
+                    // Update selected stream quality type everytime the `streamQualityTypes` change
+                    // It preserves the current selected type if the new list has a stream matching the type `selectedStreamQualityType`
+                    val updatedStreamQualityType = _streamQualityTypes.value.firstOrNull { type ->
+                        _selectedStreamQualityType.value::class == type::class
+                    } ?: StreamQualityType.Auto
 
-                _selectedStreamQualityType.value = updatedStreamQualityType
+                    _selectedStreamQualityType.value = updatedStreamQualityType
+                }
             }
         }
     }
@@ -210,10 +213,26 @@ class RTSViewerDataStore constructor(
     }
 
     sealed class StreamQualityType {
-        object Auto : StreamQualityType()
-        data class High(val layer: LayerData) : StreamQualityType()
-        data class Medium(val layer: LayerData) : StreamQualityType()
-        data class Low(val layer: LayerData) : StreamQualityType()
+        object Auto : StreamQualityType() {
+            override fun equals(other: Any?): Boolean {
+                return other is Auto
+            }
+        }
+        data class High(val layer: LayerData) : StreamQualityType() {
+            override fun equals(other: Any?): Boolean {
+                return other is High && other.layer.isEqualTo(this.layer)
+            }
+        }
+        data class Medium(val layer: LayerData) : StreamQualityType() {
+            override fun equals(other: Any?): Boolean {
+                return other is Medium && other.layer.isEqualTo(this.layer)
+            }
+        }
+        data class Low(val layer: LayerData) : StreamQualityType() {
+            override fun equals(other: Any?): Boolean {
+                return other is Low && other.layer.isEqualTo(this.layer)
+            }
+        }
 
         val layerData: LayerData?
             get() = when (this) {
@@ -222,5 +241,22 @@ class RTSViewerDataStore constructor(
                 is Medium -> layer
                 is Low -> layer
             }
+
+        override fun equals(other: Any?): Boolean {
+            return other is StreamQualityType && when (other) {
+                is Auto -> (this as Auto) == other
+                is High -> (this as High) == other
+                is Medium -> (this as Medium) == other
+                is Low -> (this as Low) == other
+            }
+        }
     }
+}
+
+fun LayerData.isEqualTo(other: LayerData): Boolean {
+    return other.spatialLayerId == this.spatialLayerId &&
+        other.temporalLayerId == this.temporalLayerId &&
+        other.encodingId == this.encodingId &&
+        other.maxSpatialLayerId == this.maxSpatialLayerId &&
+        other.maxTemporalLayerId == this.maxTemporalLayerId
 }
