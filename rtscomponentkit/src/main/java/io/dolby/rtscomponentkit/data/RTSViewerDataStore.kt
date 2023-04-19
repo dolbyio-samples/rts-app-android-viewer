@@ -15,7 +15,9 @@ import io.dolby.rtscomponentkit.utils.DispatcherProviderImpl
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Job
 import kotlinx.coroutines.flow.Flow
+import kotlinx.coroutines.flow.MutableSharedFlow
 import kotlinx.coroutines.flow.MutableStateFlow
+import kotlinx.coroutines.flow.asSharedFlow
 import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.launch
 import org.webrtc.RTCStatsReport
@@ -30,22 +32,30 @@ class RTSViewerDataStore constructor(
 
     private val subscriptionDelegate = object : Subscriber.Listener {
         override fun onSubscribed() {
-            _state.value = State.Subscribed
+            apiScope.launch {
+                _state.emit(State.Subscribed)
+            }
         }
 
         override fun onSubscribedError(reason: String) {
             Log.d(TAG, "onSubscribedError: $reason")
-            _state.value = State.Error(SubscriptionError.SubscribeError(reason))
+            apiScope.launch {
+                _state.emit(State.Error(SubscriptionError.SubscribeError(reason)))
+            }
         }
 
         override fun onTrack(track: VideoTrack, p1: Optional<String>?) {
             Log.d(TAG, "onVideoTrack")
-            _state.value = State.VideoTrackReady(track)
+            apiScope.launch {
+                _state.emit(State.VideoTrackReady(track))
+            }
         }
 
         override fun onTrack(track: AudioTrack, p1: Optional<String>?) {
             Log.d(TAG, "onAudioTrack")
-            _state.value = State.AudioTrackReady(track)
+            apiScope.launch {
+                _state.emit(State.AudioTrackReady(track))
+            }
         }
 
         override fun onStatsReport(report: RTCStatsReport) {
@@ -64,17 +74,23 @@ class RTSViewerDataStore constructor(
 
         override fun onActive(p0: String?, p1: Array<out String>?, p2: Optional<String>?) {
             Log.d(TAG, "onActive")
-            _state.value = State.StreamActive
+            apiScope.launch {
+                _state.emit(State.StreamActive)
+            }
         }
 
         override fun onInactive(p0: String?, p1: Optional<String>?) {
             Log.d(TAG, "onInactive")
-            _state.value = State.StreamInactive
+            apiScope.launch {
+                _state.emit(State.StreamInactive)
+            }
         }
 
         override fun onStopped() {
             Log.d(TAG, "onStopped")
-            _state.value = State.StreamInactive
+            apiScope.launch {
+                _state.emit(State.StreamInactive)
+            }
         }
 
         override fun onVad(p0: String?, p1: Optional<String>?) {
@@ -83,7 +99,9 @@ class RTSViewerDataStore constructor(
 
         override fun onConnectionError(reason: String) {
             Log.d(TAG, "onConnectionError: $reason")
-            _state.value = State.Error(SubscriptionError.ConnectError(reason))
+            apiScope.launch {
+                _state.emit(State.Error(SubscriptionError.ConnectError(reason)))
+            }
         }
 
         override fun onSignalingError(reason: String?) {
@@ -134,8 +152,8 @@ class RTSViewerDataStore constructor(
     private val subscriptionManager: SubscriptionManagerInterface =
         millicastSdk.initSubscriptionManager(subscriptionDelegate)
 
-    private val _state: MutableStateFlow<State> = MutableStateFlow(State.Disconnected)
-    val state: Flow<State> = _state.asStateFlow()
+    private val _state: MutableSharedFlow<State> = MutableSharedFlow()
+    val state: Flow<State> = _state.asSharedFlow()
 
     private val _statistics: MutableStateFlow<StatisticsData?> = MutableStateFlow(null)
     val statisticsData: Flow<StatisticsData?> = _statistics.asStateFlow()
@@ -143,11 +161,14 @@ class RTSViewerDataStore constructor(
     private var media: Media
     private var audioPlayback: ArrayList<AudioPlayback>? = null
 
-    private var _streamQualityTypes: MutableStateFlow<List<StreamQualityType>> = MutableStateFlow(emptyList())
+    private var _streamQualityTypes: MutableStateFlow<List<StreamQualityType>> =
+        MutableStateFlow(emptyList())
     val streamQualityTypes: Flow<List<StreamQualityType>> = _streamQualityTypes.asStateFlow()
 
-    private var _selectedStreamQualityType: MutableStateFlow<StreamQualityType> = MutableStateFlow(StreamQualityType.Auto)
-    val selectedStreamQualityType: Flow<StreamQualityType> = _selectedStreamQualityType.asStateFlow()
+    private var _selectedStreamQualityType: MutableStateFlow<StreamQualityType> =
+        MutableStateFlow(StreamQualityType.Auto)
+    val selectedStreamQualityType: Flow<StreamQualityType> =
+        _selectedStreamQualityType.asStateFlow()
 
     init {
         millicastSdk.init(context)
@@ -156,7 +177,7 @@ class RTSViewerDataStore constructor(
     }
 
     fun connect(streamName: String, accountId: String) = apiScope.launch {
-        _state.value = State.Connecting
+        _state.emit(State.Connecting)
         subscriptionManager.connect(streamName, accountId)
     }
 
@@ -201,9 +222,9 @@ class RTSViewerDataStore constructor(
         _streamQualityTypes.value = emptyList()
     }
 
-    sealed class SubscriptionError(val reason: String) {
-        class SubscribeError(reason: String) : SubscriptionError(reason = reason)
-        class ConnectError(reason: String) : SubscriptionError(reason = reason)
+    sealed class SubscriptionError(open val reason: String) {
+        class SubscribeError(override val reason: String) : SubscriptionError(reason = reason)
+        class ConnectError(override val reason: String) : SubscriptionError(reason = reason)
     }
 
     sealed class State {
