@@ -80,7 +80,7 @@ fun StreamingScreen(viewModel: StreamingViewModel = hiltViewModel(), onBack: () 
             SettingsScreen(viewModel)
         }
 
-        if (showStatistics.value) {
+        if (showStatistics.value && uiState.subscribed) {
             StatisticsView(
                 viewModel = viewModel,
                 modifier = Modifier
