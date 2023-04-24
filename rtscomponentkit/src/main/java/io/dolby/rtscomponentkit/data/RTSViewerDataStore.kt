@@ -42,6 +42,7 @@ class RTSViewerDataStore constructor(
             apiScope.launch {
                 _state.emit(State.Error(SubscriptionError.SubscribeError(reason)))
             }
+            _statistics.value = null
         }
 
         override fun onTrack(track: VideoTrack, p1: Optional<String>?) {
@@ -91,6 +92,7 @@ class RTSViewerDataStore constructor(
             apiScope.launch {
                 _state.emit(State.StreamInactive)
             }
+            _statistics.value = null
         }
 
         override fun onVad(p0: String?, p1: Optional<String>?) {
@@ -99,6 +101,7 @@ class RTSViewerDataStore constructor(
 
         override fun onConnectionError(reason: String) {
             Log.d(TAG, "onConnectionError: $reason")
+            _statistics.value = null
             apiScope.launch {
                 _state.emit(State.Error(SubscriptionError.ConnectError(reason)))
             }
@@ -106,6 +109,7 @@ class RTSViewerDataStore constructor(
 
         override fun onSignalingError(reason: String?) {
             Log.d(TAG, "onSignalingError: $reason")
+            _statistics.value = null
         }
 
         override fun onLayers(mid: String?, activeLayers: Array<out LayerData>?, inactiveLayers: Array<out LayerData>?) {

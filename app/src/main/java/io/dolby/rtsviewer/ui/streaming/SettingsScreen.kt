@@ -15,6 +15,7 @@ import androidx.compose.material.MaterialTheme
 import androidx.compose.material.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
+import androidx.compose.runtime.SideEffect
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.remember
 import androidx.compose.ui.Alignment
@@ -45,6 +46,11 @@ fun SettingsScreen(viewModel: StreamingViewModel) {
 
     LaunchedEffect(Unit) {
         focusRequester.requestFocus()
+    }
+    SideEffect {
+        if (!uiState.subscribed) {
+            focusRequester.requestFocus()
+        }
     }
 
     Box(
@@ -83,7 +89,7 @@ fun SettingsScreen(viewModel: StreamingViewModel) {
                 text = stringResource(id = R.string.streaming_statistics_title),
                 startIcon = painterResource(id = io.dolby.uikit.R.drawable.icon_info),
                 checked = showStatistics.value,
-                isEnabled = true,
+                isEnabled = uiState.subscribed,
                 onCheckedChange = { viewModel.updateStatistics(state = it) }
             )
             Spacer(modifier = Modifier.height(12.dp))
