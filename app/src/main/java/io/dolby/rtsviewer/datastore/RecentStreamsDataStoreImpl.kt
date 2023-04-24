@@ -23,7 +23,7 @@ class RecentStreamsDataStoreImpl @Inject constructor(
         }
 
     override suspend fun addStreamDetail(streamName: String, accountID: String) {
-        appCoroutineScope.launch {
+        val addStreamJob = appCoroutineScope.launch {
             dataStore.updateData {
                 // Remove existing stream matching the new stream details
                 val matchingIndex = it.streamDetailList
@@ -48,6 +48,17 @@ class RecentStreamsDataStoreImpl @Inject constructor(
                     .setLastUsedDate(timeStamp)
                     .build()
                 builder = builder.addStreamDetail(0, streamDetail)
+
+                // Commit the changes
+                builder.build()
+            }
+        }
+
+        appCoroutineScope.launch {
+            addStreamJob.join()
+
+            dataStore.updateData {
+                var builder = it.toBuilder()
 
                 // Remove streams from index - 25 onwards to keep the saved streams to a max limit of 25
                 val numberOfSavedStreams = it.streamDetailList.count()
