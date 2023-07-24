@@ -50,8 +50,10 @@ import io.dolby.rtsviewer.ui.alert.ClearStreamConfirmationAlert
 import io.dolby.rtsviewer.ui.alert.DetailInputValidationAlert
 import io.dolby.rtsviewer.uikit.button.ButtonType
 import io.dolby.rtsviewer.uikit.button.StyledButton
+import io.dolby.rtsviewer.uikit.input.TextInput
 import io.dolby.rtsviewer.uikit.input.TvTextInput
 import io.dolby.rtsviewer.uikit.theme.fontColor
+import io.dolby.rtsviewer.utils.isTV
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
 
@@ -180,33 +182,74 @@ fun DetailInputScreen(
 
                 Spacer(modifier = modifier.height(12.dp))
 
-                TvTextInput(
-                    value = streamName.value,
-                    label = stringResource(id = R.string.stream_name_placeholder),
-                    onValueChange = {
-                        viewModel.updateStreamName(it)
-                    },
-                    keyboardOptions = KeyboardOptions(imeAction = ImeAction.Next),
-                    keyboardActions = KeyboardActions(
-                        onNext = { localFocusManager.moveFocus(FocusDirection.Down) }
-                    ),
-                    maximumCharacters = MAXIMUM_CHARACTERS,
-                    modifier = Modifier.focusRequester(focusRequester)
-                )
+                if(isTV()) {
+                    TvTextInput(
+                        value = streamName.value,
+                        label = stringResource(id = R.string.stream_name_placeholder),
+                        onValueChange = {
+                            viewModel.updateStreamName(it)
+                        },
+                        keyboardOptions = KeyboardOptions(imeAction = ImeAction.Next),
+                        keyboardActions = KeyboardActions(
+                            onNext = { localFocusManager.moveFocus(FocusDirection.Down) }
+                        ),
+                        maximumCharacters = MAXIMUM_CHARACTERS,
+                        modifier = Modifier.focusRequester(focusRequester)
+                    )
+                } else {
+                    TextInput(
+                        value = streamName.value,
+                        label = stringResource(id = R.string.stream_name_placeholder),
+                        onValueChange = {
+                            viewModel.updateStreamName(it)
+                        },
+                        keyboardOptions = KeyboardOptions(imeAction = ImeAction.Next),
+                        keyboardActions = KeyboardActions(
+                            onNext = { localFocusManager.moveFocus(FocusDirection.Down) }
+                        ),
+                        maximumCharacters = MAXIMUM_CHARACTERS,
+                        modifier = Modifier.focusRequester(focusRequester)
+                    )
+                }
 
                 Spacer(modifier = modifier.height(8.dp))
 
-                TvTextInput(
-                    value = accountId.value,
-                    label = stringResource(id = R.string.account_id_placeholder),
-                    onValueChange = {
-                        viewModel.updateAccountId(it)
+                if(isTV()) {
+                    TvTextInput(
+                        value = accountId.value,
+                        label = stringResource(id = R.string.account_id_placeholder),
+                        onValueChange = {
+                            viewModel.updateAccountId(it)
+                        },
+                        keyboardOptions = KeyboardOptions(imeAction = ImeAction.Done),
+                        keyboardActions = KeyboardActions(
+                            onDone = { playStream() }
+                        ),
+                        maximumCharacters = MAXIMUM_CHARACTERS
+                    )
+                } else {
+                    TextInput(
+                        value = accountId.value,
+                        label = stringResource(id = R.string.account_id_placeholder),
+                        onValueChange = {
+                            viewModel.updateAccountId(it)
+                        },
+                        keyboardOptions = KeyboardOptions(imeAction = ImeAction.Done),
+                        keyboardActions = KeyboardActions(
+                            onDone = { playStream() }
+                        ),
+                        maximumCharacters = MAXIMUM_CHARACTERS
+                    )
+                }
+
+                Spacer(modifier = modifier.height(8.dp))
+
+                StyledButton(
+                    buttonText = stringResource(id = R.string.play_button),
+                    onClickAction = {
+                        playStream()
                     },
-                    keyboardOptions = KeyboardOptions(imeAction = ImeAction.Done),
-                    keyboardActions = KeyboardActions(
-                        onDone = { playStream() }
-                    ),
-                    maximumCharacters = MAXIMUM_CHARACTERS
+                    buttonType = ButtonType.PRIMARY
                 )
 
                 Spacer(modifier = modifier.height(8.dp))
@@ -223,14 +266,6 @@ fun DetailInputScreen(
 
                 Spacer(modifier = modifier.height(8.dp))
 
-                StyledButton(
-                    buttonText = stringResource(id = R.string.play_button),
-                    onClickAction = {
-                        playStream()
-                    },
-                    buttonType = ButtonType.PRIMARY
-                )
-
                 if (uiState.recentStreams.isNotEmpty()) {
                     Row(
                         modifier = modifier
@@ -246,6 +281,17 @@ fun DetailInputScreen(
                         }
                     }
                 }
+
+                Spacer(modifier = modifier.height(8.dp))
+
+                StyledButton(
+                    buttonText = stringResource(id = R.string.demo_streams_button),
+                    onClickAction = {
+                        viewModel.useDemoStream()
+                        playStream()
+                    },
+                    buttonType = ButtonType.SECONDARY
+                )
             }
         }
     }

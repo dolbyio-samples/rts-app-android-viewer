@@ -3,6 +3,7 @@ package io.dolby.rtsviewer.utils
 import android.app.Activity
 import android.content.Context
 import android.content.ContextWrapper
+import android.content.pm.PackageManager
 import android.media.AudioManager
 import android.view.KeyEvent
 import android.view.WindowManager
@@ -45,6 +46,11 @@ fun Context.findActivity(): Activity? {
         context = context.baseContext
     }
     return null
+}
+@Composable
+fun isTV(): Boolean {
+    val context = LocalContext.current
+    return context.packageManager.hasSystemFeature(PackageManager.FEATURE_LEANBACK)
 }
 
 fun Modifier.anyDpadKeyEvent(action: () -> Unit): Modifier =
