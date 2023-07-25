@@ -84,37 +84,19 @@ fun StreamingToolbarView(viewModel: StreamingViewModel) {
                         .semantics { contentDescription = liveIndicatorContentDescription }
                 )
             }
-            val focusRequester = remember { FocusRequester() }
-            AnimatedVisibility(
-                visible = showToolbarState,
+
+            StyledIconButton(
                 modifier = Modifier
-                    .constrainAs(toolbar) {
-                        bottom.linkTo(parent.bottom)
-                        end.linkTo(parent.end)
+                    .constrainAs(settings) {
+                        bottom.linkTo(parent.bottom, margin = 14.dp)
+                        end.linkTo(parent.end, margin = 20.dp)
                     }
-                    .semantics { contentDescription = "visibility button" }
-            ) {
-                LaunchedEffect(Unit) {
-                    delay(200)
-                    focusRequester.requestFocus()
+                    .padding(20.dp),
+                icon = painterResource(id = io.dolby.uikit.R.drawable.icon_info),
+                onClick = {
+                    viewModel.updateStatistics(true)
                 }
-                StyledIconButton(
-                    modifier = Modifier
-                        .constrainAs(settings) {
-                            bottom.linkTo(parent.bottom, margin = 14.dp)
-                            end.linkTo(parent.end, margin = 20.dp)
-                        }
-                        .focusRequester(focusRequester),
-                    icon = painterResource(id = io.dolby.uikit.R.drawable.ic_settings),
-                    text = stringResource(id = R.string.settings_title),
-                    onClick = {
-                        if (showToolbarState) {
-                            viewModel.hideToolbar()
-                            viewModel.settingsVisibility(true)
-                        }
-                    }
-                )
-            }
+            )
         }
     }
 }
