@@ -24,6 +24,7 @@ data class StatisticsData(
                     val codecName = codecId?.let { getCodec(codecId, report) }
 
                     val statsInboundRtp = StatsInboundRtp(
+                        mid = statsMembers["mid"] as String,
                         kind = statsMembers["kind"] as String,
                         frameWidth = statsMembers["frameWidth"] as Long?,
                         frameHeight = statsMembers["frameHeight"] as Long?,
@@ -31,7 +32,25 @@ data class StatisticsData(
                         bytesReceived = statsMembers.get("bytesReceived") as BigInteger,
                         jitter = statsMembers["jitter"] as Double,
                         packetsLost = statsMembers["packetsLost"] as Int,
-                        codecName = codecName
+                        codecName = codecName,
+                        decoderImplementation = statsMembers["decoderImplementation"] as String?,//
+                        trackIdentifier = statsMembers["trackIdentifier"] as String,
+                        decoder = statsMembers["decoder"] as String?,//
+                        processingDelay = statsMembers.get("totalProcessingDelay") as Double?,//
+                        decodeTime = statsMembers.get("decodeTime") as Double?,//
+                        audioLevel = statsMembers.get("audioLevel") as Double?,
+                        totalEnergy = statsMembers.get("totalAudioEnergy") as Double?,
+                        framesReceived = statsMembers.get("framesReceived") as Int?,//
+                        framesDecoded = statsMembers.get("framesDecoded") as Long?,//
+                        framesDropped = statsMembers.get("framesDropped") as Long?,//
+                        jitterBufferEmittedCount = statsMembers.get("jitterBufferEmittedCount") as BigInteger,
+                        jitterBufferDelay = statsMembers.get("jitterBufferDelay") as Double,
+                        jitterBufferTargetDelay = statsMembers.get("jitterBufferTargetDelay") as Double?,
+                        jitterBufferMinimumDelay = statsMembers.get("jitterBufferMinimumDelay") as Double?,
+                        nackCount = statsMembers.get("nackCount") as Long,
+                        totalSamplesDuration = statsMembers.get("totalSamplesDuration") as Double?,
+                        packetsReceived = statsMembers.get("packetsReceived") as Long,
+                        timestamp = statsData.timestampUs
                     )
                     if (statsInboundRtp.isVideo) {
                         video = statsInboundRtp
@@ -57,6 +76,14 @@ data class StatisticsData(
             return null
         }
 
+        private fun getMid(report: RTCStatsReport): String? {
+            report.statsMap.values.firstOrNull { it.type == "candidate-pair" && it.members["state"] == "succeeded" }
+                ?.let {
+                    return it.members["mid"] as String?
+                }
+            return null
+        }
+
         private fun getBitrate(report: RTCStatsReport): Double? {
             report.statsMap.values.firstOrNull {
                 it.type == "candidate-pair" && it.members.containsKey(
@@ -74,6 +101,7 @@ data class StatisticsData(
 }
 
 data class StatsInboundRtp(
+    val mid: String,
     val kind: String,
     val frameWidth: Long?,
     val frameHeight: Long?,
@@ -81,7 +109,25 @@ data class StatsInboundRtp(
     val bytesReceived: BigInteger,
     val jitter: Double,
     val packetsLost: Int,
-    val codecName: String?
+    val codecName: String?,
+    val decoderImplementation: String?,
+    val trackIdentifier: String,
+    val decoder: String?,
+    val processingDelay: Double?,
+    val decodeTime: Double?,
+    val audioLevel: Double?,
+    val totalEnergy: Double?,
+    val framesReceived: Int?,
+    val framesDecoded: Long?,
+    val framesDropped: Long?,
+    val jitterBufferEmittedCount: BigInteger,
+    val jitterBufferDelay: Double,
+    val jitterBufferTargetDelay: Double?,
+    val jitterBufferMinimumDelay: Double?,
+    val nackCount: Long,
+    val totalSamplesDuration: Double?,
+    val packetsReceived: Long,
+    val timestamp: Double
 ) {
 
     val videoResolution: String? = frameWidth?.let { frameWidth ->
