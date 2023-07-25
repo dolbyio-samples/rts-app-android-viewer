@@ -53,6 +53,7 @@
     <string name="statisticsScreen_no_data">No data</string>
 
     <string name="statisticsScreen_rtt">RTT</string>
+    <string name="statisticsScreen_mid">MID</string>
     <string name="statisticsScreen_videoResolution">Video Resolution</string>
     <string name="statisticsScreen_fps">FPS</string>
     <string name="statisticsScreen_outgoingBitrate">Outgoing Bitrate</string>
@@ -66,5 +67,17 @@
     <string name="statisticsScreen_audioJitter">Audio Jitter</string>
     <string name="statisticsScreen_codecs">Codecs</string>
     <string name="statisticsScreen_timestamp">Timestamp</string>
+    <string name="statisticsScreen_server">Server</string>
+    <string name="statisticsScreen_cluster">Cluster</string>
+    <string name="statisticsScreen_decoder_impl">Decoder Impl</string>
+    <string name="statisticsScreen_processing_delay">Processing delay</string>
+    <string name="statisticsScreen_decode_time">Decode time</string>
+    <string name="statisticsScreen_packets_received">Packets rec.</string>
+    <string name="statisticsScreen_frames_decoded">Frames dec.</string>
+    <string name="statisticsScreen_packets_dropped">Packets dropped</string>
+    <string name="statisticsScreen_jitter_bufffer_ec">Jitter buffer est count</string>
+    <string name="statisticsScreen_jitter_bufffer_delay">Jitter buffer delay</string>
+    <string name="statisticsScreen_jitter_bufffer_target_delay">Jitter buffer target delay</string>
+    <string name="statisticsScreen_jitter_bufffer_min_delay">Jitter buffer min delay</string>
 
 </resources>
