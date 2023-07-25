@@ -39,7 +39,7 @@ fun StreamingScreen(viewModel: StreamingViewModel = hiltViewModel(), onBack: () 
 
     Scaffold(
         topBar = {
-            TopAppBar(title = "Saved Streams") {
+            TopAppBar(title = "Stream") {
                 onBack()
             }
         }

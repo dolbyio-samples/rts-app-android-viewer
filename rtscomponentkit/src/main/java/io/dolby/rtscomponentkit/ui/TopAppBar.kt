@@ -9,7 +9,7 @@ import androidx.compose.runtime.Composable
 
 @Composable
 fun TopAppBar(title: String, onBack: () -> Unit) {
-    androidx.compose.material.TopAppBar(title = { Text(text = title)}, navigationIcon = {
+    androidx.compose.material.TopAppBar(title = { Text(text = title) }, navigationIcon = {
         IconButton(onClick = onBack) {
             Icon(Icons.Filled.ArrowBack, null)
         }
