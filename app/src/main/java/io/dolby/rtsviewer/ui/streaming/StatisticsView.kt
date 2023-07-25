@@ -10,6 +10,7 @@ import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.rememberScrollState
+import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.MaterialTheme
 import androidx.compose.material.Text
@@ -18,6 +19,7 @@ import androidx.compose.runtime.getValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
+import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.semantics.contentDescription
 import androidx.compose.ui.semantics.semantics
@@ -25,6 +27,7 @@ import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import io.dolby.rtsviewer.R
+import io.dolby.rtsviewer.uikit.button.StyledIconButton
 import io.dolby.rtsviewer.uikit.theme.getColorPalette
 
 private const val TAG = "StatisticsView"
@@ -36,14 +39,24 @@ fun StatisticsView(viewModel: StreamingViewModel, modifier: Modifier = Modifier)
 
     Box(
         modifier = modifier
-            .size(width = 420.dp, height = 360.dp)
+            .size(width = 420.dp, height = 720.dp)
             .background(
                 color = getColorPalette().neutralColor800,
                 shape = MaterialTheme.shapes.large
             )
-            .clip(MaterialTheme.shapes.large)
-            .semantics { contentDescription = statisticsTitle }
+            .padding(0.dp)
+            .semantics { contentDescription = statisticsTitle },
+        contentAlignment = Alignment.TopEnd
     ) {
+        StyledIconButton(
+            modifier = Modifier
+                .align(Alignment.TopEnd),
+            icon = painterResource(id = io.dolby.uikit.R.drawable.ic_close),
+            onClick = {
+                viewModel.updateStatistics(false)
+            }
+        )
+
         Column(
             modifier = Modifier
                 .align(Alignment.TopStart)
