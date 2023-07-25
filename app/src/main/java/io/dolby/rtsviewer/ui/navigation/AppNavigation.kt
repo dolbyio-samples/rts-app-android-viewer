@@ -64,6 +64,9 @@ fun AppNavigation(navController: NavHostController) {
                         }
 
                     navController.popBackStack()
+                },
+                onBack = {
+                    navController.popBackStack()
                 }
             )
         }

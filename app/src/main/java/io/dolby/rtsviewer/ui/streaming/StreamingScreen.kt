@@ -20,6 +20,7 @@ import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import com.millicast.VideoRenderer
 import io.dolby.rtscomponentkit.ui.DolbyBackgroundBox
 import io.dolby.rtscomponentkit.ui.TopActionBar
+import io.dolby.rtscomponentkit.ui.TopAppBar
 import io.dolby.rtsviewer.MainActivity
 import io.dolby.rtsviewer.R
 import io.dolby.rtsviewer.utils.KeepScreenOn
@@ -38,7 +39,9 @@ fun StreamingScreen(viewModel: StreamingViewModel = hiltViewModel(), onBack: () 
 
     Scaffold(
         topBar = {
-            TopActionBar()
+            TopAppBar(title = "Saved Streams") {
+                onBack()
+            }
         }
     ) { paddingValues ->
         DolbyBackgroundBox(

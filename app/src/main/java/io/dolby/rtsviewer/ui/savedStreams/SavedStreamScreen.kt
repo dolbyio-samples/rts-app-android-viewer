@@ -35,9 +35,11 @@ import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
+import androidx.navigation.compose.rememberNavController
 import io.dolby.rtscomponentkit.ui.DolbyBackgroundBox
 import io.dolby.rtscomponentkit.ui.DolbyCopyrightFooterView
 import io.dolby.rtscomponentkit.ui.TopActionBar
+import io.dolby.rtscomponentkit.ui.TopAppBar
 import io.dolby.rtsviewer.R
 import io.dolby.rtsviewer.datastore.StreamDetail
 import io.dolby.rtsviewer.uikit.button.ButtonType
@@ -51,6 +53,7 @@ import kotlinx.coroutines.launch
 fun SavedStreamScreen(
     modifier: Modifier = Modifier,
     onPlayStream: (StreamDetail) -> Unit,
+    onBack: () -> Unit,
     viewModel: SavedStreamViewModel = hiltViewModel()
 ) {
     val uiState by viewModel.uiState.collectAsStateWithLifecycle()
@@ -68,7 +71,9 @@ fun SavedStreamScreen(
 
     Scaffold(
         topBar = {
-            TopActionBar()
+            TopAppBar(title = "Saved Streams") {
+                onBack()
+            }
         },
         modifier = modifier
     ) {paddingValues ->
