@@ -1,6 +1,8 @@
 package io.dolby.rtsviewer.ui.streaming
 
+import androidx.compose.foundation.ExperimentalFoundationApi
 import androidx.compose.foundation.background
+import androidx.compose.foundation.combinedClickable
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
@@ -19,10 +21,12 @@ import androidx.compose.runtime.getValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
+import androidx.compose.ui.platform.LocalClipboardManager
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.semantics.contentDescription
 import androidx.compose.ui.semantics.semantics
+import androidx.compose.ui.text.AnnotatedString
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
@@ -32,10 +36,12 @@ import io.dolby.rtsviewer.uikit.theme.getColorPalette
 
 private const val TAG = "StatisticsView"
 
+@OptIn(ExperimentalFoundationApi::class)
 @Composable
 fun StatisticsView(viewModel: StreamingViewModel, modifier: Modifier = Modifier) {
     val statistics by viewModel.streamingStatistics.collectAsStateWithLifecycle(initialValue = null)
     val statisticsTitle = stringResource(id = R.string.streaming_statistics_title)
+    val localClipboardManager = LocalClipboardManager.current
 
     Box(
         modifier = modifier
@@ -45,7 +51,12 @@ fun StatisticsView(viewModel: StreamingViewModel, modifier: Modifier = Modifier)
                 shape = MaterialTheme.shapes.large
             )
             .padding(0.dp)
-            .semantics { contentDescription = statisticsTitle },
+            .semantics { contentDescription = statisticsTitle }
+            .combinedClickable(
+                onLongClick = {
+                    localClipboardManager.setText(AnnotatedString("Your text here"))
+                }, onClick = {}
+            ),
         contentAlignment = Alignment.TopEnd
     ) {
         StyledIconButton(
