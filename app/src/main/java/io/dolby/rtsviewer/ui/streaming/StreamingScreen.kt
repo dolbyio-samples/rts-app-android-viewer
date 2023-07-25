@@ -3,6 +3,7 @@ package io.dolby.rtsviewer.ui.streaming
 import androidx.activity.compose.BackHandler
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.padding
+import androidx.compose.material.Scaffold
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
@@ -18,6 +19,7 @@ import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import com.millicast.VideoRenderer
 import io.dolby.rtscomponentkit.ui.DolbyBackgroundBox
+import io.dolby.rtscomponentkit.ui.TopActionBar
 import io.dolby.rtsviewer.MainActivity
 import io.dolby.rtsviewer.R
 import io.dolby.rtsviewer.utils.KeepScreenOn
@@ -33,69 +35,78 @@ fun StreamingScreen(viewModel: StreamingViewModel = hiltViewModel(), onBack: () 
     val showSimulcastSettings = viewModel.showSimulcastSettings.collectAsState()
 
     val screenContentDescription = stringResource(id = R.string.streaming_screen_contentDescription)
-    DolbyBackgroundBox(
-        modifier = Modifier.semantics {
-            contentDescription = screenContentDescription
+
+    Scaffold(
+        topBar = {
+            TopActionBar()
         }
-    ) {
-        val context = LocalContext.current
-        when {
-            uiState.error != null -> {
-                ErrorView(error = uiState.error!!)
-            }
-            uiState.subscribed -> {
-                Box(
-                    modifier = Modifier.align(Alignment.Center)
-                ) {
-                    AndroidView(
-                        factory = { context -> VideoRenderer(context) },
-                        update = { view ->
-                            view.setScalingType(RendererCommon.ScalingType.SCALE_ASPECT_FIT)
-                            uiState.videoTrack?.setRenderer(view)
-                        }
-                    )
-                    SetupVolumeControlAudioStream()
+    ) { paddingValues ->
+        DolbyBackgroundBox(
+            modifier = Modifier.semantics {
+                contentDescription = screenContentDescription
+            }.padding(paddingValues)
+        ) {
+            val context = LocalContext.current
+            when {
+                uiState.error != null -> {
+                    ErrorView(error = uiState.error!!)
+                }
+
+                uiState.subscribed -> {
+                    Box(
+                        modifier = Modifier.align(Alignment.Center)
+                    ) {
+                        AndroidView(
+                            factory = { context -> VideoRenderer(context) },
+                            update = { view ->
+                                view.setScalingType(RendererCommon.ScalingType.SCALE_ASPECT_FIT)
+                                uiState.videoTrack?.setRenderer(view)
+                            }
+                        )
+                        SetupVolumeControlAudioStream()
+                    }
+                }
+
+                uiState.disconnected -> {
+                    (context.findActivity() as? MainActivity?)?.unregisterVolumeObserverIfExists()
                 }
             }
-            uiState.disconnected -> {
-                (context.findActivity() as? MainActivity?)?.unregisterVolumeObserverIfExists()
+
+            uiState.audioTrack?.let {
+                (context.findActivity() as? MainActivity?)?.addVolumeObserver(it)
             }
-        }
 
-        uiState.audioTrack?.let {
-            (context.findActivity() as? MainActivity?)?.addVolumeObserver(it)
-        }
-
-        if (uiState.subscribed) {
-            KeepScreenOn(enabled = true)
-        } else {
-            KeepScreenOn(enabled = false)
-        }
-
-        StreamingToolbarView(viewModel = viewModel)
-
-        if (showSimulcastSettings.value) {
-            SimulcastScreen(viewModel)
-        } else if (showSettings.value) {
-            SettingsScreen(viewModel)
-        }
-
-        if (showStatistics.value && uiState.subscribed) {
-            StatisticsView(
-                viewModel = viewModel,
-                modifier = Modifier
-                    .align(Alignment.BottomStart)
-                    .padding(horizontal = 22.dp, vertical = 15.dp)
-            )
-        }
-
-        BackHandler {
-            if (showSimulcastSettings.value) {
-                viewModel.updateShowSimulcastSettings(false)
-            } else if (showSettings.value) {
-                viewModel.settingsVisibility(false)
+            if (uiState.subscribed) {
+                KeepScreenOn(enabled = true)
             } else {
-                onBack.invoke()
+                KeepScreenOn(enabled = false)
+            }
+
+            StreamingToolbarView(viewModel = viewModel)
+
+            if (showSimulcastSettings.value) {
+                SimulcastScreen(viewModel)
+            } else if (showSettings.value) {
+                SettingsScreen(viewModel)
+            }
+
+            if (showStatistics.value && uiState.subscribed) {
+                StatisticsView(
+                    viewModel = viewModel,
+                    modifier = Modifier
+                        .align(Alignment.BottomStart)
+                        .padding(horizontal = 22.dp, vertical = 15.dp)
+                )
+            }
+
+            BackHandler {
+                if (showSimulcastSettings.value) {
+                    viewModel.updateShowSimulcastSettings(false)
+                } else if (showSettings.value) {
+                    viewModel.settingsVisibility(false)
+                } else {
+                    onBack.invoke()
+                }
             }
         }
     }

@@ -12,6 +12,7 @@ import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.relocation.BringIntoViewRequester
 import androidx.compose.foundation.relocation.bringIntoViewRequester
 import androidx.compose.material.MaterialTheme
+import androidx.compose.material.Scaffold
 import androidx.compose.material.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
@@ -35,6 +36,8 @@ import androidx.compose.ui.unit.dp
 import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import io.dolby.rtscomponentkit.ui.DolbyBackgroundBox
+import io.dolby.rtscomponentkit.ui.DolbyCopyrightFooterView
+import io.dolby.rtscomponentkit.ui.TopActionBar
 import io.dolby.rtsviewer.R
 import io.dolby.rtsviewer.datastore.StreamDetail
 import io.dolby.rtsviewer.uikit.button.ButtonType
@@ -63,114 +66,121 @@ fun SavedStreamScreen(
         focusRequester.requestFocus()
     }
 
-    DolbyBackgroundBox(
-        showGradientBackground = false,
+    Scaffold(
+        topBar = {
+            TopActionBar()
+        },
         modifier = modifier
-    ) {
-        val background = MaterialTheme.colors.background
-
-        LazyColumn(
-            horizontalAlignment = Alignment.CenterHorizontally,
-            modifier = Modifier
-                .width(450.dp)
-                .align(Alignment.TopCenter)
-                .padding(top = 16.dp, bottom = 16.dp)
+    ) {paddingValues ->
+        DolbyBackgroundBox(
+            showGradientBackground = false,
+            modifier = modifier.padding(paddingValues),
         ) {
-            // Header - Title
+            val background = MaterialTheme.colors.background
 
-            stickyHeader {
-                Text(
-                    stringResource(id = R.string.saved_streams_screen_title),
-                    style = MaterialTheme.typography.h2,
-                    fontWeight = FontWeight.Bold,
-                    color = fontColor(background),
-                    textAlign = TextAlign.Center,
-                    modifier = Modifier
-                        .fillMaxWidth()
-                        .padding(bottom = 8.dp)
-                        .background(background)
-                )
-            }
+            LazyColumn(
+                horizontalAlignment = Alignment.CenterHorizontally,
+                modifier = Modifier
+                    .width(450.dp)
+                    .align(Alignment.TopCenter)
+                    .padding(top = 16.dp, bottom = 16.dp)
+            ) {
+                // Header - Title
 
-            // Section - Last played stream
-
-            item {
-                Spacer(modifier = modifier.height(8.dp))
-
-                Text(
-                    stringResource(id = R.string.saved_streams_section_header_lastPlayed),
-                    style = MaterialTheme.typography.body1,
-                    fontWeight = FontWeight.Normal,
-                    color = fontColor(background),
-                    textAlign = TextAlign.Left,
-                    modifier = Modifier
-                        .fillMaxWidth()
-                )
-
-                Spacer(modifier = modifier.height(8.dp))
-
-                if (uiState.recentStreams.isNotEmpty()) {
-                    val lastPlayedStream = uiState.recentStreams.first()
-
-                    StyledButton(
-                        buttonText = "${lastPlayedStream.streamName} / ID ${lastPlayedStream.accountID}",
-                        onClickAction = {
-                            onPlayStream(lastPlayedStream)
-                        },
-                        buttonType = ButtonType.BASIC,
-                        capitalize = false,
+                stickyHeader {
+                    Text(
+                        stringResource(id = R.string.saved_streams_screen_title),
+                        style = MaterialTheme.typography.h2,
+                        fontWeight = FontWeight.Bold,
+                        color = fontColor(background),
+                        textAlign = TextAlign.Center,
                         modifier = Modifier
-                            .bringIntoViewRequester(bringIntoViewRequester)
-                            .onGloballyPositioned {
-                                lastPlayedStreamCoordinates = it.boundsInParent()
-                            }
-                            .focusRequester(focusRequester)
-                            .onFocusEvent {
-                                if (it.isFocused) {
-                                    scope.launch {
-                                        bringIntoViewRequester.bringIntoView(
-                                            lastPlayedStreamCoordinates.copy(
-                                                top = lastPlayedStreamCoordinates.top - 200F
-                                            )
-                                        )
-                                    }
-                                }
-                            }
+                            .fillMaxWidth()
+                            .padding(bottom = 8.dp)
+                            .background(background)
                     )
                 }
-            }
 
-            // Section - All Streams
+                // Section - Last played stream
 
-            item {
-                Spacer(modifier = modifier.height(16.dp))
+                item {
+                    Spacer(modifier = modifier.height(8.dp))
 
-                Text(
-                    stringResource(id = R.string.saved_streams_section_header_all),
-                    style = MaterialTheme.typography.body1,
-                    fontWeight = FontWeight.Normal,
-                    color = fontColor(background),
-                    textAlign = TextAlign.Left,
-                    modifier = Modifier.fillMaxWidth()
-                )
+                    Text(
+                        stringResource(id = R.string.saved_streams_section_header_lastPlayed),
+                        style = MaterialTheme.typography.body1,
+                        fontWeight = FontWeight.Normal,
+                        color = fontColor(background),
+                        textAlign = TextAlign.Left,
+                        modifier = Modifier
+                            .fillMaxWidth()
+                    )
 
-                Spacer(modifier = Modifier.height(8.dp))
-            }
+                    Spacer(modifier = modifier.height(8.dp))
 
-            items(
-                items = uiState.recentStreams,
-                key = { it.streamName + it.accountID }
-            ) { streamDetail ->
-                StyledButton(
-                    buttonText = "${streamDetail.streamName} / ID ${streamDetail.accountID}",
-                    onClickAction = {
-                        onPlayStream(streamDetail)
-                    },
-                    buttonType = ButtonType.BASIC,
-                    capitalize = false
-                )
+                    if (uiState.recentStreams.isNotEmpty()) {
+                        val lastPlayedStream = uiState.recentStreams.first()
 
-                Spacer(modifier = Modifier.height(8.dp))
+                        StyledButton(
+                            buttonText = "${lastPlayedStream.streamName} / ID ${lastPlayedStream.accountID}",
+                            onClickAction = {
+                                onPlayStream(lastPlayedStream)
+                            },
+                            buttonType = ButtonType.BASIC,
+                            capitalize = false,
+                            modifier = Modifier
+                                .bringIntoViewRequester(bringIntoViewRequester)
+                                .onGloballyPositioned {
+                                    lastPlayedStreamCoordinates = it.boundsInParent()
+                                }
+                                .focusRequester(focusRequester)
+                                .onFocusEvent {
+                                    if (it.isFocused) {
+                                        scope.launch {
+                                            bringIntoViewRequester.bringIntoView(
+                                                lastPlayedStreamCoordinates.copy(
+                                                    top = lastPlayedStreamCoordinates.top - 200F
+                                                )
+                                            )
+                                        }
+                                    }
+                                }
+                        )
+                    }
+                }
+
+                // Section - All Streams
+
+                item {
+                    Spacer(modifier = modifier.height(16.dp))
+
+                    Text(
+                        stringResource(id = R.string.saved_streams_section_header_all),
+                        style = MaterialTheme.typography.body1,
+                        fontWeight = FontWeight.Normal,
+                        color = fontColor(background),
+                        textAlign = TextAlign.Left,
+                        modifier = Modifier.fillMaxWidth()
+                    )
+
+                    Spacer(modifier = Modifier.height(8.dp))
+                }
+
+                items(
+                    items = uiState.recentStreams,
+                    key = { it.streamName + it.accountID }
+                ) { streamDetail ->
+                    StyledButton(
+                        buttonText = "${streamDetail.streamName} / ID ${streamDetail.accountID}",
+                        onClickAction = {
+                            onPlayStream(streamDetail)
+                        },
+                        buttonType = ButtonType.BASIC,
+                        capitalize = false
+                    )
+
+                    Spacer(modifier = Modifier.height(8.dp))
+                }
             }
         }
     }
