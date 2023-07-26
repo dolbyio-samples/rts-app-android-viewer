@@ -1,5 +1,6 @@
 package io.dolby.rtsviewer.ui.streaming
 
+import android.content.Context
 import androidx.compose.foundation.ExperimentalFoundationApi
 import androidx.compose.foundation.background
 import androidx.compose.foundation.combinedClickable
@@ -22,6 +23,7 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.platform.LocalClipboardManager
+import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.semantics.contentDescription
@@ -42,6 +44,7 @@ fun StatisticsView(viewModel: StreamingViewModel, modifier: Modifier = Modifier)
     val statistics by viewModel.streamingStatistics.collectAsStateWithLifecycle(initialValue = null)
     val statisticsTitle = stringResource(id = R.string.streaming_statistics_title)
     val localClipboardManager = LocalClipboardManager.current
+    val context = LocalContext.current
 
     Box(
         modifier = modifier
@@ -76,7 +79,7 @@ fun StatisticsView(viewModel: StreamingViewModel, modifier: Modifier = Modifier)
                 .combinedClickable(
                     onLongClick = {
                         // https://developer.android.com/develop/ui/views/touch-and-input/copy-paste
-                        localClipboardManager.setText(AnnotatedString("Your text here"))
+                        localClipboardManager.setText(AnnotatedString(formattedText(context, statistics)))
                     },
                     onClick = {},
                 ),
@@ -131,9 +134,16 @@ fun StatisticsView(viewModel: StreamingViewModel, modifier: Modifier = Modifier)
             }
         }
     }
-
 }
 
+fun formattedText(context: Context, statistics: List<Pair<Int, String>>?) : String {
+    val textBuilder = StringBuilder()
+    statistics?.forEach  {(key, value) ->
+        val str = context.resources.getString(key)
+        textBuilder.append("$str: $value\n")
+    }
+    return textBuilder.toString()
+}
 @Composable
 fun StatisticsRow(title: String, value: String, modifier: Modifier = Modifier) {
     Row(modifier = modifier) {
