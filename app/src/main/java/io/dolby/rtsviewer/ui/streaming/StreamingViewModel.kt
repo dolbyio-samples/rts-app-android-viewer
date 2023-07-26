@@ -285,29 +285,32 @@ class StreamingViewModel @Inject constructor(
     private fun getStatisticsValuesList(statisticsData: StatisticsData?): List<Pair<Int, String>>? {
         statisticsData?.let { statistics ->
             val statisticsValuesList = mutableListOf<Pair<Int, String>>()
-            statistics.roundTripTime?.let {
-                statisticsValuesList.add(
-                    Pair(
-                        R.string.statisticsScreen_rtt,
-                        "${it.times(1000).toLong()} ms"
-                    )
-                )
+
+            statistics.video?.mid?.let {
+                statisticsValuesList.add(Pair(R.string.statisticsScreen_mid,it))
             }
-            statistics.availableOutgoingBitrate?.let {
-                statisticsValuesList.add(
-                    Pair(
-                        R.string.statisticsScreen_outgoingBitrate,
-                        "${it.div(1000)} kbps"
-                    )
-                )
+
+            statistics.video?.decoderImplementation?.let {
+                statisticsValuesList.add(Pair(R.string.statisticsScreen_decoder_impl, it))
             }
+
+            statistics.video?.processingDelay?.let {
+                statisticsValuesList.add(Pair(R.string.statisticsScreen_processing_delay, String.format("%.2f ms", it)))
+            }
+
+            statistics.video?.decodeTime?.let {
+                statisticsValuesList.add(Pair(R.string.statisticsScreen_decode_time, String.format("%.2f ms", it)))
+            }
+
             statistics.video?.videoResolution?.let {
                 statisticsValuesList.add(Pair(R.string.statisticsScreen_videoResolution, it))
             }
+
             statistics.video?.fps?.let {
                 statisticsValuesList.add(Pair(R.string.statisticsScreen_fps, "${it.toLong()}"))
             }
-            statistics.video?.bytesReceived?.let {
+
+            statistics.audio?.bytesReceived?.let {
                 statisticsValuesList.add(
                     Pair(
                         R.string.statisticsScreen_videoTotal,
@@ -315,20 +318,23 @@ class StreamingViewModel @Inject constructor(
                     )
                 )
             }
-            statistics.audio?.bytesReceived?.let {
-                statisticsValuesList.add(
-                    Pair(
-                        R.string.statisticsScreen_audioTotal,
-                        formattedByteCount(it.toLong())
-                    )
-                )
+
+            statistics.video?.packetsReceived?.let {
+                statisticsValuesList.add(Pair(R.string.statisticsScreen_packets_received, "$it"))
             }
-            statistics.video?.packetsLost?.let {
-                statisticsValuesList.add(Pair(R.string.statisticsScreen_videoLoss, "$it"))
+
+            statistics.video?.framesDecoded?.let {
+                statisticsValuesList.add(Pair(R.string.statisticsScreen_frames_decoded, "$it"))
             }
-            statistics.audio?.packetsLost?.let {
-                statisticsValuesList.add(Pair(R.string.statisticsScreen_audioLoss, "$it"))
+
+            statistics.video?.framesDropped?.let {
+                statisticsValuesList.add(Pair(R.string.statisticsScreen_packets_dropped, "$it"))
             }
+
+            statistics.video?.jitterBufferEmittedCount?.let {
+                statisticsValuesList.add(Pair(R.string.statisticsScreen_jitter_bufffer_ec, "$it"))
+            }
+
             statistics.video?.jitter?.let {
                 statisticsValuesList.add(
                     Pair(
@@ -337,30 +343,42 @@ class StreamingViewModel @Inject constructor(
                     )
                 )
             }
-            statistics.audio?.jitter?.let {
+
+            statistics.video?.jitterBufferDelay?.let {
+                statisticsValuesList.add(Pair(R.string.statisticsScreen_jitter_bufffer_delay, String.format("%.2f ms", it)))
+            }
+
+            statistics.video?.jitterBufferTargetDelay?.let {
+                statisticsValuesList.add(Pair(R.string.statisticsScreen_jitter_bufffer_target_delay, String.format("%.2f ms", it)))
+            }
+
+            statistics.video?.jitterBufferMinimumDelay?.let {
+                statisticsValuesList.add(Pair(R.string.statisticsScreen_jitter_bufffer_min_delay, String.format("%.2f ms", it)))
+            }
+
+            statistics.video?.packetsLost?.let {
+                statisticsValuesList.add(Pair(R.string.statisticsScreen_videoLoss, "$it"))
+            }
+
+            statistics.roundTripTime?.let {
                 statisticsValuesList.add(
                     Pair(
-                        R.string.statisticsScreen_audioJitter,
-                        "${it.times(1000)} ms"
+                        R.string.statisticsScreen_rtt,
+                        "${it.times(1000).toLong()} ms"
                     )
                 )
             }
-            var codecNames = ""
-            statistics.video?.codecName?.let {
-                codecNames += it
-            }
-            statistics.audio?.codecName?.let {
-                if (codecNames.isNotEmpty()) codecNames += ", "
-                codecNames += it
-            }
-            if (codecNames.isNotEmpty()) {
-                statisticsValuesList.add(Pair(R.string.statisticsScreen_codecs, codecNames))
-            }
+
             statistics.timestamp?.let {
                 getDateTime(it)?.let { dateTime ->
                     statisticsValuesList.add(Pair(R.string.statisticsScreen_timestamp, dateTime))
                 }
             }
+
+            statistics.video?.codecName?.let {
+                statisticsValuesList.add(Pair(R.string.statisticsScreen_codecs,it))
+            }
+
             return statisticsValuesList
         }
         return null

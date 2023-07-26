@@ -51,71 +51,87 @@ fun StatisticsView(viewModel: StreamingViewModel, modifier: Modifier = Modifier)
                 shape = MaterialTheme.shapes.large
             )
             .padding(0.dp)
-            .semantics { contentDescription = statisticsTitle }
-            .combinedClickable(
-                onLongClick = {
-                    localClipboardManager.setText(AnnotatedString("Your text here"))
-                }, onClick = {}
-            ),
+            .semantics { contentDescription = statisticsTitle },
         contentAlignment = Alignment.TopEnd
     ) {
         StyledIconButton(
             modifier = Modifier
-                .align(Alignment.TopEnd),
+                .align(Alignment.TopEnd)
+                .padding(20.dp),
             icon = painterResource(id = io.dolby.uikit.R.drawable.ic_close),
             onClick = {
                 viewModel.updateStatistics(false)
             }
         )
 
-        Column(
-            modifier = Modifier
-                .align(Alignment.TopStart)
-                .verticalScroll(rememberScrollState())
-                .padding(vertical = 18.dp)
-                .padding(start = 22.dp, end = 24.dp)
+        Box(
+            modifier = modifier
+                .size(width = 420.dp, height = 600.dp)
+                .background(
+                    color = getColorPalette().neutralColor800,
+                    shape = MaterialTheme.shapes.large
+                )
+                .padding(0.dp)
+                .semantics { contentDescription = statisticsTitle }
+                .combinedClickable(
+                    onLongClick = {
+                        // https://developer.android.com/develop/ui/views/touch-and-input/copy-paste
+                        localClipboardManager.setText(AnnotatedString("Your text here"))
+                    },
+                    onClick = {},
+                ),
+            contentAlignment = Alignment.TopEnd
         ) {
-            Text(
-                text = stringResource(id = R.string.streaming_statistics_title),
-                style = MaterialTheme.typography.h4,
-                color = MaterialTheme.colors.onBackground
-            )
-            Spacer(modifier = Modifier.height(10.dp))
-            Row {
+            Column(
+                modifier = Modifier
+                    .align(Alignment.TopStart)
+                    .verticalScroll(rememberScrollState())
+                    .padding(vertical = 18.dp)
+                    .padding(start = 22.dp, end = 24.dp)
+            ) {
                 Text(
-                    text = stringResource(id = R.string.statisticsScreen_name),
-                    style = MaterialTheme.typography.h5,
-                    color = MaterialTheme.colors.onBackground,
-                    textAlign = TextAlign.Left,
-                    modifier = Modifier.width(155.dp)
+                    text = stringResource(id = R.string.streaming_statistics_title),
+                    style = MaterialTheme.typography.h4,
+                    color = MaterialTheme.colors.onBackground
                 )
-                Spacer(modifier = Modifier.width(15.dp))
+                Spacer(modifier = Modifier.height(10.dp))
+                Row {
+                    Text(
+                        text = stringResource(id = R.string.statisticsScreen_name),
+                        style = MaterialTheme.typography.h5,
+                        color = MaterialTheme.colors.onBackground,
+                        textAlign = TextAlign.Left,
+                        modifier = Modifier.width(155.dp)
+                    )
+                    Spacer(modifier = Modifier.width(15.dp))
+                    Text(
+                        text = stringResource(id = R.string.statisticsScreen_value),
+                        style = MaterialTheme.typography.h5,
+                        color = MaterialTheme.colors.onBackground,
+                        textAlign = TextAlign.Left
+                    )
+                }
+                Spacer(modifier = Modifier.height(10.dp))
+
+                statistics?.forEach {
+                    StatisticsRow(
+                        title = stringResource(id = it.first),
+                        value = it.second
+                    )
+                }
+            }
+
+            if (statistics.isNullOrEmpty()) {
                 Text(
-                    text = stringResource(id = R.string.statisticsScreen_value),
-                    style = MaterialTheme.typography.h5,
-                    color = MaterialTheme.colors.onBackground,
-                    textAlign = TextAlign.Left
+                    text = stringResource(id = R.string.statisticsScreen_no_data),
+                    style = MaterialTheme.typography.body2,
+                    color = getColorPalette().grayLight,
+                    modifier = Modifier.align(Alignment.Center)
                 )
             }
-            Spacer(modifier = Modifier.height(10.dp))
-
-            statistics?.forEach {
-                StatisticsRow(
-                    title = stringResource(id = it.first),
-                    value = it.second
-                )
-            }
-        }
-
-        if (statistics.isNullOrEmpty()) {
-            Text(
-                text = stringResource(id = R.string.statisticsScreen_no_data),
-                style = MaterialTheme.typography.body2,
-                color = getColorPalette().grayLight,
-                modifier = Modifier.align(Alignment.Center)
-            )
         }
     }
+
 }
 
 @Composable
