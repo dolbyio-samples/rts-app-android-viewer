@@ -8,6 +8,7 @@ import com.millicast.LayerData
 import com.millicast.Media
 import com.millicast.Subscriber
 import com.millicast.VideoTrack
+import io.dolby.rtscomponentkit.domain.StreamingData
 import io.dolby.rtscomponentkit.manager.SubscriptionManagerInterface
 import io.dolby.rtscomponentkit.manager.TAG
 import io.dolby.rtscomponentkit.utils.DispatcherProvider
@@ -189,9 +190,9 @@ class RTSViewerDataStore constructor(
         audioPlayback = media.audioPlayback
     }
 
-    fun connect(streamName: String, accountId: String) = apiScope.launch {
+    fun connect(streamingData: StreamingData) = apiScope.launch {
         _state.emit(State.Connecting)
-        subscriptionManager.connect(streamName, accountId)
+        subscriptionManager.connect(streamingData)
     }
 
     private fun startSubscribe() = apiScope.launch {
