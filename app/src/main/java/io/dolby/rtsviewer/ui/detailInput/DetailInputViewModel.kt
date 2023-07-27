@@ -3,6 +3,7 @@ package io.dolby.rtsviewer.ui.detailInput
 import androidx.lifecycle.ViewModel
 import dagger.hilt.android.lifecycle.HiltViewModel
 import io.dolby.rtscomponentkit.data.RTSViewerDataStore
+import io.dolby.rtscomponentkit.domain.StreamingData
 import io.dolby.rtscomponentkit.utils.DispatcherProvider
 import io.dolby.rtsviewer.datastore.RecentStreamsDataStore
 import kotlinx.coroutines.CoroutineScope
@@ -57,7 +58,12 @@ class DetailInputViewModel @Inject constructor(
 
     fun connect() {
         defaultCoroutineScope.launch {
-            repository.connect(streamName.value, accountId.value)
+            repository.connect( StreamingData(
+                streamName = streamName.value,
+                accountId = accountId.value,
+                useDevEnv = useDevEnv.value,
+                disableAudio = disableAudio.value,
+                rtcLogs = rtcLogs.value))
 
             if(!isDemo) {
                 // Save the stream detail
@@ -98,5 +104,8 @@ class DetailInputViewModel @Inject constructor(
     fun useDemoStream() {
         _streamName.value = "simulcastmultiview"
         _accountId.value = "k9Mwad"
+        _useDevEnv.value = false
+        _disableAudio.value = false
+        _rtcLogs.value = false
     }
 }

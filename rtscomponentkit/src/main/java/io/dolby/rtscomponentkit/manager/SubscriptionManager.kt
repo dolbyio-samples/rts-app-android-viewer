@@ -3,11 +3,12 @@ package io.dolby.rtscomponentkit.manager
 import android.util.Log
 import com.millicast.LayerData
 import com.millicast.Subscriber
-import java.util.*
+import io.dolby.rtscomponentkit.domain.StreamingData
+import java.util.Optional
 
 internal const val TAG = "RTSSubscriptionManager"
 interface SubscriptionManagerInterface {
-    suspend fun connect(streamName: String, accountID: String): Boolean
+    suspend fun connect(streamingData: StreamingData): Boolean
     suspend fun startSubscribe(): Boolean
     suspend fun stopSubscribe(): Boolean
     suspend fun selectLayer(layer: LayerData?): Boolean
@@ -17,13 +18,16 @@ class SubscriptionManager(
     private val subscriptionListener: Subscriber.Listener
 ) : SubscriptionManagerInterface {
     private var subscriber: Subscriber? = null
+    private var streamingData: StreamingData? = null
 
-    override suspend fun connect(streamName: String, accountID: String): Boolean {
+    override suspend fun connect(streamingData: StreamingData): Boolean {
         subscriber = Subscriber.createSubscriber(subscriptionListener)
         if (subscriber == null) {
             Log.d(TAG, "Failed! Subscriber is not available.")
             return false
         }
+
+        this.streamingData = streamingData
 
         // Create Subscriber if not present
         subscriber?.let {
@@ -34,9 +38,13 @@ class SubscriptionManager(
 
             Log.d(TAG, "Set Credentials.")
             val credentials = it.credentials
-            credentials.streamName = streamName
-            credentials.accountId = accountID
-            credentials.apiUrl = "https://director.millicast.com/api/director/subscribe"
+            credentials.streamName = streamingData.streamName
+            credentials.accountId = streamingData.accountId
+            if(streamingData.useDevEnv) {
+                credentials.apiUrl = "https://director-dev.millicast.com/api/director/subscribe"
+            } else {
+                credentials.apiUrl = "https://director.millicast.com/api/director/subscribe"
+            }
             it.credentials = credentials
         }
         // Connect Subscriber.
@@ -55,6 +63,18 @@ class SubscriptionManager(
         // Subscribe to Millicast
         var success = true
         try {
+            streamingData?.let { sd ->
+                // Set Subscriber Options
+                val currentOptionSub = Subscriber.Option().apply {
+                    autoReconnect = true
+                    disableAudio = sd.disableAudio
+                    forcePlayoutDelay = sd.useDevEnv
+                    videoJitterMinimumDelayMs = Optional.of(20)
+                }
+
+                subscriber?.setOptions(currentOptionSub)
+            }
+
             subscriber?.subscribe()
         } catch (e: Exception) {
             success = false

@@ -8,6 +8,7 @@ import androidx.lifecycle.viewModelScope
 import dagger.hilt.android.lifecycle.HiltViewModel
 import io.dolby.rtscomponentkit.data.RTSViewerDataStore
 import io.dolby.rtscomponentkit.data.StatisticsData
+import io.dolby.rtscomponentkit.domain.StreamingData
 import io.dolby.rtscomponentkit.utils.DispatcherProvider
 import io.dolby.rtsviewer.R
 import io.dolby.rtsviewer.preferenceStore.PrefsStore
@@ -227,10 +228,18 @@ class StreamingViewModel @Inject constructor(
     private suspend fun connect() {
         val streamName = getStreamName(savedStateHandle)
         val accountId = getAccountId(savedStateHandle)
+        val useDevEnv = savedStateHandle[Screen.StreamingScreen.ARG_USE_DEV_ENV] ?: false
+        val disableAudio = savedStateHandle[Screen.StreamingScreen.ARG_DISABLE_AUDIO] ?: false
+        val rtcLogs = savedStateHandle[Screen.StreamingScreen.ARG_RTC_LOGS] ?: false
         withContext(dispatcherProvider.main) {
             _uiState.update { it.copy(accountId = accountId, streamName = streamName) }
         }
-        repository.connect(streamName, accountId)
+        repository.connect( StreamingData(
+            streamName = streamName,
+            accountId = accountId,
+            useDevEnv = useDevEnv,
+            disableAudio = disableAudio,
+            rtcLogs = rtcLogs))
     }
 
     private fun getStreamName(handle: SavedStateHandle): String =

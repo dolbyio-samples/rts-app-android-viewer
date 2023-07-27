@@ -98,7 +98,10 @@ fun DetailInputScreen(
                 onPlayClick(
                     StreamingData(
                         streamName = streamName.value,
-                        accountId = accountId.value
+                        accountId = accountId.value,
+                        useDevEnv = useDevEnv.value,
+                        disableAudio = disableAudio.value,
+                        rtcLogs = rtcLogs.value
                     )
                 )
             }
