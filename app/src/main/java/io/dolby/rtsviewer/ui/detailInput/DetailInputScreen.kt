@@ -15,6 +15,7 @@ import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.MaterialTheme
 import androidx.compose.material.Scaffold
+import androidx.compose.material.Switch
 import androidx.compose.material.Text
 import androidx.compose.material.TextButton
 import androidx.compose.runtime.Composable
@@ -32,6 +33,7 @@ import androidx.compose.ui.focus.FocusDirection
 import androidx.compose.ui.focus.FocusRequester
 import androidx.compose.ui.focus.focusRequester
 import androidx.compose.ui.platform.LocalFocusManager
+import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.semantics.contentDescription
 import androidx.compose.ui.semantics.semantics
@@ -52,6 +54,7 @@ import io.dolby.rtsviewer.uikit.button.ButtonType
 import io.dolby.rtsviewer.uikit.button.StyledButton
 import io.dolby.rtsviewer.uikit.input.TextInput
 import io.dolby.rtsviewer.uikit.input.TvTextInput
+import io.dolby.rtsviewer.uikit.switch.SwitchComponent
 import io.dolby.rtsviewer.uikit.theme.fontColor
 import io.dolby.rtsviewer.utils.isTV
 import kotlinx.coroutines.Dispatchers
@@ -80,6 +83,10 @@ fun DetailInputScreen(
     val focusRequester = remember { FocusRequester() }
     val background = MaterialTheme.colors.background
     val coroutineScope = rememberCoroutineScope()
+
+    val useDevEnv = viewModel.useDevEnv.collectAsState()
+    val disableAudio = viewModel.disableAudio.collectAsState()
+    val rtcLogs = viewModel.rtcLogs.collectAsState()
 
     fun playStream() {
         if (!viewModel.shouldPlayStream) {
@@ -243,6 +250,44 @@ fun DetailInputScreen(
                 }
 
                 Spacer(modifier = modifier.height(8.dp))
+
+                Column {
+                    Row {
+                        Column {
+                            Text("Dev")
+                            Switch(
+                                checked = useDevEnv.value,
+                                onCheckedChange = { viewModel.updateUseDevEnv(it)}
+                            )
+                        }
+                        Spacer(modifier = modifier.weight(1.0f))
+                        Column {
+                            Text("No Playout Delay")
+                            Switch(
+                                checked = useDevEnv.value,
+                                enabled = false,
+                                onCheckedChange = { }
+                            )
+                        }
+                    }
+                    Row {
+                        Column {
+                            Text("Disable Audio")
+                            Switch(
+                                checked = disableAudio.value,
+                                onCheckedChange = { viewModel.updateDisableAudio(it)}
+                            )
+                        }
+                        Spacer(modifier = modifier.weight(1.0f))
+                        Column {
+                            Text("RTC Logs")
+                            Switch(
+                                checked = rtcLogs.value,
+                                onCheckedChange = { viewModel.updateRtcLogs(it)}
+                            )
+                        }
+                    }
+                }
 
                 StyledButton(
                     buttonText = stringResource(id = R.string.play_button),

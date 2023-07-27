@@ -33,8 +33,6 @@ android {
 }
 
 dependencies {
-    api 'com.millicast:millicast-sdk-android:1.5.0'
-
     implementation libs.androidx.core.ktx
 
     implementation libs.androidx.compose.ui
@@ -43,6 +41,7 @@ dependencies {
     implementation libs.androidx.compose.material
 
     implementation libs.android.coroutines
+    implementation files('libs/MillicastSDK.aar')
 
     testImplementation 'junit:junit:4.13.2'
     androidTestImplementation 'androidx.test.ext:junit:1.1.5'

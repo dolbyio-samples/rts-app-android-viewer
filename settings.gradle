@@ -14,16 +14,6 @@ dependencyResolutionManagement {
     repositories {
         google()
         mavenCentral()
-
-        // Millicast SDK via Maven from GitHub Packages
-        maven {
-            name = "GitHubPackages"
-            url = uri("https://maven.pkg.github.com/millicast/maven")
-            credentials {
-                username = gitUserName
-                password = gitPat
-            }
-        }
     }
 }
 def getGithubUsername() {
