@@ -9,6 +9,8 @@ import com.millicast.Publisher;
 
 import org.webrtc.RTCStatsReport;
 
+import java.util.ArrayList;
+
 /**
  * Implementation of Publisher's Listener.
  * This handles events sent to the Publisher being listened to.
@@ -47,7 +49,13 @@ public class PubListener implements Publisher.Listener {
     }
 
     @Override
-    public void onConnectionError(String reason) {
+    public void onDisconnected() {
+        mcMan.setPubState(DISCONNECTED);
+        mcMan.stopPub();
+    }
+
+    @Override
+    public void onConnectionError(int i, String reason) {
         String logTag = logTagClass + "[Con][Error] ";
         mcMan.setPubState(DISCONNECTED);
 //        setUI();
@@ -83,6 +91,11 @@ public class PubListener implements Publisher.Listener {
     public void onInactive() {
         String logTag = logTagClass + "[Viewer][Active][In] ";
         Utils.logD(TAG, logTag + "No viewers are currently subscribed to our stream.");
+    }
+
+    @Override
+    public void onTransformableFrame(int i, int i1, ArrayList<Byte> arrayList) {
+        Utils.logD(TAG,"onTransformableFrame");
     }
 
     /**

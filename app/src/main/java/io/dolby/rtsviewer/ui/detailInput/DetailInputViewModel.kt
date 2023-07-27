@@ -33,6 +33,15 @@ class DetailInputViewModel @Inject constructor(
 
     private var isDemo = false
 
+    private val _useDevEnv = MutableStateFlow(false)
+    val useDevEnv = _useDevEnv.asStateFlow()
+
+    private val _disableAudio = MutableStateFlow(false)
+    val disableAudio = _disableAudio.asStateFlow()
+
+    private val _rtcLogs = MutableStateFlow(false)
+    val rtcLogs = _rtcLogs.asStateFlow()
+
     init {
         defaultCoroutineScope.launch {
             recentStreamsDataStore.recentStreams
@@ -72,6 +81,18 @@ class DetailInputViewModel @Inject constructor(
 
     fun updateAccountId(id: String) {
         _accountId.value = id
+    }
+
+    fun updateUseDevEnv(state: Boolean) {
+        _useDevEnv.value = state
+    }
+
+    fun updateDisableAudio(state: Boolean) {
+        _disableAudio.value = state
+    }
+
+    fun updateRtcLogs(state: Boolean) {
+        _rtcLogs.value = state
     }
 
     fun useDemoStream() {

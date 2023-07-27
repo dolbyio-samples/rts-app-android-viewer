@@ -1,5 +1,6 @@
 package io.dolby.rtscomponentkit.legacy;
 
+import static io.dolby.rtscomponentkit.legacy.MCStates.PublisherState.DISCONNECTED;
 import static io.dolby.rtscomponentkit.legacy.MCStates.SubscriberState.CONNECTED;
 import static io.dolby.rtscomponentkit.legacy.MCStates.SubscriberState.SUBSCRIBING;
 import static io.dolby.rtscomponentkit.legacy.Utils.logD;
@@ -52,11 +53,15 @@ public class SubListener implements Subscriber.Listener {
     }
 
     @Override
-    public void onConnectionError(String reason) {
+    public void onDisconnected() {
+        mcMan.setPubState(DISCONNECTED);
+        mcMan.stopPub();
+    }
+
+    @Override
+    public void onConnectionError(int i, String s) {
         String logTag = logTagClass + "[Con][Error] ";
         mcMan.setSubState(MCStates.SubscriberState.DISCONNECTED);
-//        setUI();
-//        makeSnackbar(logTag, "Connection FAILED! " + reason, mcMan.getFragmentSub());
     }
 
     @Override
@@ -100,6 +105,11 @@ public class SubListener implements Subscriber.Listener {
         mcMan.setAudioEnabledSub(true);
 //        setUI();
 //        makeSnackbar(logTag, "Audio received", mcMan.getFragmentSub());
+    }
+
+    @Override
+    public void onFrameMetadata(int i, int i1, byte[] bytes) {
+        logD(TAG, "onFrameMetadata");
     }
 
     @Override

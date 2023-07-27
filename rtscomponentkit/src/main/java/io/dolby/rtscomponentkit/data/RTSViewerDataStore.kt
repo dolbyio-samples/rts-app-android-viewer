@@ -59,6 +59,11 @@ class RTSViewerDataStore constructor(
             }
         }
 
+        override fun onFrameMetadata(p0: Int, p1: Int, p2: ByteArray?) {
+            // TODO
+            Log.d(TAG, "onFrameMetadata")
+        }
+
         override fun onStatsReport(report: RTCStatsReport) {
             Log.d(TAG, "onStatsReport")
             _statistics.value = StatisticsData.from(report)
@@ -71,6 +76,18 @@ class RTSViewerDataStore constructor(
         override fun onConnected() {
             Log.d(TAG, "onConnected")
             startSubscribe()
+        }
+
+        override fun onDisconnected() {
+            Log.d(TAG, "onDisconnected")
+        }
+
+        override fun onConnectionError(p0: Int, reason: String?) {
+            Log.d(TAG, "onConnectionError: $reason")
+            _statistics.value = null
+            apiScope.launch {
+                _state.emit(State.Error(SubscriptionError.ConnectError(reason!!)))
+            }
         }
 
         override fun onActive(p0: String?, p1: Array<out String>?, p2: Optional<String>?) {
@@ -97,14 +114,6 @@ class RTSViewerDataStore constructor(
 
         override fun onVad(p0: String?, p1: Optional<String>?) {
             Log.d(TAG, "onVad")
-        }
-
-        override fun onConnectionError(reason: String) {
-            Log.d(TAG, "onConnectionError: $reason")
-            _statistics.value = null
-            apiScope.launch {
-                _state.emit(State.Error(SubscriptionError.ConnectError(reason)))
-            }
         }
 
         override fun onSignalingError(reason: String?) {
@@ -285,8 +294,8 @@ class RTSViewerDataStore constructor(
 
 fun LayerData.isEqualTo(other: LayerData): Boolean {
     return other.spatialLayerId == this.spatialLayerId &&
-        other.temporalLayerId == this.temporalLayerId &&
-        other.encodingId == this.encodingId &&
-        other.maxSpatialLayerId == this.maxSpatialLayerId &&
-        other.maxTemporalLayerId == this.maxTemporalLayerId
+            other.temporalLayerId == this.temporalLayerId &&
+            other.encodingId == this.encodingId &&
+            other.maxSpatialLayerId == this.maxSpatialLayerId &&
+            other.maxTemporalLayerId == this.maxTemporalLayerId
 }

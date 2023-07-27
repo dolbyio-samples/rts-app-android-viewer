@@ -3883,7 +3883,12 @@ public class MillicastManager {
         String logTag = "[Pub][Start][Mc] ";
 
         // Set Subscriber Options
-        subscriber.setOptions(optionSub);
+        Subscriber.Option currentOptionSub = new Subscriber.Option();
+        currentOptionSub.autoReconnect = true;
+        currentOptionSub.disableAudio = true;
+        currentOptionSub.forcePlayoutDelay = true;
+        currentOptionSub.videoJitterMinimumDelayMs = Optional.of(2000);
+        subscriber.setOptions(currentOptionSub);
         Utils.logD(TAG, logTag + "Options set.");
 
         // Subscribe to Millicast
