@@ -18,15 +18,29 @@ fun AppNavigation(navController: NavHostController) {
         composable(
             route = Screen.DetailInputScreen.route
         ) { backStackEntry ->
-            val streamNameToPlay = backStackEntry.savedStateHandle.get<String>(Screen.DetailInputScreen.ARG_STREAM_NAME_TO_PLAY)
-            val accountIDToPlay = backStackEntry.savedStateHandle.get<String>(Screen.DetailInputScreen.ARG_ACCOUNT_ID_TO_PLAY)
-            val useDevEnv = backStackEntry.savedStateHandle.get<Boolean>(Screen.DetailInputScreen.ARG_USE_DEV_ENV)
-            val disableAudio = backStackEntry.savedStateHandle.get<Boolean>(Screen.DetailInputScreen.ARG_DISABLE_AUDIO)
-            val rtcLogs = backStackEntry.savedStateHandle.get<Boolean>(Screen.DetailInputScreen.ARG_RTC_LOGS)
+            val streamNameToPlay =
+                backStackEntry.savedStateHandle.get<String>(Screen.DetailInputScreen.ARG_STREAM_NAME_TO_PLAY)
+            val accountIDToPlay =
+                backStackEntry.savedStateHandle.get<String>(Screen.DetailInputScreen.ARG_ACCOUNT_ID_TO_PLAY)
+            val useDevEnv =
+                backStackEntry.savedStateHandle.get<Boolean>(Screen.DetailInputScreen.ARG_USE_DEV_ENV)
+            val disableAudio =
+                backStackEntry.savedStateHandle.get<Boolean>(Screen.DetailInputScreen.ARG_DISABLE_AUDIO)
+            val rtcLogs =
+                backStackEntry.savedStateHandle.get<Boolean>(Screen.DetailInputScreen.ARG_RTC_LOGS)
+            val videoJitterMinimumDelayMs =
+                backStackEntry.savedStateHandle.get<Int>(Screen.DetailInputScreen.ARG_RTC_LOGS)
             var streamingData: StreamingData? = null
 
             if (streamNameToPlay != null && accountIDToPlay != null) {
-                streamingData = StreamingData(accountId = accountIDToPlay, streamName = streamNameToPlay, useDevEnv = useDevEnv ?: false, disableAudio = disableAudio ?: false, rtcLogs = rtcLogs ?: false)
+                streamingData = StreamingData(
+                    accountId = accountIDToPlay,
+                    streamName = streamNameToPlay,
+                    useDevEnv = useDevEnv ?: false,
+                    disableAudio = disableAudio ?: false,
+                    rtcLogs = rtcLogs ?: false,
+                    videoJitterMinimumDelayMs = videoJitterMinimumDelayMs ?: 0
+                )
 
                 // Clear saved state data
                 backStackEntry.savedStateHandle.remove<String>(Screen.DetailInputScreen.ARG_STREAM_NAME_TO_PLAY)
@@ -68,8 +82,10 @@ fun AppNavigation(navController: NavHostController) {
                 onPlayStream = { streamDetail ->
                     navController.previousBackStackEntry
                         ?.savedStateHandle?.let {
-                            it[Screen.DetailInputScreen.ARG_STREAM_NAME_TO_PLAY] = streamDetail.streamName
-                            it[Screen.DetailInputScreen.ARG_ACCOUNT_ID_TO_PLAY] = streamDetail.accountID
+                            it[Screen.DetailInputScreen.ARG_STREAM_NAME_TO_PLAY] =
+                                streamDetail.streamName
+                            it[Screen.DetailInputScreen.ARG_ACCOUNT_ID_TO_PLAY] =
+                                streamDetail.accountID
                         }
 
                     navController.popBackStack()

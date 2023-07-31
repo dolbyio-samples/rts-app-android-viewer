@@ -5,5 +5,6 @@ data class StreamingData(
     val streamName: String,
     val useDevEnv: Boolean,
     val disableAudio: Boolean,
-    val rtcLogs: Boolean
+    val rtcLogs: Boolean,
+    val videoJitterMinimumDelayMs : Int
 )
