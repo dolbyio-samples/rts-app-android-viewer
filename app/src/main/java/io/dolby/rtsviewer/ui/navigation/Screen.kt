@@ -9,6 +9,7 @@ sealed class Screen(val route: String) {
         const val ARG_USE_DEV_ENV = "useDevEnv"
         const val ARG_DISABLE_AUDIO = "disableAudio"
         const val ARG_RTC_LOGS = "rtcLogs"
+        const val ARG_VIDEO_JITTER = "rtcLogs"
     }
 
     object StreamingScreen :
@@ -18,6 +19,7 @@ sealed class Screen(val route: String) {
         const val ARG_USE_DEV_ENV = "useDevEnv"
         const val ARG_DISABLE_AUDIO = "disableAudio"
         const val ARG_RTC_LOGS = "rtcLogs"
+        const val ARG_VIDEO_JITTER = "rtcLogs"
         fun route(model: StreamingData): String {
             val streamName = model.streamName
             val accountId = model.accountId

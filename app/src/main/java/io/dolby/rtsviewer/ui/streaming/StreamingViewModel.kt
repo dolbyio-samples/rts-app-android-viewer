@@ -91,6 +91,7 @@ class StreamingViewModel @Inject constructor(
                                 )
                             }
                         }
+
                         NetworkStatusObserver.Status.Available -> when (dataStoreState) {
                             RTSViewerDataStore.State.Connecting -> {
                                 Log.d(TAG, "Connecting")
@@ -102,6 +103,7 @@ class StreamingViewModel @Inject constructor(
                                     }
                                 }
                             }
+
                             RTSViewerDataStore.State.Subscribed -> {
                                 Log.d(TAG, "Subscribed")
                                 repository.audioPlaybackStart()
@@ -116,6 +118,7 @@ class StreamingViewModel @Inject constructor(
                                     }
                                 }
                             }
+
                             RTSViewerDataStore.State.StreamActive -> {
                                 Log.d(TAG, "StreamActive")
                                 withContext(dispatcherProvider.main) {
@@ -129,6 +132,7 @@ class StreamingViewModel @Inject constructor(
                                     }
                                 }
                             }
+
                             RTSViewerDataStore.State.StreamInactive -> {
                                 Log.d(TAG, "StreamInactive")
                                 repository.stopSubscribe()
@@ -141,6 +145,7 @@ class StreamingViewModel @Inject constructor(
                                     }
                                 }
                             }
+
                             is RTSViewerDataStore.State.AudioTrackReady -> {
                                 Log.d(TAG, "AudioTrackReady")
                                 withContext(dispatcherProvider.main) {
@@ -151,6 +156,7 @@ class StreamingViewModel @Inject constructor(
                                     }
                                 }
                             }
+
                             is RTSViewerDataStore.State.VideoTrackReady -> {
                                 Log.d(TAG, "VideoTrackReady")
                                 withContext(dispatcherProvider.main) {
@@ -161,6 +167,7 @@ class StreamingViewModel @Inject constructor(
                                     }
                                 }
                             }
+
                             RTSViewerDataStore.State.Disconnected -> {
                                 Log.d(TAG, "Disconnected")
                                 withContext(dispatcherProvider.main) {
@@ -172,6 +179,7 @@ class StreamingViewModel @Inject constructor(
                                     }
                                 }
                             }
+
                             is RTSViewerDataStore.State.Error -> {
                                 Log.d(TAG, "Error")
                                 withContext(dispatcherProvider.main) {
@@ -231,15 +239,21 @@ class StreamingViewModel @Inject constructor(
         val useDevEnv = savedStateHandle[Screen.StreamingScreen.ARG_USE_DEV_ENV] ?: false
         val disableAudio = savedStateHandle[Screen.StreamingScreen.ARG_DISABLE_AUDIO] ?: false
         val rtcLogs = savedStateHandle[Screen.StreamingScreen.ARG_RTC_LOGS] ?: false
+        val videoJitterMinimumDelayMs =
+            savedStateHandle[Screen.StreamingScreen.ARG_VIDEO_JITTER] ?: 0
         withContext(dispatcherProvider.main) {
             _uiState.update { it.copy(accountId = accountId, streamName = streamName) }
         }
-        repository.connect( StreamingData(
-            streamName = streamName,
-            accountId = accountId,
-            useDevEnv = useDevEnv,
-            disableAudio = disableAudio,
-            rtcLogs = rtcLogs))
+        repository.connect(
+            StreamingData(
+                streamName = streamName,
+                accountId = accountId,
+                useDevEnv = useDevEnv,
+                disableAudio = disableAudio,
+                rtcLogs = rtcLogs,
+                videoJitterMinimumDelayMs = videoJitterMinimumDelayMs
+            )
+        )
     }
 
     private fun getStreamName(handle: SavedStateHandle): String =
@@ -296,7 +310,7 @@ class StreamingViewModel @Inject constructor(
             val statisticsValuesList = mutableListOf<Pair<Int, String>>()
 
             statistics.video?.mid?.let {
-                statisticsValuesList.add(Pair(R.string.statisticsScreen_mid,it))
+                statisticsValuesList.add(Pair(R.string.statisticsScreen_mid, it))
             }
 
             statistics.video?.decoderImplementation?.let {
@@ -304,11 +318,21 @@ class StreamingViewModel @Inject constructor(
             }
 
             statistics.video?.processingDelay?.let {
-                statisticsValuesList.add(Pair(R.string.statisticsScreen_processing_delay, String.format("%.2f ms", it)))
+                statisticsValuesList.add(
+                    Pair(
+                        R.string.statisticsScreen_processing_delay,
+                        String.format("%.2f ms", it)
+                    )
+                )
             }
 
             statistics.video?.decodeTime?.let {
-                statisticsValuesList.add(Pair(R.string.statisticsScreen_decode_time, String.format("%.2f ms", it)))
+                statisticsValuesList.add(
+                    Pair(
+                        R.string.statisticsScreen_decode_time,
+                        String.format("%.2f ms", it)
+                    )
+                )
             }
 
             statistics.video?.videoResolution?.let {
@@ -354,15 +378,30 @@ class StreamingViewModel @Inject constructor(
             }
 
             statistics.video?.jitterBufferDelay?.let {
-                statisticsValuesList.add(Pair(R.string.statisticsScreen_jitter_bufffer_delay, String.format("%.2f ms", it)))
+                statisticsValuesList.add(
+                    Pair(
+                        R.string.statisticsScreen_jitter_bufffer_delay,
+                        String.format("%.2f ms", it)
+                    )
+                )
             }
 
             statistics.video?.jitterBufferTargetDelay?.let {
-                statisticsValuesList.add(Pair(R.string.statisticsScreen_jitter_bufffer_target_delay, String.format("%.2f ms", it)))
+                statisticsValuesList.add(
+                    Pair(
+                        R.string.statisticsScreen_jitter_bufffer_target_delay,
+                        String.format("%.2f ms", it)
+                    )
+                )
             }
 
             statistics.video?.jitterBufferMinimumDelay?.let {
-                statisticsValuesList.add(Pair(R.string.statisticsScreen_jitter_bufffer_min_delay, String.format("%.2f ms", it)))
+                statisticsValuesList.add(
+                    Pair(
+                        R.string.statisticsScreen_jitter_bufffer_min_delay,
+                        String.format("%.2f ms", it)
+                    )
+                )
             }
 
             statistics.video?.packetsLost?.let {
@@ -385,7 +424,7 @@ class StreamingViewModel @Inject constructor(
             }
 
             statistics.video?.codecName?.let {
-                statisticsValuesList.add(Pair(R.string.statisticsScreen_codecs,it))
+                statisticsValuesList.add(Pair(R.string.statisticsScreen_codecs, it))
             }
 
             return statisticsValuesList
@@ -416,6 +455,7 @@ class StreamingViewModel @Inject constructor(
         }
         return String.format("%.1f %cB", value / 1000.0, ci.current())
     }
+
     fun updateShowSimulcastSettings(show: Boolean) {
         _showSimulcastSettings.update { show }
     }

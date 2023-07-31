@@ -43,6 +43,9 @@ class DetailInputViewModel @Inject constructor(
     private val _rtcLogs = MutableStateFlow(false)
     val rtcLogs = _rtcLogs.asStateFlow()
 
+    private val _videoJitterMinimumDelayMs = MutableStateFlow(0)
+    val videoJitterMinimumDelayMs = _videoJitterMinimumDelayMs.asStateFlow()
+
     init {
         defaultCoroutineScope.launch {
             recentStreamsDataStore.recentStreams
@@ -63,7 +66,9 @@ class DetailInputViewModel @Inject constructor(
                 accountId = accountId.value,
                 useDevEnv = useDevEnv.value,
                 disableAudio = disableAudio.value,
-                rtcLogs = rtcLogs.value))
+                rtcLogs = rtcLogs.value,
+                videoJitterMinimumDelayMs = videoJitterMinimumDelayMs.value
+            ))
 
             if(!isDemo) {
                 // Save the stream detail
@@ -101,11 +106,16 @@ class DetailInputViewModel @Inject constructor(
         _rtcLogs.value = state
     }
 
+    fun updateJitterBufferMinimumDelay(delayMs: String) {
+        _videoJitterMinimumDelayMs.value = delayMs.toInt()
+    }
+
     fun useDemoStream() {
         _streamName.value = "simulcastmultiview"
         _accountId.value = "k9Mwad"
         _useDevEnv.value = false
         _disableAudio.value = false
         _rtcLogs.value = false
+        _videoJitterMinimumDelayMs.value = 0
     }
 }

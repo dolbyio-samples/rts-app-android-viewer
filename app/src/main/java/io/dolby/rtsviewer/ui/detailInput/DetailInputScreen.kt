@@ -18,6 +18,7 @@ import androidx.compose.material.Scaffold
 import androidx.compose.material.Switch
 import androidx.compose.material.Text
 import androidx.compose.material.TextButton
+import androidx.compose.material.TextField
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.collectAsState
@@ -87,6 +88,7 @@ fun DetailInputScreen(
     val useDevEnv = viewModel.useDevEnv.collectAsState()
     val disableAudio = viewModel.disableAudio.collectAsState()
     val rtcLogs = viewModel.rtcLogs.collectAsState()
+    val videoJitterMinimumDelayMs = viewModel.videoJitterMinimumDelayMs.collectAsState()
 
     fun playStream() {
         if (!viewModel.shouldPlayStream) {
@@ -101,7 +103,8 @@ fun DetailInputScreen(
                         accountId = accountId.value,
                         useDevEnv = useDevEnv.value,
                         disableAudio = disableAudio.value,
-                        rtcLogs = rtcLogs.value
+                        rtcLogs = rtcLogs.value,
+                        videoJitterMinimumDelayMs = videoJitterMinimumDelayMs.value
                     )
                 )
             }
@@ -192,7 +195,7 @@ fun DetailInputScreen(
 
                 Spacer(modifier = modifier.height(12.dp))
 
-                if(isTV()) {
+                if (isTV()) {
                     TvTextInput(
                         value = streamName.value,
                         label = stringResource(id = R.string.stream_name_placeholder),
@@ -224,7 +227,7 @@ fun DetailInputScreen(
 
                 Spacer(modifier = modifier.height(8.dp))
 
-                if(isTV()) {
+                if (isTV()) {
                     TvTextInput(
                         value = accountId.value,
                         label = stringResource(id = R.string.account_id_placeholder),
@@ -260,7 +263,7 @@ fun DetailInputScreen(
                             Text("Dev")
                             Switch(
                                 checked = useDevEnv.value,
-                                onCheckedChange = { viewModel.updateUseDevEnv(it)}
+                                onCheckedChange = { viewModel.updateUseDevEnv(it) }
                             )
                         }
                         Spacer(modifier = modifier.weight(1.0f))
@@ -278,7 +281,7 @@ fun DetailInputScreen(
                             Text("Disable Audio")
                             Switch(
                                 checked = disableAudio.value,
-                                onCheckedChange = { viewModel.updateDisableAudio(it)}
+                                onCheckedChange = { viewModel.updateDisableAudio(it) }
                             )
                         }
                         Spacer(modifier = modifier.weight(1.0f))
@@ -286,10 +289,14 @@ fun DetailInputScreen(
                             Text("RTC Logs")
                             Switch(
                                 checked = rtcLogs.value,
-                                onCheckedChange = { viewModel.updateRtcLogs(it)}
+                                onCheckedChange = { viewModel.updateRtcLogs(it) }
                             )
                         }
                     }
+                    TextField(
+                        value = videoJitterMinimumDelayMs.value.toString(),
+                        onValueChange = { viewModel.updateJitterBufferMinimumDelay(it) },
+                        label = { Text("Jitter Buffer Delay (ms)") })
                 }
 
                 StyledButton(
