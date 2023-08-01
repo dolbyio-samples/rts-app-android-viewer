@@ -1,5 +1,6 @@
 package io.dolby.rtsviewer.datastore
 
+import io.dolby.rtscomponentkit.domain.StreamingData
 import kotlinx.coroutines.flow.Flow
 
 interface RecentStreamsDataStore {
@@ -7,7 +8,7 @@ interface RecentStreamsDataStore {
 
     suspend fun recentStream(streamName: String) : StreamDetail?
 
-    suspend fun addStreamDetail(streamName: String, accountID: String)
+    suspend fun addStreamDetail(streamDetail: StreamingData)
 
     suspend fun clearAll()
 }
