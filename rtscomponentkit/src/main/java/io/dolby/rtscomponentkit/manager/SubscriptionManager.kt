@@ -69,7 +69,7 @@ class SubscriptionManager(
                     autoReconnect = true
                     disableAudio = sd.disableAudio
                     forcePlayoutDelay = sd.useDevEnv
-                    videoJitterMinimumDelayMs = Optional.of(20)
+                    videoJitterMinimumDelayMs = Optional.of(sd.videoJitterMinimumDelayMs)
                 }
 
                 subscriber?.setOptions(currentOptionSub)

@@ -86,6 +86,20 @@ class DetailInputViewModel @Inject constructor(
     val shouldPlayStream: Boolean
         get() = streamName.value.isNotEmpty() && accountId.value.isNotEmpty()
 
+    fun useStreamingData(streamName: String) {
+        defaultCoroutineScope.launch {
+            recentStreamsDataStore.recentStream(streamName)?.let {
+                updateStreamName(it.streamName)
+                updateAccountId(it.accountID)
+                // TODO
+                updateUseDevEnv(false)
+                updateDisableAudio(false)
+                updateRtcLogs(false)
+                updateJitterBufferMinimumDelay("0")
+            }
+        }
+    }
+
     fun updateStreamName(name: String) {
         _streamName.value = name
     }

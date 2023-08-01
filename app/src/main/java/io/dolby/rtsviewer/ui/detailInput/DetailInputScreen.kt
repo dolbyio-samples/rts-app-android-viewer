@@ -34,7 +34,6 @@ import androidx.compose.ui.focus.FocusDirection
 import androidx.compose.ui.focus.FocusRequester
 import androidx.compose.ui.focus.focusRequester
 import androidx.compose.ui.platform.LocalFocusManager
-import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.semantics.contentDescription
 import androidx.compose.ui.semantics.semantics
@@ -55,7 +54,6 @@ import io.dolby.rtsviewer.uikit.button.ButtonType
 import io.dolby.rtsviewer.uikit.button.StyledButton
 import io.dolby.rtsviewer.uikit.input.TextInput
 import io.dolby.rtsviewer.uikit.input.TvTextInput
-import io.dolby.rtsviewer.uikit.switch.SwitchComponent
 import io.dolby.rtsviewer.uikit.theme.fontColor
 import io.dolby.rtsviewer.utils.isTV
 import kotlinx.coroutines.Dispatchers
@@ -68,7 +66,7 @@ fun DetailInputScreen(
     onPlayClick: (StreamingData) -> Unit,
     onSavedStreamsClick: () -> Unit,
     modifier: Modifier = Modifier,
-    streamingData: StreamingData? = null,
+    initialStreamName: String? = null,
     viewModel: DetailInputViewModel = hiltViewModel()
 ) {
     var showMissingStreamDetailDialog by remember { mutableStateOf(false) }
@@ -115,10 +113,8 @@ fun DetailInputScreen(
     }
 
     LaunchedEffect(Unit) {
-        streamingData?.let {
-            viewModel.updateStreamName(it.streamName)
-            viewModel.updateAccountId(it.accountId)
-            playStream()
+        initialStreamName?.let {
+            viewModel.useStreamingData(it)
         }
     }
 

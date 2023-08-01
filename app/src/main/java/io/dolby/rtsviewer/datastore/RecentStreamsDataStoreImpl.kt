@@ -5,6 +5,8 @@ import dagger.hilt.android.qualifiers.ApplicationContext
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.flow.Flow
+import kotlinx.coroutines.flow.collectLatest
+import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.launch
 import javax.inject.Inject
@@ -21,6 +23,12 @@ class RecentStreamsDataStoreImpl @Inject constructor(
         dataStore.data.map {
             it.streamDetailList.sortedByDescending { streamDetail -> streamDetail.lastUsedDate.seconds }
         }
+
+    override suspend fun recentStream(streamName: String): StreamDetail? {
+        return dataStore.data.first().streamDetailList.firstOrNull {
+            it.streamName == streamName
+        }
+    }
 
     override suspend fun addStreamDetail(streamName: String, accountID: String) {
         val addStreamJob = appCoroutineScope.launch {

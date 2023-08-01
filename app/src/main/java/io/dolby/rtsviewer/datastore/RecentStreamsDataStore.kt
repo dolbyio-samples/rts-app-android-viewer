@@ -5,6 +5,8 @@ import kotlinx.coroutines.flow.Flow
 interface RecentStreamsDataStore {
     var recentStreams: Flow<List<StreamDetail>>
 
+    suspend fun recentStream(streamName: String) : StreamDetail?
+
     suspend fun addStreamDetail(streamName: String, accountID: String)
 
     suspend fun clearAll()
