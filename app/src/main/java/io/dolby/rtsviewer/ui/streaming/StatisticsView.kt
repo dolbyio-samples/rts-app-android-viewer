@@ -13,7 +13,6 @@ import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.rememberScrollState
-import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.MaterialTheme
 import androidx.compose.material.Text
@@ -21,7 +20,6 @@ import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.draw.clip
 import androidx.compose.ui.platform.LocalClipboardManager
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.painterResource
@@ -48,7 +46,7 @@ fun StatisticsView(viewModel: StreamingViewModel, modifier: Modifier = Modifier)
 
     Box(
         modifier = modifier
-            .size(width = 420.dp, height = 720.dp)
+            .size(width = 480.dp, height = 720.dp)
             .background(
                 color = getColorPalette().neutralColor800,
                 shape = MaterialTheme.shapes.large
@@ -57,19 +55,24 @@ fun StatisticsView(viewModel: StreamingViewModel, modifier: Modifier = Modifier)
             .semantics { contentDescription = statisticsTitle },
         contentAlignment = Alignment.TopEnd
     ) {
-        StyledIconButton(
-            modifier = Modifier
-                .align(Alignment.TopEnd)
-                .padding(20.dp),
-            icon = painterResource(id = io.dolby.uikit.R.drawable.ic_close),
-            onClick = {
-                viewModel.updateStatistics(false)
-            }
-        )
+        Row {
+            Text(
+                modifier = modifier.padding(5.dp),
+                text = stringResource(id = R.string.streaming_statistics_title),
+                style = MaterialTheme.typography.h4,
+                color = MaterialTheme.colors.onBackground
+            )
+            StyledIconButton(
+                icon = painterResource(id = io.dolby.uikit.R.drawable.ic_close),
+                onClick = {
+                    viewModel.updateStatistics(false)
+                }
+            )
+        }
 
         Box(
             modifier = modifier
-                .size(width = 420.dp, height = 600.dp)
+                .size(width = 480.dp, height = 600.dp)
                 .background(
                     color = getColorPalette().neutralColor800,
                     shape = MaterialTheme.shapes.large
@@ -92,11 +95,6 @@ fun StatisticsView(viewModel: StreamingViewModel, modifier: Modifier = Modifier)
                     .padding(vertical = 18.dp)
                     .padding(start = 22.dp, end = 24.dp)
             ) {
-                Text(
-                    text = stringResource(id = R.string.streaming_statistics_title),
-                    style = MaterialTheme.typography.h4,
-                    color = MaterialTheme.colors.onBackground
-                )
                 Spacer(modifier = Modifier.height(10.dp))
                 Row {
                     Text(
@@ -121,6 +119,7 @@ fun StatisticsView(viewModel: StreamingViewModel, modifier: Modifier = Modifier)
                         title = stringResource(id = it.first),
                         value = it.second
                     )
+                    Spacer(modifier = Modifier.height(5.dp))
                 }
             }
 
