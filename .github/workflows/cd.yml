@@ -3,7 +3,7 @@ name: CD Android build and distribution
 on:
   push:
     branches:
-      - main
+      - *
     tags:
       - '*'
 env:
@@ -39,7 +39,7 @@ jobs:
           versionCode=$GITHUB_RUN_NUMBER; echo "versionName: $versionName; versionCode: $versionCode"
           echo "export VERSION_NAME=$versionName; export VERSION_CODE=$versionCode" > ~/.env_version
 
-      - name: Android TV App Release Build
+      - name: Android Mobile App Release Build
         env:
           KEYSTORE_PASSWORD: ${{ secrets.RELEASE_KEYSTORE_STORE_PASSWORD }}
           KEY_ALIAS: ${{ secrets.RELEASE_KEYSTORE_KEY_ALIAS }}
@@ -50,14 +50,14 @@ jobs:
           export KEY_ALIAS=$KEY_ALIAS
           export KEY_PASSWORD=$KEY_PASSWORD
           source ~/.env_version
-          chmod +x ./gradlew && ./gradlew assembleTvRelease bundleTvRelease
+          chmod +x ./gradlew && ./gradlew assembleMobileRelease bundleMobileRelease
 
       - name: Archive production bundle
         uses: actions/upload-artifact@v3
         with:
           name: android-release-bundle
           path: |
-            ./app/build/outputs/bundle/tvRelease/app-tv-release.aab
+            ./app/build/outputs/bundle/MobileRelease/app-mobile-release.aab
 
   Android-Play-Store-Distribution:
     needs: Android-App-Build
@@ -83,15 +83,15 @@ jobs:
         uses: actions/download-artifact@v3
         with:
           name: android-release-bundle
-          path: ./app/build/outputs/bundle/tvRelease/
+          path: ./app/build/outputs/bundle/mobileRelease/
 
       - name: Create release notes
         run: |
           RELEASE_NOTES_FILE=./app/src/main/play/release-notes/en-US/default.txt
           mkdir -p "$(dirname $RELEASE_NOTES_FILE)" && touch "$RELEASE_NOTES_FILE"
-          echo "Android TV app update: ${{ github.event.head_commit.message }}" > $RELEASE_NOTES_FILE
+          echo "Android Mobile app update: ${{ github.event.head_commit.message }}" > $RELEASE_NOTES_FILE
 
-      - name: Deploy TV app to Play Store
+      - name: Deploy Mobile app to Play Store
         env:
           ANDROID_PUBLISHER_CREDENTIALS: ${{ secrets.ANDROID_PUBLISHER_CREDENTIALS }}
           GIT_PAT: ${{ secrets.GITHUB_TOKEN }}
@@ -99,4 +99,4 @@ jobs:
           versionName='1.0.'$GITHUB_RUN_NUMBER
           versionCode=$GITHUB_RUN_NUMBER
           export ANDROID_PUBLISHER_CREDENTIALS=$ANDROID_PUBLISHER_CREDENTIALS
-          chmod +x ./gradlew && ./gradlew publishTvReleaseBundle --artifact-dir ./app/build/outputs/bundle/tvRelease/ --release-name "$versionCode ($versionName) TV" --stacktrace
+          chmod +x ./gradlew && ./gradlew publishMobileReleaseBundle --artifact-dir ./app/build/outputs/bundle/mobileRelease/ --release-name "$versionCode ($versionName) Mobile" --stacktrace

@@ -165,7 +165,7 @@ fun DetailInputScreen(
                     .padding(vertical = 16.dp)
             ) {
                 Text(
-                    stringResource(id = R.string.stream_detail_header),
+                    stringResource(id = R.string.app_name),
                     style = MaterialTheme.typography.body1,
                     fontWeight = FontWeight.Medium,
                     color = fontColor(background),
