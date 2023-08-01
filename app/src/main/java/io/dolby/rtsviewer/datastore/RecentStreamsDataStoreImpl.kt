@@ -2,6 +2,7 @@ package io.dolby.rtsviewer.datastore
 
 import android.content.Context
 import dagger.hilt.android.qualifiers.ApplicationContext
+import io.dolby.rtscomponentkit.domain.StreamingData
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.flow.Flow
@@ -30,13 +31,13 @@ class RecentStreamsDataStoreImpl @Inject constructor(
         }
     }
 
-    override suspend fun addStreamDetail(streamName: String, accountID: String) {
+    override suspend fun addStreamDetail(streamDetail: StreamingData) {
         val addStreamJob = appCoroutineScope.launch {
             dataStore.updateData {
                 // Remove existing stream matching the new stream details
                 val matchingIndex = it.streamDetailList
                     .indexOfFirst { streamDetail ->
-                        streamDetail.streamName == streamName && streamDetail.accountID == accountID
+                        streamDetail.streamName == streamDetail.streamName && streamDetail.accountID == streamDetail.accountID
                     }
 
                 var builder = it.toBuilder()
@@ -50,12 +51,16 @@ class RecentStreamsDataStoreImpl @Inject constructor(
                     .newBuilder()
                     .setSeconds(unixTime)
                     .build()
-                val streamDetail = StreamDetail.newBuilder()
-                    .setStreamName(streamName)
-                    .setAccountID(accountID)
+                val newStreamDetail = StreamDetail.newBuilder()
+                    .setStreamName(streamDetail.streamName)
+                    .setAccountID(streamDetail.accountId)
+                    .setUseDevEnv(streamDetail.useDevEnv)
+                    .setDisableAudio(streamDetail.disableAudio)
+                    .setRtcLogs(streamDetail.rtcLogs)
+                    .setVideoJitterMinimumDelayMs(streamDetail.videoJitterMinimumDelayMs)
                     .setLastUsedDate(timeStamp)
                     .build()
-                builder = builder.addStreamDetail(0, streamDetail)
+                builder = builder.addStreamDetail(0, newStreamDetail)
 
                 // Commit the changes
                 builder.build()

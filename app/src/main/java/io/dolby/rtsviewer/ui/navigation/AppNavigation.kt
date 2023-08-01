@@ -23,8 +23,6 @@ fun AppNavigation(navController: NavHostController) {
             val accountIDToPlay =
                 backStackEntry.savedStateHandle.get<String>(Screen.DetailInputScreen.ARG_ACCOUNT_ID_TO_PLAY)
 
-            var streamingData: StreamingData? = null
-
             if (streamNameToPlay != null && accountIDToPlay != null) {
                 // Clear saved state data
                 backStackEntry.savedStateHandle.remove<String>(Screen.DetailInputScreen.ARG_STREAM_NAME_TO_PLAY)

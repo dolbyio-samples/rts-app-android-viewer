@@ -76,7 +76,7 @@ fun SavedStreamScreen(
             }
         },
         modifier = modifier
-    ) {paddingValues ->
+    ) { paddingValues ->
         DolbyBackgroundBox(
             showGradientBackground = false,
             modifier = modifier.padding(paddingValues),
@@ -127,7 +127,7 @@ fun SavedStreamScreen(
                         val lastPlayedStream = uiState.recentStreams.first()
 
                         StyledButton(
-                            buttonText = "${lastPlayedStream.streamName} / ID ${lastPlayedStream.accountID}",
+                            buttonText = "${lastPlayedStream.streamName} / ID ${lastPlayedStream.accountID} \n useDev: ${lastPlayedStream.useDevEnv} disableAudio: ${lastPlayedStream.disableAudio} rtcLogs: ${lastPlayedStream.rtcLogs} \n JitterBuffer: ${lastPlayedStream.videoJitterMinimumDelayMs}",
                             onClickAction = {
                                 onPlayStream(lastPlayedStream)
                             },
@@ -176,7 +176,7 @@ fun SavedStreamScreen(
                     key = { it.streamName + it.accountID }
                 ) { streamDetail ->
                     StyledButton(
-                        buttonText = "${streamDetail.streamName} / ID ${streamDetail.accountID}",
+                        buttonText = "${streamDetail.streamName} / ID ${streamDetail.accountID} \n useDev: ${streamDetail.useDevEnv} disableAudio: ${streamDetail.disableAudio} rtcLogs: ${streamDetail.rtcLogs} \n JitterBuffer: ${streamDetail.videoJitterMinimumDelayMs}",
                         onClickAction = {
                             onPlayStream(streamDetail)
                         },

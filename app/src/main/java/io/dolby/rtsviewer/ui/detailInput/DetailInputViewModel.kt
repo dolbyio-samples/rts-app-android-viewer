@@ -6,6 +6,7 @@ import io.dolby.rtscomponentkit.data.RTSViewerDataStore
 import io.dolby.rtscomponentkit.domain.StreamingData
 import io.dolby.rtscomponentkit.utils.DispatcherProvider
 import io.dolby.rtsviewer.datastore.RecentStreamsDataStore
+import io.dolby.rtsviewer.datastore.StreamDetail
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
@@ -72,8 +73,27 @@ class DetailInputViewModel @Inject constructor(
 
             if(!isDemo) {
                 // Save the stream detail
-                recentStreamsDataStore.addStreamDetail(streamName.value, accountId.value)
+                recentStreamsDataStore.addStreamDetail(StreamingData(
+                    streamName = streamName.value,
+                    accountId = accountId.value,
+                    useDevEnv = useDevEnv.value,
+                    disableAudio = disableAudio.value,
+                    rtcLogs = rtcLogs.value,
+                    videoJitterMinimumDelayMs = videoJitterMinimumDelayMs.value
+                ))
             }
+        }
+    }
+
+    fun  resetStreamIfDemo() {
+        if(isDemo) {
+            isDemo = false
+            _streamName.value = ""
+            _accountId.value = ""
+            _useDevEnv.value = false
+            _disableAudio.value = false
+            _rtcLogs.value = false
+            _videoJitterMinimumDelayMs.value = 0
         }
     }
 
@@ -91,11 +111,10 @@ class DetailInputViewModel @Inject constructor(
             recentStreamsDataStore.recentStream(streamName)?.let {
                 updateStreamName(it.streamName)
                 updateAccountId(it.accountID)
-                // TODO
-                updateUseDevEnv(false)
-                updateDisableAudio(false)
-                updateRtcLogs(false)
-                updateJitterBufferMinimumDelay("0")
+                updateUseDevEnv(it.useDevEnv)
+                updateDisableAudio(it.disableAudio)
+                updateRtcLogs(it.rtcLogs)
+                updateJitterBufferMinimumDelay(it.videoJitterMinimumDelayMs.toString())
             }
         }
     }
@@ -125,6 +144,7 @@ class DetailInputViewModel @Inject constructor(
     }
 
     fun useDemoStream() {
+        isDemo = true
         _streamName.value = "simulcastmultiview"
         _accountId.value = "k9Mwad"
         _useDevEnv.value = false

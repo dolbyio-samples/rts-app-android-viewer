@@ -105,6 +105,7 @@ fun DetailInputScreen(
                         videoJitterMinimumDelayMs = videoJitterMinimumDelayMs.value
                     )
                 )
+                viewModel.resetStreamIfDemo()
             }
         }
     }
