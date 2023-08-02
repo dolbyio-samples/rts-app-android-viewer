@@ -107,7 +107,6 @@ android {
 dependencies {
     implementation project(path: ':uikit')
     implementation project(path: ':rtscomponentkit')
-    implementation files('../rtscomponentkit/libs/MillicastSDK.aar')
 
     implementation libs.androidx.compose.ui
     implementation libs.androidx.compose.ui.preview
