@@ -41,7 +41,7 @@ dependencies {
     implementation libs.androidx.compose.material
 
     implementation libs.android.coroutines
-    implementation files('libs/MillicastSDK.aar')
+    api project(":rtsSdk")
 
     testImplementation 'junit:junit:4.13.2'
     androidTestImplementation 'androidx.test.ext:junit:1.1.5'
