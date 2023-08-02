@@ -57,7 +57,7 @@ jobs:
         with:
           name: android-release-bundle
           path: |
-            ./app/build/outputs/bundle/MobileRelease/app-mobile-release.aab
+            ./app/build/outputs/bundle/mobileRelease/app-mobile-release.aab
 
   Android-Play-Store-Distribution:
     needs: Android-App-Build
