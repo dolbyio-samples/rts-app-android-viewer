@@ -93,7 +93,7 @@ fun StatisticsView(viewModel: StreamingViewModel, modifier: Modifier = Modifier)
                     .align(Alignment.TopStart)
                     .verticalScroll(rememberScrollState())
                     .padding(vertical = 18.dp)
-                    .padding(start = 22.dp, end = 24.dp)
+                    .padding(start = 8.dp, end = 8.dp)
             ) {
                 Spacer(modifier = Modifier.height(10.dp))
                 Row {

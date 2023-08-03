@@ -316,22 +316,26 @@ class StreamingViewModel @Inject constructor(
                 statisticsValuesList.add(Pair(R.string.statisticsScreen_decoder_impl, it))
             }
 
-            statistics.video?.processingDelay?.let {
-                statisticsValuesList.add(
-                    Pair(
-                        R.string.statisticsScreen_processing_delay,
-                        String.format("%.2f ms", it)
+            statistics.video?.processingDelay?.let { pd ->
+                statistics.video?.framesDecoded?.let { fd ->
+                    statisticsValuesList.add(
+                        Pair(
+                            R.string.statisticsScreen_processing_delay,
+                            String.format("%.2f ms", msNormalised(pd, fd.toDouble()))
+                        )
                     )
-                )
+                }
             }
 
-            statistics.video?.decodeTime?.let {
-                statisticsValuesList.add(
-                    Pair(
-                        R.string.statisticsScreen_decode_time,
-                        String.format("%.2f ms", it)
+            statistics.video?.decodeTime?.let { dt ->
+                statistics.video?.framesDecoded?.let { fd ->
+                    statisticsValuesList.add(
+                        Pair(
+                            R.string.statisticsScreen_decode_time,
+                            String.format("%.2f ms", msNormalised(dt, fd.toDouble()))
+                        )
                     )
-                )
+                }
             }
 
             statistics.video?.videoResolution?.let {
@@ -376,31 +380,46 @@ class StreamingViewModel @Inject constructor(
                 )
             }
 
-            statistics.video?.jitterBufferDelay?.let {
-                statisticsValuesList.add(
-                    Pair(
-                        R.string.statisticsScreen_jitter_bufffer_delay,
-                        String.format("%.2f ms", it)
+            statistics.video?.jitterBufferDelay?.let { jbd ->
+                statistics.video?.jitterBufferEmittedCount?.let { jbec ->
+                    statisticsValuesList.add(
+                        Pair(
+                            R.string.statisticsScreen_jitter_bufffer_delay,
+                            String.format("%.2f ms", msNormalised(jbd, jbec.toDouble()))
+                        )
                     )
-                )
+                }
             }
 
-            statistics.video?.jitterBufferTargetDelay?.let {
-                statisticsValuesList.add(
-                    Pair(
-                        R.string.statisticsScreen_jitter_bufffer_target_delay,
-                        String.format("%.2f ms", it)
+            statistics.video?.jitterBufferDelay?.let { jbd ->
+                statistics.video?.jitterBufferEmittedCount?.let { jbec ->
+                    statisticsValuesList.add(
+                        Pair(
+                            R.string.statisticsScreen_jitter_bufffer_target_delay,
+                            String.format("%.2f ms", msNormalised(jbd, jbec.toDouble()))
+                        )
                     )
-                )
+                }
             }
 
-            statistics.video?.jitterBufferMinimumDelay?.let {
-                statisticsValuesList.add(
-                    Pair(
-                        R.string.statisticsScreen_jitter_bufffer_min_delay,
-                        String.format("%.2f ms", it)
+//            statistics.video?.jitterBufferTargetDelay?.let {
+//                statisticsValuesList.add(
+//                    Pair(
+//                        R.string.statisticsScreen_jitter_bufffer_target_delay,
+//                        String.format("%.2f ms", it)
+//                    )
+//                )
+//            }
+
+            statistics.video?.jitterBufferMinimumDelay?.let { jbmd ->
+                statistics.video?.jitterBufferEmittedCount?.let { jbec ->
+                    statisticsValuesList.add(
+                        Pair(
+                            R.string.statisticsScreen_jitter_bufffer_min_delay,
+                            String.format("%.2f ms", msNormalised(jbmd, jbec.toDouble()))
+                        )
                     )
-                )
+                }
             }
 
             statistics.video?.packetsLost?.let {
@@ -417,9 +436,7 @@ class StreamingViewModel @Inject constructor(
             }
 
             statistics.timestamp?.let {
-                getDateTime(it)?.let { dateTime ->
-                    statisticsValuesList.add(Pair(R.string.statisticsScreen_timestamp, dateTime))
-                }
+                statisticsValuesList.add(Pair(R.string.statisticsScreen_timestamp, String.format("%.0f", it)))
             }
 
             statistics.video?.codecName?.let {
@@ -453,6 +470,14 @@ class StreamingViewModel @Inject constructor(
             ci.next()
         }
         return String.format("%.1f %cB", value / 1000.0, ci.current())
+    }
+
+    private fun msNormalised(numerator: Double, denominator: Double): Double {
+        return if (denominator == 0.0) {
+            0.0
+        } else {
+            numerator * 1000 / denominator
+        }
     }
 
     fun updateShowSimulcastSettings(show: Boolean) {
