@@ -76,14 +76,6 @@ data class StatisticsData(
             return null
         }
 
-        private fun getMid(report: RTCStatsReport): String? {
-            report.statsMap.values.firstOrNull { it.type == "candidate-pair" && it.members["state"] == "succeeded" }
-                ?.let {
-                    return it.members["mid"] as String?
-                }
-            return null
-        }
-
         private fun getBitrate(report: RTCStatsReport): Double? {
             report.statsMap.values.firstOrNull {
                 it.type == "candidate-pair" && it.members.containsKey(
