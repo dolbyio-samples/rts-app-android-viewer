@@ -17,20 +17,9 @@ fun AppNavigation(navController: NavHostController) {
     ) {
         composable(
             route = Screen.DetailInputScreen.route
-        ) { backStackEntry ->
-            val streamNameToPlay =
-                backStackEntry.savedStateHandle.get<String>(Screen.DetailInputScreen.ARG_STREAM_NAME_TO_PLAY)
-            val accountIDToPlay =
-                backStackEntry.savedStateHandle.get<String>(Screen.DetailInputScreen.ARG_ACCOUNT_ID_TO_PLAY)
-
-            if (streamNameToPlay != null && accountIDToPlay != null) {
-                // Clear saved state data
-                backStackEntry.savedStateHandle.remove<String>(Screen.DetailInputScreen.ARG_STREAM_NAME_TO_PLAY)
-                backStackEntry.savedStateHandle.remove<String>(Screen.DetailInputScreen.ARG_ACCOUNT_ID_TO_PLAY)
-            }
-
+        ) {
             DetailInputScreen(
-                initialStreamName = streamNameToPlay,
+                initialStreamName = null,
                 onPlayClick = {
                     navController.navigate(Screen.StreamingScreen.route(it))
                 },
