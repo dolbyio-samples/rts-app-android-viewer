@@ -35,16 +35,16 @@ class DetailInputViewModel @Inject constructor(
 
     private var isDemo = false
 
-    private val _useDevEnv = MutableStateFlow(false)
+    private val _useDevEnv = MutableStateFlow(true)
     val useDevEnv = _useDevEnv.asStateFlow()
 
-    private val _disableAudio = MutableStateFlow(false)
+    private val _disableAudio = MutableStateFlow(true)
     val disableAudio = _disableAudio.asStateFlow()
 
     private val _rtcLogs = MutableStateFlow(false)
     val rtcLogs = _rtcLogs.asStateFlow()
 
-    private val _videoJitterMinimumDelayMs = MutableStateFlow(0)
+    private val _videoJitterMinimumDelayMs = MutableStateFlow("0")
     val videoJitterMinimumDelayMs = _videoJitterMinimumDelayMs.asStateFlow()
 
     init {
@@ -62,38 +62,36 @@ class DetailInputViewModel @Inject constructor(
 
     fun connect() {
         defaultCoroutineScope.launch {
-            repository.connect( StreamingData(
+            val jb = if (videoJitterMinimumDelayMs.value.isNotBlank()) {
+                videoJitterMinimumDelayMs.value.toInt()
+            } else {
+                0
+            }
+            val sd = StreamingData(
                 streamName = streamName.value,
                 accountId = accountId.value,
                 useDevEnv = useDevEnv.value,
                 disableAudio = disableAudio.value,
                 rtcLogs = rtcLogs.value,
-                videoJitterMinimumDelayMs = videoJitterMinimumDelayMs.value
-            ))
+                videoJitterMinimumDelayMs = jb
+            )
 
-            if(!isDemo) {
+            if (!isDemo) {
                 // Save the stream detail
-                recentStreamsDataStore.addStreamDetail(StreamingData(
-                    streamName = streamName.value,
-                    accountId = accountId.value,
-                    useDevEnv = useDevEnv.value,
-                    disableAudio = disableAudio.value,
-                    rtcLogs = rtcLogs.value,
-                    videoJitterMinimumDelayMs = videoJitterMinimumDelayMs.value
-                ))
+                recentStreamsDataStore.addStreamDetail(sd)
             }
         }
     }
 
-    fun  resetStreamIfDemo() {
-        if(isDemo) {
+    fun resetStreamIfDemo() {
+        if (isDemo) {
             isDemo = false
             _streamName.value = ""
             _accountId.value = ""
             _useDevEnv.value = false
             _disableAudio.value = false
             _rtcLogs.value = false
-            _videoJitterMinimumDelayMs.value = 0
+            _videoJitterMinimumDelayMs.value = "0"
         }
     }
 
@@ -120,11 +118,11 @@ class DetailInputViewModel @Inject constructor(
     }
 
     fun updateStreamName(name: String) {
-        _streamName.value = name
+        _streamName.value = name.trimEnd()
     }
 
     fun updateAccountId(id: String) {
-        _accountId.value = id
+        _accountId.value = id.trimEnd()
     }
 
     fun updateUseDevEnv(state: Boolean) {
@@ -140,7 +138,7 @@ class DetailInputViewModel @Inject constructor(
     }
 
     fun updateJitterBufferMinimumDelay(delayMs: String) {
-        _videoJitterMinimumDelayMs.value = delayMs.toInt()
+        _videoJitterMinimumDelayMs.value = delayMs
     }
 
     fun useDemoStream() {
@@ -150,6 +148,6 @@ class DetailInputViewModel @Inject constructor(
         _useDevEnv.value = false
         _disableAudio.value = false
         _rtcLogs.value = false
-        _videoJitterMinimumDelayMs.value = 0
+        _videoJitterMinimumDelayMs.value = "0"
     }
 }

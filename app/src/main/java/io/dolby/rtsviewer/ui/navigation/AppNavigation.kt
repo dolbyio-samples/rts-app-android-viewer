@@ -56,15 +56,7 @@ fun AppNavigation(navController: NavHostController) {
         ) {
             SavedStreamScreen(
                 onPlayStream = { streamDetail ->
-                    navController.previousBackStackEntry
-                        ?.savedStateHandle?.let {
-                            it[Screen.DetailInputScreen.ARG_STREAM_NAME_TO_PLAY] =
-                                streamDetail.streamName
-                            it[Screen.DetailInputScreen.ARG_ACCOUNT_ID_TO_PLAY] =
-                                streamDetail.accountID
-                        }
-
-                    navController.popBackStack()
+                    navController.navigate(Screen.StreamingScreen.route(streamDetail))
                 },
                 onBack = {
                     navController.popBackStack()

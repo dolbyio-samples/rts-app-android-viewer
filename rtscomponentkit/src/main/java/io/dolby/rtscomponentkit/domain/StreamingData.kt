@@ -7,4 +7,6 @@ data class StreamingData(
     val disableAudio: Boolean,
     val rtcLogs: Boolean,
     val videoJitterMinimumDelayMs : Int
-)
+) {
+    companion object {}
+}
