@@ -95,6 +95,11 @@ fun DetailInputScreen(
             viewModel.connect()
 
             coroutineScope.launch(Dispatchers.Main) {
+                val jb = if (videoJitterMinimumDelayMs.value.isNotBlank()) {
+                    videoJitterMinimumDelayMs.value.toInt()
+                } else {
+                    0
+                }
                 onPlayClick(
                     StreamingData(
                         streamName = streamName.value,
@@ -102,7 +107,7 @@ fun DetailInputScreen(
                         useDevEnv = useDevEnv.value,
                         disableAudio = disableAudio.value,
                         rtcLogs = rtcLogs.value,
-                        videoJitterMinimumDelayMs = videoJitterMinimumDelayMs.value
+                        videoJitterMinimumDelayMs = jb
                     )
                 )
                 viewModel.resetStreamIfDemo()

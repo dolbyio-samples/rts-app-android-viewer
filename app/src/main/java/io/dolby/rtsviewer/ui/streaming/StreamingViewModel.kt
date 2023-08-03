@@ -11,6 +11,7 @@ import io.dolby.rtscomponentkit.data.StatisticsData
 import io.dolby.rtscomponentkit.domain.StreamingData
 import io.dolby.rtscomponentkit.utils.DispatcherProvider
 import io.dolby.rtsviewer.R
+import io.dolby.rtsviewer.datastore.RecentStreamsDataStore
 import io.dolby.rtsviewer.preferenceStore.PrefsStore
 import io.dolby.rtsviewer.ui.navigation.Screen
 import io.dolby.rtsviewer.utils.NetworkStatusObserver
@@ -42,6 +43,7 @@ private const val SHOW_TOOLBAR_TIMEOUT: Long = 5_000
 class StreamingViewModel @Inject constructor(
     private val savedStateHandle: SavedStateHandle,
     private val repository: RTSViewerDataStore,
+    private val recentStreamsDataStore: RecentStreamsDataStore,
     private val dispatcherProvider: DispatcherProvider,
     private val preferencesDataStore: PrefsStore,
     private val networkStatusObserver: NetworkStatusObserver
@@ -71,8 +73,7 @@ class StreamingViewModel @Inject constructor(
         viewModelScope.launch {
             tickerFlow(5.seconds)
                 .onEach {
-                    if (!_uiState.value.connecting && (_uiState.value.error != null || _uiState.value.disconnected)) {
-                        Log.d(TAG, "Reconnect")
+                    if (_uiState.value.initiateConnection || (!_uiState.value.connecting && (_uiState.value.error != null || _uiState.value.disconnected))) {
                         connect()
                     }
                 }
@@ -98,6 +99,7 @@ class StreamingViewModel @Inject constructor(
                                 withContext(dispatcherProvider.main) {
                                     _uiState.update { state ->
                                         state.copy(
+                                            initiateConnection = false,
                                             connecting = true
                                         )
                                     }
@@ -235,25 +237,22 @@ class StreamingViewModel @Inject constructor(
 
     private suspend fun connect() {
         val streamName = getStreamName(savedStateHandle)
-        val accountId = getAccountId(savedStateHandle)
-        val useDevEnv = savedStateHandle[Screen.StreamingScreen.ARG_USE_DEV_ENV] ?: false
-        val disableAudio = savedStateHandle[Screen.StreamingScreen.ARG_DISABLE_AUDIO] ?: false
-        val rtcLogs = savedStateHandle[Screen.StreamingScreen.ARG_RTC_LOGS] ?: false
-        val videoJitterMinimumDelayMs =
-            savedStateHandle[Screen.StreamingScreen.ARG_VIDEO_JITTER] ?: 0
-        withContext(dispatcherProvider.main) {
-            _uiState.update { it.copy(accountId = accountId, streamName = streamName) }
-        }
-        repository.connect(
-            StreamingData(
-                streamName = streamName,
-                accountId = accountId,
-                useDevEnv = useDevEnv,
-                disableAudio = disableAudio,
-                rtcLogs = rtcLogs,
-                videoJitterMinimumDelayMs = videoJitterMinimumDelayMs
+
+        recentStreamsDataStore.recentStream(streamName)?.let { sd ->
+            withContext(dispatcherProvider.main) {
+                _uiState.update { it.copy(accountId = sd.accountID, streamName = streamName) }
+            }
+            repository.connect(
+                StreamingData(
+                    streamName = streamName,
+                    accountId = sd.accountID,
+                    useDevEnv = sd.useDevEnv,
+                    disableAudio = sd.disableAudio,
+                    rtcLogs = sd.rtcLogs,
+                    videoJitterMinimumDelayMs = sd.videoJitterMinimumDelayMs
+                )
             )
-        )
+        }
     }
 
     private fun getStreamName(handle: SavedStateHandle): String =

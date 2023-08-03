@@ -1,5 +1,6 @@
 package io.dolby.rtscomponentkit.manager
 
+import android.os.Environment
 import android.util.Log
 import com.millicast.LayerData
 import com.millicast.Subscriber
@@ -70,6 +71,11 @@ class SubscriptionManager(
                     disableAudio = sd.disableAudio
                     forcePlayoutDelay = sd.useDevEnv
                     videoJitterMinimumDelayMs = Optional.of(sd.videoJitterMinimumDelayMs)
+                    if(sd.rtcLogs) {
+                        rtcEventLogOutputPath = Optional.of(Environment.getExternalStoragePublicDirectory(
+                            Environment.DIRECTORY_DOWNLOADS
+                        ).absolutePath + "/${System.currentTimeMillis()}.proto")
+                    }
                 }
 
                 subscriber?.setOptions(currentOptionSub)

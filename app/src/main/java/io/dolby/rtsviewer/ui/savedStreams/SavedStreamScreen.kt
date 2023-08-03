@@ -36,6 +36,7 @@ import androidx.compose.ui.unit.dp
 import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import androidx.navigation.compose.rememberNavController
+import io.dolby.rtscomponentkit.domain.StreamingData
 import io.dolby.rtscomponentkit.ui.DolbyBackgroundBox
 import io.dolby.rtscomponentkit.ui.DolbyCopyrightFooterView
 import io.dolby.rtscomponentkit.ui.TopActionBar
@@ -45,6 +46,7 @@ import io.dolby.rtsviewer.datastore.StreamDetail
 import io.dolby.rtsviewer.uikit.button.ButtonType
 import io.dolby.rtsviewer.uikit.button.StyledButton
 import io.dolby.rtsviewer.uikit.theme.fontColor
+import io.dolby.rtsviewer.utils.from
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.launch
 
@@ -52,7 +54,7 @@ import kotlinx.coroutines.launch
 @Composable
 fun SavedStreamScreen(
     modifier: Modifier = Modifier,
-    onPlayStream: (StreamDetail) -> Unit,
+    onPlayStream: (StreamingData) -> Unit,
     onBack: () -> Unit,
     viewModel: SavedStreamViewModel = hiltViewModel()
 ) {
@@ -129,7 +131,7 @@ fun SavedStreamScreen(
                         StyledButton(
                             buttonText = "${lastPlayedStream.streamName} / ID ${lastPlayedStream.accountID} \n useDev: ${lastPlayedStream.useDevEnv} disableAudio: ${lastPlayedStream.disableAudio} rtcLogs: ${lastPlayedStream.rtcLogs} \n JitterBuffer: ${lastPlayedStream.videoJitterMinimumDelayMs}",
                             onClickAction = {
-                                onPlayStream(lastPlayedStream)
+                                onPlayStream(StreamingData.from(lastPlayedStream))
                             },
                             buttonType = ButtonType.BASIC,
                             capitalize = false,
@@ -178,7 +180,7 @@ fun SavedStreamScreen(
                     StyledButton(
                         buttonText = "${streamDetail.streamName} / ID ${streamDetail.accountID} \n useDev: ${streamDetail.useDevEnv} disableAudio: ${streamDetail.disableAudio} rtcLogs: ${streamDetail.rtcLogs} \n JitterBuffer: ${streamDetail.videoJitterMinimumDelayMs}",
                         onClickAction = {
-                            onPlayStream(streamDetail)
+                            onPlayStream(StreamingData.from(streamDetail))
                         },
                         buttonType = ButtonType.BASIC,
                         capitalize = false

@@ -15,7 +15,9 @@ import androidx.compose.ui.input.key.nativeKeyCode
 import androidx.compose.ui.input.key.onKeyEvent
 import androidx.compose.ui.platform.LocalContext
 import io.dolby.rtscomponentkit.data.RTSViewerDataStore
+import io.dolby.rtscomponentkit.domain.StreamingData
 import io.dolby.rtsviewer.R
+import io.dolby.rtsviewer.datastore.StreamDetail
 
 @Composable
 fun KeepScreenOn(enabled: Boolean) {
@@ -69,4 +71,13 @@ fun RTSViewerDataStore.StreamQualityType.titleResourceId(): Int {
         is RTSViewerDataStore.StreamQualityType.Medium -> R.string.simulcast_medium
         is RTSViewerDataStore.StreamQualityType.Low -> R.string.simulcast_low
     }
+}
+
+fun StreamingData.Companion.from(streamDetail : StreamDetail): StreamingData {
+    return StreamingData(accountId = streamDetail.accountID,
+    streamName = streamDetail.streamName,
+    useDevEnv = streamDetail.useDevEnv,
+    disableAudio = streamDetail.disableAudio,
+    rtcLogs = streamDetail.rtcLogs,
+    videoJitterMinimumDelayMs = streamDetail.videoJitterMinimumDelayMs)
 }
