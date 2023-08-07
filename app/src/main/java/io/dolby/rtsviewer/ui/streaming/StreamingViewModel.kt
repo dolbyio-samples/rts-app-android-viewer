@@ -71,17 +71,13 @@ class StreamingViewModel @Inject constructor(
 
     init {
         viewModelScope.launch {
-            tickerFlow(5.seconds)
-                .onEach {
-                    if (_uiState.value.initiateConnection || (!_uiState.value.connecting && (_uiState.value.error != null || _uiState.value.disconnected))) {
-                        // TODO: Figure out why this is firing again before state is changed to connecting
-                        _uiState.update {
-                            it.copy(initiateConnection = false)
-                        }
-                        connect()
-                    }
+            if (_uiState.value.initiateConnection || (!_uiState.value.connecting && (_uiState.value.error != null || _uiState.value.disconnected))) {
+                // TODO: Figure out why this is firing again before state is changed to connecting
+                _uiState.update {
+                    it.copy(initiateConnection = false)
                 }
-                .launchIn(viewModelScope)
+                connect()
+            }
         }
 
         viewModelScope.launch {
@@ -242,21 +238,31 @@ class StreamingViewModel @Inject constructor(
     private suspend fun connect() {
         val streamName = getStreamName(savedStateHandle)
 
-        recentStreamsDataStore.recentStream(streamName)?.let { sd ->
-            withContext(dispatcherProvider.main) {
-                _uiState.update { it.copy(accountId = sd.accountID, streamName = streamName) }
-            }
-            repository.connect(
-                StreamingData(
-                    streamName = streamName,
-                    accountId = sd.accountID,
-                    useDevEnv = sd.useDevEnv,
-                    disableAudio = sd.disableAudio,
-                    rtcLogs = sd.rtcLogs,
-                    videoJitterMinimumDelayMs = sd.videoJitterMinimumDelayMs
-                )
+        val sd = recentStreamsDataStore.recentStream(streamName)
+        val streamingData = if (sd != null) {
+            StreamingData(
+                streamName = streamName,
+                accountId = sd.accountID,
+                useDevEnv = sd.useDevEnv,
+                disableAudio = sd.disableAudio,
+                rtcLogs = sd.rtcLogs,
+                videoJitterMinimumDelayMs = sd.videoJitterMinimumDelayMs
+            )
+        } else {
+            StreamingData(
+                streamName = streamName,
+                accountId = getAccountId(savedStateHandle),
+                useDevEnv = false,
+                disableAudio = false,
+                rtcLogs = false,
+                videoJitterMinimumDelayMs = 0
             )
         }
+
+        withContext(dispatcherProvider.main) {
+            _uiState.update { it.copy(accountId = streamingData.accountId, streamName = streamingData.streamName) }
+        }
+        repository.connect(streamingData)
     }
 
     private fun getStreamName(handle: SavedStateHandle): String =

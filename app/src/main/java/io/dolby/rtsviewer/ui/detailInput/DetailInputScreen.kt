@@ -329,8 +329,6 @@ fun DetailInputScreen(
                     )
                 }
 
-                Spacer(modifier = modifier.height(8.dp))
-
                 if (uiState.recentStreams.isNotEmpty()) {
                     Row(
                         modifier = modifier
