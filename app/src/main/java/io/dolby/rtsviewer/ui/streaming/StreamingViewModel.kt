@@ -74,6 +74,10 @@ class StreamingViewModel @Inject constructor(
             tickerFlow(5.seconds)
                 .onEach {
                     if (_uiState.value.initiateConnection || (!_uiState.value.connecting && (_uiState.value.error != null || _uiState.value.disconnected))) {
+                        // TODO: Figure out why this is firing again before state is changed to connecting
+                        _uiState.update {
+                            it.copy(initiateConnection = false)
+                        }
                         connect()
                     }
                 }
