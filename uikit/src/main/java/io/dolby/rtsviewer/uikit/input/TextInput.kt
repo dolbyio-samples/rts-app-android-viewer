@@ -55,6 +55,6 @@ fun TextInput(
         maxLines = 1,
         modifier = modifier
             .fillMaxWidth()
-            .semantics { contentDescription = textInputContentDescription }
+            .semantics { contentDescription = textInputContentDescription },
     )
 }

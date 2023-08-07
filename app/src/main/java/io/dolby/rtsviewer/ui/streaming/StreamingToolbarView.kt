@@ -85,18 +85,20 @@ fun StreamingToolbarView(viewModel: StreamingViewModel) {
                 )
             }
 
-            StyledIconButton(
-                modifier = Modifier
-                    .constrainAs(settings) {
-                        bottom.linkTo(parent.bottom, margin = 14.dp)
-                        end.linkTo(parent.end, margin = 20.dp)
+            if (uiState.subscribed) {
+                StyledIconButton(
+                    modifier = Modifier
+                        .constrainAs(settings) {
+                            bottom.linkTo(parent.bottom, margin = 14.dp)
+                            end.linkTo(parent.end, margin = 20.dp)
+                        }
+                        .padding(20.dp),
+                    icon = painterResource(id = io.dolby.uikit.R.drawable.icon_info),
+                    onClick = {
+                        viewModel.updateStatistics(true)
                     }
-                    .padding(20.dp),
-                icon = painterResource(id = io.dolby.uikit.R.drawable.icon_info),
-                onClick = {
-                    viewModel.updateStatistics(true)
-                }
-            )
+                )
+            }
         }
     }
 }
