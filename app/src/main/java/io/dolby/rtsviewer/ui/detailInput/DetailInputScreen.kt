@@ -39,6 +39,7 @@ import androidx.compose.ui.semantics.contentDescription
 import androidx.compose.ui.semantics.semantics
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.input.ImeAction
+import androidx.compose.ui.text.input.KeyboardType
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import androidx.hilt.navigation.compose.hiltViewModel
@@ -255,9 +256,20 @@ fun DetailInputScreen(
                         ),
                         maximumCharacters = MAXIMUM_CHARACTERS
                     )
-                }
 
-                Spacer(modifier = modifier.height(8.dp))
+                    Spacer(modifier = modifier.height(8.dp))
+
+                    TextInput(
+                        value = videoJitterMinimumDelayMs.value,
+                        onValueChange = {
+                            viewModel.updateJitterBufferMinimumDelay(it) },
+                        label = stringResource(id = R.string.jitter_buffer),
+                        keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.NumberPassword, imeAction = ImeAction.Done),
+                        keyboardActions = KeyboardActions(
+                            onDone = { playStream() }
+                        )
+                    )
+                }
 
                 Column {
                     Row {
@@ -295,10 +307,6 @@ fun DetailInputScreen(
                             )
                         }
                     }
-                    TextField(
-                        value = videoJitterMinimumDelayMs.value.toString(),
-                        onValueChange = { viewModel.updateJitterBufferMinimumDelay(it) },
-                        label = { Text("Jitter Buffer Delay (ms)") })
                 }
 
                 StyledButton(
