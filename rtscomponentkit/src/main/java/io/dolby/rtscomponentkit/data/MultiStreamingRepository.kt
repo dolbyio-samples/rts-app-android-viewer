@@ -31,7 +31,8 @@ data class MultiStreamingData(
     val isSubscribed: Boolean = false,
     val streamingData: StreamingData? = null,
     val statisticsData: MultiStreamStatisticsData? = null,
-    val trackLayerData: Map<String, List<MultiStreamingRepository.LowLevelVideoQuality>> = emptyMap()
+    val trackLayerData: Map<String, List<MultiStreamingRepository.LowLevelVideoQuality>> = emptyMap(),
+    val trackProjectedData: Map<String, ProjectedData> = emptyMap()
 ) {
     data class Video(
         val id: String?,
@@ -53,6 +54,12 @@ data class MultiStreamingData(
     internal class PendingTracks(
         val videoTracks: List<PendingTrack>,
         val audioTracks: List<PendingTrack>
+    )
+
+    data class ProjectedData(
+        val mid: String,
+        val sourceId: String?,
+        val videoQuality: MultiStreamingRepository.VideoQuality
     )
 
     internal fun appendMainVideoTrack(videoTrack: VideoTrack, mid: String?): MultiStreamingData {
@@ -414,13 +421,32 @@ class MultiStreamingRepository {
             val availablePreferredVideoQuality = data.value.trackLayerData[video.id]?.find {
                 it.videoQuality() == preferredVideoQuality
             }
-            Log.d("RTS", "project video ${video.id}, quality = $availablePreferredVideoQuality")
-            val projectionData = createProjectionData(video, availablePreferredVideoQuality)
-            subscriber?.project(video.sourceId ?: "", arrayListOf(projectionData))
+            val projected = data.value.trackProjectedData[video.id]
+            if (projected == null || projected.videoQuality != availablePreferredVideoQuality?.videoQuality()) {
+                Log.d("RTS***>", "project video ${video.id}, quality = $availablePreferredVideoQuality")
+                val projectionData = createProjectionData(video, availablePreferredVideoQuality)
+                subscriber?.project(video.sourceId ?: "", arrayListOf(projectionData))
+                data.update {
+                    val mutableOldProjectedData = it.trackProjectedData.toMutableMap()
+                    mutableOldProjectedData[projectionData.mid] = projectedDataFrom(
+                        video.sourceId,
+                        availablePreferredVideoQuality?.videoQuality() ?: VideoQuality.AUTO,
+                        projectionData.mid
+                    )
+                    it.copy(trackProjectedData = mutableOldProjectedData.toMap())
+                }
+            } else {
+                Log.d("RTS***>", "already projected video ${video.id}, quality = $availablePreferredVideoQuality")
+            }
         }
 
         fun stopVideo(video: MultiStreamingData.Video) {
             subscriber?.unproject(arrayListOf(video.id))
+            data.update {
+                val mutableOldProjectedData = it.trackProjectedData.toMutableMap()
+                mutableOldProjectedData.remove(video.id)
+                it.copy(trackProjectedData = mutableOldProjectedData.toMap())
+            }
         }
 
         fun playAudio(audioTrack: MultiStreamingData.Audio) {
@@ -454,27 +480,6 @@ class MultiStreamingRepository {
     companion object {
         private const val TAG = "MultiStreamingRepository"
 
-//        fun createProjectionData(
-//            mid: String?,
-//            pendingTrack: MultiStreamingData.PendingTrack,
-//            availablePreferredVideoQuality: LowLevelVideoQuality?
-//        ): ProjectionData {
-//            val layerData: LayerData? = availablePreferredVideoQuality?.layerData
-//            return layerData?.let {
-//                ProjectionData().also {
-//                    it.mid = mid
-//                    it.trackId = pendingTrack.trackId
-//                    it.media = pendingTrack.mediaType
-//                    it.layer = Optional.of(layerData)
-//                }
-//            } ?: ProjectionData().also {
-//                it.mid = mid
-//                it.trackId = pendingTrack.trackId
-//                it.media = pendingTrack.mediaType
-//                it.layer = null
-//            }
-//        }
-
         fun createProjectionData(
             video: MultiStreamingData.Video,
             availablePreferredVideoQuality: LowLevelVideoQuality?
@@ -486,6 +491,17 @@ class MultiStreamingRepository {
                 Optional.of(layerData)
             }
         }
+
+        fun projectedDataFrom(
+            sourceId: String?,
+            videoQuality: VideoQuality,
+            mid: String
+        ): MultiStreamingData.ProjectedData =
+            MultiStreamingData.ProjectedData(
+                mid = mid,
+                sourceId = sourceId,
+                videoQuality = videoQuality
+            )
     }
 
     sealed class LowLevelVideoQuality(val layerData: LayerData?) {

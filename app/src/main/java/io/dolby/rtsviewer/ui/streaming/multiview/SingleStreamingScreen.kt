@@ -1,5 +1,6 @@
 package io.dolby.rtsviewer.ui.streaming
 
+import android.util.Log
 import androidx.compose.foundation.ExperimentalFoundationApi
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.aspectRatio
@@ -28,6 +29,8 @@ import io.dolby.rtscomponentkit.ui.DolbyBackgroundBox
 import io.dolby.rtscomponentkit.ui.LiveIndicator
 import io.dolby.rtscomponentkit.ui.TopAppBar
 import io.dolby.rtsviewer.R
+import io.dolby.rtsviewer.ui.streaming.multiview.MultiStreamingStatisticsState
+import io.dolby.rtsviewer.ui.streaming.multiview.MultiStreamingUiState
 import io.dolby.rtsviewer.ui.streaming.multiview.MultiStreamingViewModel
 import io.dolby.rtsviewer.uikit.button.StyledIconButton
 import org.webrtc.RendererCommon
@@ -39,7 +42,6 @@ fun SingleStreamingScreen(
     onBack: () -> Unit
 ) {
     val uiState by viewModel.uiState.collectAsStateWithLifecycle()
-    val statisticsState by viewModel.statisticsState.collectAsStateWithLifecycle()
 
     val screenContentDescription = stringResource(id = R.string.streaming_screen_contentDescription)
     val selectedItem =
@@ -64,28 +66,7 @@ fun SingleStreamingScreen(
             setTitle(uiState.videoTracks[pagerState.currentPage].sourceId ?: mainSourceName)
 
             HorizontalPager(state = pagerState) { page ->
-                Box(modifier = Modifier.fillMaxSize()) {
-                    AndroidView(
-                        modifier = Modifier
-                            .aspectRatio(16F / 9)
-                            .align(Alignment.Center),
-                        factory = { context -> VideoRenderer(context) },
-                        update = { view ->
-                            view.setScalingType(RendererCommon.ScalingType.SCALE_ASPECT_FIT)
-                            view.release()
-                            uiState.videoTracks[page].videoTrack.setRenderer(view)
-                            val isSelected =
-                                uiState.selectedVideoTrackId == uiState.videoTracks[page].sourceId
-                            viewModel.playVideo(
-                                uiState.videoTracks[page],
-                                if (isSelected) MultiStreamingRepository.VideoQuality.HIGH else MultiStreamingRepository.VideoQuality.AUTO
-                            )
-                        },
-                        onRelease = { view ->
-                            viewModel.stopVideo(uiState.videoTracks[page])
-                        }
-                    )
-                }
+                VideoView(page, uiState, viewModel)
             }
 
             LiveIndicator(
@@ -103,19 +84,61 @@ fun SingleStreamingScreen(
                 }
             )
 
-            if (statisticsState.showStatistics && statisticsState.statisticsData != null) {
-                val statistics =
-                    viewModel.streamingStatistics(uiState.videoTracks[pagerState.currentPage].id)
-                StatisticsView(
-                    statistics = statistics,
-                    updateStatistics = { showStatistics: Boolean ->
-                        viewModel.updateStatistics(showStatistics)
-                    },
-                    modifier = Modifier
-                        .align(Alignment.BottomStart)
-                        .padding(horizontal = 22.dp, vertical = 15.dp)
-                )
-            }
+            Statistics(viewModel, uiState, pagerState.currentPage)
         }
+    }
+}
+
+@Composable
+private fun Statistics(
+    viewModel: MultiStreamingViewModel,
+    uiState: MultiStreamingUiState,
+    currentPage: Int
+) {
+    val statisticsState by viewModel.statisticsState.collectAsStateWithLifecycle()
+    if (statisticsState.showStatistics && statisticsState.statisticsData != null) {
+        val statistics =
+            viewModel.streamingStatistics(uiState.videoTracks[currentPage].id)
+        Box(modifier = Modifier.fillMaxSize()) {
+            StatisticsView(
+                statistics = statistics,
+                updateStatistics = { showStatistics: Boolean ->
+                    viewModel.updateStatistics(showStatistics)
+                },
+                modifier = Modifier
+                    .align(Alignment.BottomCenter)
+                    .padding(horizontal = 22.dp, vertical = 15.dp)
+            )
+        }
+    }
+}
+
+@Composable
+private fun VideoView(
+    page: Int,
+    uiState: MultiStreamingUiState,
+    viewModel: MultiStreamingViewModel
+) {
+    Box(modifier = Modifier.fillMaxSize()) {
+        AndroidView(
+            modifier = Modifier
+                .aspectRatio(16F / 9)
+                .align(Alignment.Center),
+            factory = { context -> VideoRenderer(context) },
+            update = { view ->
+                Log.d("RTS***>", "SingleStreamingScreen: update for page $page")
+                view.setScalingType(RendererCommon.ScalingType.SCALE_ASPECT_FIT)
+                uiState.videoTracks[page].videoTrack.setRenderer(view)
+                val isSelected =
+                    uiState.selectedVideoTrackId == uiState.videoTracks[page].sourceId
+                viewModel.playVideo(
+                    uiState.videoTracks[page],
+                    if (isSelected) MultiStreamingRepository.VideoQuality.HIGH else MultiStreamingRepository.VideoQuality.AUTO
+                )
+            },
+            onRelease = { _ ->
+                viewModel.stopVideo(uiState.videoTracks[page])
+            }
+        )
     }
 }
