@@ -4,10 +4,17 @@ import android.os.Environment
 import android.util.Log
 import com.millicast.LayerData
 import com.millicast.Subscriber
+import io.dolby.rtscomponentkit.data.MCLogger
 import io.dolby.rtscomponentkit.domain.StreamingData
+import java.time.Instant
+import java.time.ZoneId
+import java.time.ZoneOffset
+import java.time.format.DateTimeFormatter
+import java.time.temporal.ChronoUnit
 import java.util.Optional
 
 internal const val TAG = "RTSSubscriptionManager"
+
 interface SubscriptionManagerInterface {
     suspend fun connect(streamingData: StreamingData): Boolean
     suspend fun startSubscribe(): Boolean
@@ -20,8 +27,10 @@ class SubscriptionManager(
 ) : SubscriptionManagerInterface {
     private var subscriber: Subscriber? = null
     private var streamingData: StreamingData? = null
+    private var logger: MCLogger? = null
 
     override suspend fun connect(streamingData: StreamingData): Boolean {
+        logger = null
         subscriber = Subscriber.createSubscriber(subscriptionListener)
         if (subscriber == null) {
             Log.d(TAG, "Failed! Subscriber is not available.")
@@ -41,7 +50,7 @@ class SubscriptionManager(
             val credentials = it.credentials
             credentials.streamName = streamingData.streamName
             credentials.accountId = streamingData.accountId
-            if(streamingData.useDevEnv) {
+            if (streamingData.useDevEnv) {
                 credentials.apiUrl = "https://director-dev.millicast.com/api/director/subscribe"
             } else {
                 credentials.apiUrl = "https://director.millicast.com/api/director/subscribe"
@@ -65,16 +74,22 @@ class SubscriptionManager(
         var success = true
         try {
             streamingData?.let { sd ->
+                val path = Environment.getExternalStoragePublicDirectory(
+                    Environment.DIRECTORY_DOWNLOADS
+                ).absolutePath
+                val formatter = DateTimeFormatter.ISO_LOCAL_DATE_TIME.withZone(
+                    ZoneId.from(
+                    ZoneOffset.UTC))
+                val timeStamp = formatter.format(Instant.now().truncatedTo(ChronoUnit.SECONDS)).replace(':','-')
                 // Set Subscriber Options
                 val currentOptionSub = Subscriber.Option().apply {
                     autoReconnect = true
                     disableAudio = sd.disableAudio
                     forcePlayoutDelay = sd.useDevEnv
                     videoJitterMinimumDelayMs = Optional.of(sd.videoJitterMinimumDelayMs)
-                    if(sd.rtcLogs) {
-                        rtcEventLogOutputPath = Optional.of(Environment.getExternalStoragePublicDirectory(
-                            Environment.DIRECTORY_DOWNLOADS
-                        ).absolutePath + "/${System.currentTimeMillis()}.proto")
+                    if (sd.rtcLogs) {
+                        rtcEventLogOutputPath = Optional.of(path + "/${timeStamp}.proto")
+                        logger = MCLogger(path = path, timeStamp = timeStamp.toString())
                     }
                 }
 
