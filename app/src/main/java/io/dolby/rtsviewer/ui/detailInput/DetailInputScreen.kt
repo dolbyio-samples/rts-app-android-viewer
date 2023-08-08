@@ -93,28 +93,14 @@ fun DetailInputScreen(
         if (!viewModel.shouldPlayStream) {
             showMissingStreamDetailDialog = true
         } else {
-            viewModel.connect()
-
+            val sd = viewModel.connect()
             coroutineScope.launch(Dispatchers.Main) {
-                val jb = if (videoJitterMinimumDelayMs.value.isNotBlank()) {
-                    videoJitterMinimumDelayMs.value.toInt()
-                } else {
-                    0
-                }
-                onPlayClick(
-                    StreamingData(
-                        streamName = streamName.value,
-                        accountId = accountId.value,
-                        useDevEnv = useDevEnv.value,
-                        disableAudio = disableAudio.value,
-                        rtcLogs = rtcLogs.value,
-                        videoJitterMinimumDelayMs = jb
-                    )
-                )
+                onPlayClick(sd)
                 viewModel.resetStreamIfDemo()
             }
         }
     }
+
     LaunchedEffect(Unit) {
         focusRequester.requestFocus()
     }
@@ -262,9 +248,13 @@ fun DetailInputScreen(
                     TextInput(
                         value = videoJitterMinimumDelayMs.value,
                         onValueChange = {
-                            viewModel.updateJitterBufferMinimumDelay(it) },
+                            viewModel.updateJitterBufferMinimumDelay(it)
+                        },
                         label = stringResource(id = R.string.jitter_buffer),
-                        keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.NumberPassword, imeAction = ImeAction.Done),
+                        keyboardOptions = KeyboardOptions(
+                            keyboardType = KeyboardType.NumberPassword,
+                            imeAction = ImeAction.Done
+                        ),
                         keyboardActions = KeyboardActions(
                             onDone = { playStream() }
                         )

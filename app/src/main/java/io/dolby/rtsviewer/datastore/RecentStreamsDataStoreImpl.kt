@@ -6,7 +6,6 @@ import io.dolby.rtscomponentkit.domain.StreamingData
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.flow.Flow
-import kotlinx.coroutines.flow.collectLatest
 import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.launch
@@ -31,13 +30,13 @@ class RecentStreamsDataStoreImpl @Inject constructor(
         }
     }
 
-    override suspend fun addStreamDetail(streamDetail: StreamingData) {
+    override suspend fun addStreamDetail(streamingData: StreamingData) {
         val addStreamJob = appCoroutineScope.launch {
             dataStore.updateData {
                 // Remove existing stream matching the new stream details
                 val matchingIndex = it.streamDetailList
                     .indexOfFirst { streamDetail ->
-                        streamDetail.streamName == streamDetail.streamName && streamDetail.accountID == streamDetail.accountID
+                        streamDetail.streamName == streamingData.streamName && streamDetail.accountID == streamingData.accountId
                     }
 
                 var builder = it.toBuilder()
@@ -52,12 +51,12 @@ class RecentStreamsDataStoreImpl @Inject constructor(
                     .setSeconds(unixTime)
                     .build()
                 val newStreamDetail = StreamDetail.newBuilder()
-                    .setStreamName(streamDetail.streamName)
-                    .setAccountID(streamDetail.accountId)
-                    .setUseDevEnv(streamDetail.useDevEnv)
-                    .setDisableAudio(streamDetail.disableAudio)
-                    .setRtcLogs(streamDetail.rtcLogs)
-                    .setVideoJitterMinimumDelayMs(streamDetail.videoJitterMinimumDelayMs)
+                    .setStreamName(streamingData.streamName)
+                    .setAccountID(streamingData.accountId)
+                    .setUseDevEnv(streamingData.useDevEnv)
+                    .setDisableAudio(streamingData.disableAudio)
+                    .setRtcLogs(streamingData.rtcLogs)
+                    .setVideoJitterMinimumDelayMs(streamingData.videoJitterMinimumDelayMs)
                     .setLastUsedDate(timeStamp)
                     .build()
                 builder = builder.addStreamDetail(0, newStreamDetail)
