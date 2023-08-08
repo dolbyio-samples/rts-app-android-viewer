@@ -364,7 +364,7 @@ class StreamingViewModel @Inject constructor(
                 statisticsValuesList.add(Pair(R.string.statisticsScreen_fps, "${it.toLong()}"))
             }
 
-            statistics.audio?.bytesReceived?.let {
+            statistics.video?.bytesReceived?.let {
                 statisticsValuesList.add(
                     Pair(
                         R.string.statisticsScreen_videoTotal,

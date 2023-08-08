@@ -6,6 +6,7 @@ import com.millicast.LayerData
 import com.millicast.Subscriber
 import io.dolby.rtscomponentkit.data.MCLogger
 import io.dolby.rtscomponentkit.domain.StreamingData
+import java.io.File
 import java.time.Instant
 import java.time.ZoneId
 import java.time.ZoneOffset
@@ -69,6 +70,20 @@ class SubscriptionManager(
         return success
     }
 
+    private fun createDirectoryIfNotExists(directoryPath: String) {
+        val directory = File(directoryPath)
+        if (!directory.exists()) {
+            val isDirectoryCreated = directory.mkdirs()
+            if (isDirectoryCreated) {
+                Log.d(TAG, "Directory was successfully created")
+            } else {
+                Log.d(TAG, "Directory creation failed")
+            }
+        } else {
+            Log.d(TAG, "Directory already exists")
+        }
+    }
+
     override suspend fun startSubscribe(): Boolean {
         // Subscribe to Millicast
         var success = true
@@ -76,11 +91,15 @@ class SubscriptionManager(
             streamingData?.let { sd ->
                 val path = Environment.getExternalStoragePublicDirectory(
                     Environment.DIRECTORY_DOWNLOADS
-                ).absolutePath
+                ).absolutePath + "/Ultra"
+                createDirectoryIfNotExists(path)
                 val formatter = DateTimeFormatter.ISO_LOCAL_DATE_TIME.withZone(
                     ZoneId.from(
-                    ZoneOffset.UTC))
-                val timeStamp = formatter.format(Instant.now().truncatedTo(ChronoUnit.SECONDS)).replace(':','-')
+                        ZoneOffset.UTC
+                    )
+                )
+                val timeStamp = formatter.format(Instant.now().truncatedTo(ChronoUnit.SECONDS))
+                    .replace(':', '-')
                 // Set Subscriber Options
                 val currentOptionSub = Subscriber.Option().apply {
                     autoReconnect = true
