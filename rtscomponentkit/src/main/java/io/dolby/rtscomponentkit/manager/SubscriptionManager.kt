@@ -101,7 +101,7 @@ class SubscriptionManager(
             success = false
             Log.d(TAG, "${e.message}")
         }
-        enableStatsSub(10000)
+        enableStatsSub(1000)
         return success
     }
 

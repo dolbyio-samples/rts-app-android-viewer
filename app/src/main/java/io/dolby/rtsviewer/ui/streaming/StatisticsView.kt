@@ -1,6 +1,7 @@
 package io.dolby.rtsviewer.ui.streaming
 
 import android.content.Context
+import android.widget.Toast
 import androidx.compose.foundation.ExperimentalFoundationApi
 import androidx.compose.foundation.background
 import androidx.compose.foundation.combinedClickable
@@ -52,7 +53,15 @@ fun StatisticsView(viewModel: StreamingViewModel, modifier: Modifier = Modifier)
                 shape = MaterialTheme.shapes.large
             )
             .padding(0.dp)
-            .semantics { contentDescription = statisticsTitle },
+            .semantics { contentDescription = statisticsTitle }
+            .combinedClickable(
+                onLongClick = {
+                    // https://developer.android.com/develop/ui/views/touch-and-input/copy-paste
+                    localClipboardManager.setText(AnnotatedString(formattedText(context, statistics)))
+                    Toast.makeText(context, "Stats copied", Toast.LENGTH_SHORT).show()
+                },
+                onClick = {},
+            ),
         contentAlignment = Alignment.TopEnd
     ) {
         Row {
@@ -78,14 +87,7 @@ fun StatisticsView(viewModel: StreamingViewModel, modifier: Modifier = Modifier)
                     shape = MaterialTheme.shapes.large
                 )
                 .padding(0.dp)
-                .semantics { contentDescription = statisticsTitle }
-                .combinedClickable(
-                    onLongClick = {
-                        // https://developer.android.com/develop/ui/views/touch-and-input/copy-paste
-                        localClipboardManager.setText(AnnotatedString(formattedText(context, statistics)))
-                    },
-                    onClick = {},
-                ),
+                .semantics { contentDescription = statisticsTitle },
             contentAlignment = Alignment.TopEnd
         ) {
             Column(
