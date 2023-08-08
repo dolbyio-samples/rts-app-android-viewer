@@ -71,13 +71,16 @@ class StreamingViewModel @Inject constructor(
 
     init {
         viewModelScope.launch {
-            if (_uiState.value.initiateConnection || (!_uiState.value.connecting && (_uiState.value.error != null || _uiState.value.disconnected))) {
-                // TODO: Figure out why this is firing again before state is changed to connecting
-                _uiState.update {
-                    it.copy(initiateConnection = false)
+            tickerFlow(5.seconds).onEach {
+                Log.d(">>>>>>", _uiState.value.toString())
+                if (_uiState.value.initiateConnection || (!_uiState.value.connecting && (_uiState.value.error != null || _uiState.value.disconnected))) {
+                    // TODO: Figure out why this is firing again before state is changed to connecting
+                    _uiState.update {
+                        it.copy(initiateConnection = false)
+                    }
+                    connect()
                 }
-                connect()
-            }
+            }.launchIn(viewModelScope)
         }
 
         viewModelScope.launch {
@@ -260,7 +263,12 @@ class StreamingViewModel @Inject constructor(
         }
 
         withContext(dispatcherProvider.main) {
-            _uiState.update { it.copy(accountId = streamingData.accountId, streamName = streamingData.streamName) }
+            _uiState.update {
+                it.copy(
+                    accountId = streamingData.accountId,
+                    streamName = streamingData.streamName
+                )
+            }
         }
         repository.connect(streamingData)
     }
@@ -446,7 +454,12 @@ class StreamingViewModel @Inject constructor(
             }
 
             statistics.timestamp?.let {
-                statisticsValuesList.add(Pair(R.string.statisticsScreen_timestamp, String.format("%.0f", it)))
+                statisticsValuesList.add(
+                    Pair(
+                        R.string.statisticsScreen_timestamp,
+                        String.format("%.0f", it)
+                    )
+                )
             }
 
             statistics.video?.codecName?.let {
