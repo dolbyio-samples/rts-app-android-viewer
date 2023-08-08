@@ -60,27 +60,28 @@ class DetailInputViewModel @Inject constructor(
         }
     }
 
-    fun connect() {
-        defaultCoroutineScope.launch {
-            val jb = if (videoJitterMinimumDelayMs.value.isNotBlank()) {
-                videoJitterMinimumDelayMs.value.toInt()
-            } else {
-                0
-            }
-            val sd = StreamingData(
-                streamName = streamName.value,
-                accountId = accountId.value,
-                useDevEnv = useDevEnv.value,
-                disableAudio = disableAudio.value,
-                rtcLogs = rtcLogs.value,
-                videoJitterMinimumDelayMs = jb
-            )
+    fun connect() : StreamingData {
+        val jb = if (videoJitterMinimumDelayMs.value.isNotBlank()) {
+            videoJitterMinimumDelayMs.value.toInt()
+        } else {
+            0
+        }
+        val sd = StreamingData(
+            streamName = streamName.value,
+            accountId = accountId.value,
+            useDevEnv = useDevEnv.value,
+            disableAudio = disableAudio.value,
+            rtcLogs = rtcLogs.value,
+            videoJitterMinimumDelayMs = jb
+        )
 
+        defaultCoroutineScope.launch {
             if (!isDemo) {
                 // Save the stream detail
                 recentStreamsDataStore.addStreamDetail(sd)
             }
         }
+        return sd
     }
 
     fun resetStreamIfDemo() {
@@ -88,8 +89,8 @@ class DetailInputViewModel @Inject constructor(
             isDemo = false
             _streamName.value = ""
             _accountId.value = ""
-            _useDevEnv.value = false
-            _disableAudio.value = false
+            _useDevEnv.value = true
+            _disableAudio.value = true
             _rtcLogs.value = false
             _videoJitterMinimumDelayMs.value = "0"
         }
@@ -118,11 +119,11 @@ class DetailInputViewModel @Inject constructor(
     }
 
     fun updateStreamName(name: String) {
-        _streamName.value = name.trimEnd()
+        _streamName.value = name.trim()
     }
 
     fun updateAccountId(id: String) {
-        _accountId.value = id.trimEnd()
+        _accountId.value = id.trim()
     }
 
     fun updateUseDevEnv(state: Boolean) {
