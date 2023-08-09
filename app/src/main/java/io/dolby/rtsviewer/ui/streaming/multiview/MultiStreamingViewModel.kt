@@ -125,9 +125,12 @@ class MultiStreamingViewModel @Inject constructor(
         _uiState.update { it.copy(showStatistics = show) }
     }
 
-    fun streamingStatistics(): List<Pair<Int, String>>? {
-        val selectedId = uiState.value.videoTracks.find { it.sourceId == uiState.value.selectedVideoTrackId }?.id
-        val selectedStatistics = uiState.value.statisticsData?.video?.firstOrNull { it.mid == selectedId }
-        return inboundRtpVideoDataToList(selectedStatistics)
+    fun streamingStatistics(mid: String?): List<Pair<Int, String>> {
+        val selectedTrackStatistics =
+            uiState.value.statisticsData?.video?.firstOrNull { it.mid == mid }
+        val selectedTrackStatisticsAudio = uiState.value.statisticsData?.audio?.firstOrNull()
+        val list = inboundRtpVideoDataToList(selectedTrackStatistics).toMutableList()
+        list.addAll(inboundRtpVideoDataToList(selectedTrackStatisticsAudio))
+        return list
     }
 }

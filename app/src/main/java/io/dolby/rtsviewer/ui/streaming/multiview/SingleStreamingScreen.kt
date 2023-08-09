@@ -93,10 +93,15 @@ fun SingleStreamingScreen(
             )
 
             if (viewModel.uiState.value.showStatistics && viewModel.uiState.value.statisticsData != null) {
-                val statistics = viewModel.streamingStatistics()
+                val statistics =
+                    viewModel.streamingStatistics(uiState.videoTracks[pagerState.currentPage].id)
                 StatisticsView(
                     statistics = statistics,
-                    updateStatistics = { showStatistics: Boolean -> viewModel.updateStatistics(showStatistics)},
+                    updateStatistics = { showStatistics: Boolean ->
+                        viewModel.updateStatistics(
+                            showStatistics
+                        )
+                    },
                     modifier = Modifier
                         .align(Alignment.BottomStart)
                         .padding(horizontal = 22.dp, vertical = 15.dp)
