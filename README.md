@@ -89,7 +89,7 @@ The known issues of this sample app can be found [here](KNOWN-ISSUES.md).
 
 ## License
 
-The Dolby.io Realtime Streaming Monitor sample and its repository are licensed under the MIT License.
+The Dolby.io Realtime Streaming Monitor sample and its repository are licensed under the [MIT License](https://github.com/dolbyio-samples/rts-app-android-viewer/blob/main/LICENSE).
 
 ## More resources
 
