@@ -107,7 +107,7 @@ class SubscriptionManager(
                     forcePlayoutDelay = sd.useDevEnv
                     videoJitterMinimumDelayMs = Optional.of(sd.videoJitterMinimumDelayMs)
                     if (sd.rtcLogs) {
-                        rtcEventLogOutputPath = Optional.of(path + "/${timeStamp}.proto")
+                        rtcEventLogOutputPath = Optional.of(path + "/${timeStamp}_rtclogs.proto")
                         logger = MCLogger(path = path, timeStamp = timeStamp.toString())
                     }
                 }
