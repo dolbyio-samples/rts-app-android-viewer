@@ -4,7 +4,6 @@ import androidx.compose.runtime.Composable
 import androidx.navigation.NavHostController
 import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
-import io.dolby.rtscomponentkit.domain.StreamingData
 import io.dolby.rtsviewer.ui.detailInput.DetailInputScreen
 import io.dolby.rtsviewer.ui.savedStreams.SavedStreamScreen
 import io.dolby.rtsviewer.ui.streaming.StreamingScreen
