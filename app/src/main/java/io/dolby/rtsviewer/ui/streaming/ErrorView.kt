@@ -59,3 +59,23 @@ fun ErrorView(error: Error) {
         }
     }
 }
+
+@Composable
+fun ErrorView(error: String) {
+    Column(
+        horizontalAlignment = Alignment.CenterHorizontally,
+        verticalArrangement = Arrangement.Center,
+        modifier = Modifier
+            .fillMaxSize()
+            .background(MaterialTheme.colors.background.copy(alpha = 0.75F))
+    ) {
+        Text(
+            text = error,
+            style = MaterialTheme.typography.h2,
+            color = MaterialTheme.colors.onPrimary,
+            textAlign = TextAlign.Center
+        )
+
+        Spacer(modifier = Modifier.height(8.dp))
+    }
+}

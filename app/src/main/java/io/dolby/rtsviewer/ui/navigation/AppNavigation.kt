@@ -6,6 +6,7 @@ import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
 import io.dolby.rtsviewer.ui.detailInput.DetailInputScreen
 import io.dolby.rtsviewer.ui.savedStreams.SavedStreamScreen
+import io.dolby.rtsviewer.ui.streaming.ListViewScreen
 import io.dolby.rtsviewer.ui.streaming.StreamingScreen
 
 @Composable
@@ -36,7 +37,8 @@ fun AppNavigation(navController: NavHostController) {
             if (streamName.isNullOrEmpty() || accountId.isNullOrEmpty()) {
                 throw IllegalArgumentException()
             }
-            StreamingScreen(onBack = { navController.popBackStack() })
+//            StreamingScreen(onBack = { navController.popBackStack() })
+            ListViewScreen(onBack = { navController.popBackStack() })
         }
 
         composable(

@@ -25,6 +25,7 @@ import dagger.hilt.InstallIn
 import dagger.hilt.android.qualifiers.ApplicationContext
 import dagger.hilt.components.SingletonComponent
 import io.dolby.rtscomponentkit.data.MillicastSdk
+import io.dolby.rtscomponentkit.data.MultiStreamingRepository
 import io.dolby.rtscomponentkit.data.RTSViewerDataStore
 import io.dolby.rtscomponentkit.manager.SubscriptionManager
 import io.dolby.rtscomponentkit.manager.SubscriptionManagerInterface
@@ -58,6 +59,13 @@ object DataModule {
         @ApplicationContext context: Context,
         millicastSdk: MillicastSdk
     ): RTSViewerDataStore = RTSViewerDataStore(context, millicastSdk)
+
+    @Provides
+    @Singleton
+    fun provideMultiStreamingDataStore(
+        @ApplicationContext context: Context,
+        millicastSdk: MillicastSdk
+    ): MultiStreamingRepository = MultiStreamingRepository(context, millicastSdk)
 
     @Provides
     @Singleton
