@@ -4,6 +4,7 @@ import android.util.Log
 import androidx.compose.foundation.ExperimentalFoundationApi
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
+import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.fillMaxHeight
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.lazy.grid.GridCells
@@ -73,35 +74,34 @@ fun ListViewScreen(viewModel: MultiStreamingViewModel = hiltViewModel(), onBack:
                         modifier = Modifier.align(Alignment.Center)
                     ) {
                         SetupVolumeControlAudioStream()
-                        LazyVerticalGrid(
-                            columns = GridCells.Fixed(count = 2),
-                            modifier = Modifier
-                                .fillMaxHeight()
-                                .padding(top = 5.dp),
-                            verticalArrangement = Arrangement.spacedBy(5.dp),
-                            horizontalArrangement = Arrangement.spacedBy(5.dp),
-                        ) {
-                            item(span = { GridItemSpan(2) }) {
-                                AndroidView(
-                                    factory = { context -> VideoRenderer(context) },
-                                    update = { view ->
-                                        view.setScalingType(RendererCommon.ScalingType.SCALE_ASPECT_FIT)
-                                        uiState.videoTracks.firstOrNull()?.videoTrack?.setRenderer(
-                                            view
+                        Column {
+                            AndroidView(
+                                factory = { context -> VideoRenderer(context) },
+                                update = { view ->
+                                    view.setScalingType(RendererCommon.ScalingType.SCALE_ASPECT_FIT)
+                                    uiState.videoTracks.firstOrNull()?.videoTrack?.setRenderer(
+                                        view
+                                    )
+                                }
+                            )
+                            LazyVerticalGrid(
+                                columns = GridCells.Fixed(count = 2),
+                                modifier = Modifier
+                                    .fillMaxHeight()
+                                    .padding(top = 5.dp),
+                                verticalArrangement = Arrangement.spacedBy(5.dp),
+                                horizontalArrangement = Arrangement.spacedBy(5.dp),
+                            ) {
+                                if (uiState.videoTracks.size > 1) {
+                                    items(items = uiState.videoTracks.drop(1)) { videoTrack ->
+                                        AndroidView(
+                                            factory = { context -> VideoRenderer(context) },
+                                            update = { view ->
+                                                view.setScalingType(RendererCommon.ScalingType.SCALE_ASPECT_FIT)
+                                                videoTrack.videoTrack.setRenderer(view)
+                                            }
                                         )
                                     }
-                                )
-                            }
-
-                            if (uiState.videoTracks.size > 1) {
-                                items(items = uiState.videoTracks.drop(1)) { videoTrack ->
-                                    AndroidView(
-                                        factory = { context -> VideoRenderer(context) },
-                                        update = { view ->
-                                            view.setScalingType(RendererCommon.ScalingType.SCALE_ASPECT_FIT)
-                                            videoTrack.videoTrack.setRenderer(view)
-                                        }
-                                    )
                                 }
                             }
                         }
