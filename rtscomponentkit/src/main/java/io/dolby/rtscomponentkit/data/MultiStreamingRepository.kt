@@ -5,6 +5,7 @@ import android.util.Log
 import com.millicast.AudioTrack
 import com.millicast.LayerData
 import com.millicast.Subscriber
+import com.millicast.Subscriber.ProjectionData
 import com.millicast.VideoTrack
 import io.dolby.rtscomponentkit.domain.StreamingData
 import kotlinx.coroutines.flow.MutableStateFlow
@@ -19,23 +20,39 @@ data class MultiStreamingData(
     val videoTracks: List<Video> = emptyList(),
     val audioTracks: List<Audio> = emptyList(),
     val viewerCount: Int = 0,
+    val trackInfos: List<TrackInfo> = emptyList(),
     val error: String? = null
 ) {
     data class Video(val id: String?, val videoTrack: VideoTrack)
     data class Audio(val id: String?, val audioTrack: AudioTrack)
 
-    fun appendAndCopy(videoTrack: VideoTrack, id: Optional<String>): MultiStreamingData {
+    data class TrackInfo(val mediaType: String, val trackId: String, val sourceId: String)
+
+    fun appendVideoTrackAndCopy(videoTrack: VideoTrack, mid: Optional<String>): MultiStreamingData {
         val videoTracks = videoTracks.toMutableList().apply {
-            add(Video(id.getOrNull(), videoTrack))
+            add(Video(mid.getOrNull(), videoTrack))
         }
         return copy(videoTracks = videoTracks)
     }
 
-    fun appendAndCopy(audioTrack: AudioTrack, id: Optional<String>): MultiStreamingData {
+    fun appendVideoTrackAndCopy(audioTrack: AudioTrack, id: Optional<String>): MultiStreamingData {
         val audioTracks = audioTracks.toMutableList().apply {
             add(Audio(id.getOrNull(), audioTrack))
         }
         return copy(audioTracks = audioTracks)
+    }
+
+    fun getTrackInfoOrNull(): TrackInfo? {
+        Log.d("===>", "get track info size: ${trackInfos.size}")
+        return trackInfos.firstOrNull()
+    }
+
+    fun removeTrackInfoAndClone(trackInfo: TrackInfo): MultiStreamingData {
+        Log.d("===>", "before remove track info size: ${trackInfos.size}")
+        val mutableTrackInfos = trackInfos.toMutableList()
+        mutableTrackInfos.remove(trackInfo)
+        Log.d("===>", "after remove track info size: ${mutableTrackInfos.size}")
+        return copy(trackInfos = mutableTrackInfos)
     }
 }
 
@@ -136,7 +153,7 @@ class MultiStreamingRepository(context: Context, millicastSdk: MillicastSdk) {
         }
 
         override fun onSubscribed() {
-            TODO("Not yet implemented")
+            Log.d(TAG, "onSubscribed")
         }
 
         override fun onSubscribedError(p0: String?) {
@@ -144,13 +161,27 @@ class MultiStreamingRepository(context: Context, millicastSdk: MillicastSdk) {
         }
 
         override fun onTrack(p0: VideoTrack, p1: Optional<String>) {
-            Log.d(TAG, "onVideoTrack: ${p1.getOrNull()}, $p0")
-            data.update { data -> data.appendAndCopy(p0, p1) }
+            val mid = p1.getOrNull()
+            Log.d(TAG, "onVideoTrack: $mid, $p0")
+            data.update { data ->
+                val track = data.getTrackInfoOrNull()?.let { trackInfo ->
+                    val projectionData = ProjectionData().also {
+                        it.mid = mid
+                        it.trackId = trackInfo.trackId
+                        it.media = trackInfo.mediaType
+                        it.layer = null
+                    }
+                    subscriber?.project(trackInfo.sourceId, arrayListOf(projectionData))
+                    val tempTrackInfos = data.removeTrackInfoAndClone(trackInfo)
+                    tempTrackInfos.appendVideoTrackAndCopy(p0, p1)
+                } ?: data.appendVideoTrackAndCopy(p0, p1)
+                track
+            }
         }
 
         override fun onTrack(p0: AudioTrack, p1: Optional<String>) {
             Log.d(TAG, "onAudioTrack: ${p1.getOrNull()}, $p0")
-            data.update { data -> data.appendAndCopy(p0, p1) }
+            data.update { data -> data.appendVideoTrackAndCopy(p0, p1) }
         }
 
         override fun onFrameMetadata(p0: Int, p1: Int, p2: ByteArray?) {
@@ -159,6 +190,33 @@ class MultiStreamingRepository(context: Context, millicastSdk: MillicastSdk) {
 
         override fun onActive(p0: String, p1: Array<out String>, p2: Optional<String>) {
             Log.d(TAG, "onActive: $p0, $p1, ${p2.getOrNull()}")
+            p1.forEach { trackInfo ->
+                Log.d(TAG, "track: $trackInfo")
+                /*
+                mediaType (p1[0])
+                trackId (p1[1])
+                sourceId (p2)
+                 */
+                val trackInfoSplit = trackInfo.split("/")
+                trackInfoSplit.firstOrNull()?.let { mediaType ->
+                    Log.d(TAG, "mediaType: $mediaType")
+                    subscriber?.addRemoteTrack(mediaType)
+                    val mid = p2.getOrNull()
+                    if (mediaType == "video" && mid != null) {
+                        data.update { data ->
+                            data.copy(trackInfos = data.trackInfos.toMutableList().also {
+                                it.add(
+                                    MultiStreamingData.TrackInfo(
+                                        mediaType,
+                                        trackInfoSplit[1],
+                                        mid
+                                    )
+                                )
+                            })
+                        }
+                    }
+                }
+            }
         }
 
         override fun onInactive(p0: String?, p1: Optional<String>?) {
@@ -166,7 +224,7 @@ class MultiStreamingRepository(context: Context, millicastSdk: MillicastSdk) {
         }
 
         override fun onStopped() {
-            TODO("Not yet implemented")
+            Log.d(TAG, "onStopped")
         }
 
         override fun onVad(p0: String?, p1: Optional<String>?) {
