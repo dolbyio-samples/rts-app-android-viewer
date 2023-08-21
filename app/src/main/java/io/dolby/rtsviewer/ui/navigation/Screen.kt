@@ -27,5 +27,22 @@ sealed class Screen(val route: String) {
         }
     }
 
+    object MultiStreamingScreen :
+        Screen(route = "multistreaming/streamName={streamName}&accountId={accountId}") {
+        const val ARG_STREAM_NAME = "streamName"
+        const val ARG_ACCOUNT_ID = "accountId"
+        const val ARG_USE_DEV_ENV = "useDevEnv"
+        const val ARG_DISABLE_AUDIO = "disableAudio"
+        const val ARG_RTC_LOGS = "rtcLogs"
+        const val ARG_VIDEO_JITTER = "videoJitter"
+        fun route(model: StreamingData): String {
+            val streamName = model.streamName
+            val accountId = model.accountId
+            return "multistreaming/streamName=$streamName&accountId=$accountId"
+        }
+    }
+
+    object SingleStreamingScreen : Screen(route = "single")
+
     object SavedStreams : Screen(route = "savedStreams")
 }

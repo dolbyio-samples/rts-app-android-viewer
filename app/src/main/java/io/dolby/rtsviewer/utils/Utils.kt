@@ -50,8 +50,12 @@ fun Context.findActivity(): Activity? {
     return null
 }
 @Composable
-fun isTV(): Boolean {
+fun isTVDeclarative(): Boolean {
     val context = LocalContext.current
+    return context.packageManager.hasSystemFeature(PackageManager.FEATURE_LEANBACK)
+}
+
+fun isTV(context: Context): Boolean {
     return context.packageManager.hasSystemFeature(PackageManager.FEATURE_LEANBACK)
 }
 

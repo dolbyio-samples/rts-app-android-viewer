@@ -6,8 +6,9 @@ import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
 import io.dolby.rtsviewer.ui.detailInput.DetailInputScreen
 import io.dolby.rtsviewer.ui.savedStreams.SavedStreamScreen
-import io.dolby.rtsviewer.ui.streaming.ListViewScreen
-import io.dolby.rtsviewer.ui.streaming.StreamingScreen
+import io.dolby.rtsviewer.ui.streaming.multiview.ListViewScreen
+import io.dolby.rtsviewer.ui.streaming.SingleStreamingScreen
+import io.dolby.rtsviewer.utils.isTV
 
 @Composable
 fun AppNavigation(navController: NavHostController) {
@@ -21,7 +22,11 @@ fun AppNavigation(navController: NavHostController) {
             DetailInputScreen(
                 initialStreamName = null,
                 onPlayClick = {
-                    navController.navigate(Screen.StreamingScreen.route(it))
+                    if (isTV(navController.context)) {
+                        navController.navigate(Screen.StreamingScreen.route(it))
+                    } else {
+                        navController.navigate(Screen.MultiStreamingScreen.route(it))
+                    }
                 },
                 onSavedStreamsClick = {
                     navController.navigate(Screen.SavedStreams.route)
@@ -38,7 +43,19 @@ fun AppNavigation(navController: NavHostController) {
                 throw IllegalArgumentException()
             }
 //            StreamingScreen(onBack = { navController.popBackStack() })
-            ListViewScreen(onBack = { navController.popBackStack() })
+            ListViewScreen(
+                onBack = { navController.popBackStack() },
+                onMainClick = { navController.navigate(Screen.SingleStreamingScreen.route) })
+        }
+
+        composable(
+            route = Screen.SingleStreamingScreen.route
+        ) {
+            SingleStreamingScreen(
+                onBack = {
+                    navController.popBackStack()
+                }
+            )
         }
 
         composable(

@@ -1,5 +1,6 @@
-package io.dolby.rtsviewer.ui.streaming
+package io.dolby.rtsviewer.ui.streaming.multiview
 
+import android.util.Log
 import androidx.lifecycle.SavedStateHandle
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
@@ -33,12 +34,12 @@ class MultiStreamingViewModel @Inject constructor(
             connect()
             repository.data.collect { data ->
                 update(data)
+                Log.d("===>", "viewModel: ${data.videoTracks.size}")
             }
         }
     }
 
     override fun onCleared() {
-        repository.disconnect()
     }
 
     private fun getStreamName(handle: SavedStateHandle): String =
@@ -48,39 +49,41 @@ class MultiStreamingViewModel @Inject constructor(
         handle[Screen.StreamingScreen.ARG_ACCOUNT_ID] ?: throw IllegalArgumentException()
 
     private suspend fun connect() {
-        val streamName = getStreamName(savedStateHandle)
+        if (!repository.data.value.isSubscribed) {
+            val streamName = getStreamName(savedStateHandle)
 
-        val sd = recentStreamsDataStore.recentStream(streamName)
-        val streamingData = if (sd != null) {
-            StreamingData(
-                streamName = streamName,
-                accountId = sd.accountID,
-                useDevEnv = sd.useDevEnv,
-                disableAudio = sd.disableAudio,
-                rtcLogs = sd.rtcLogs,
-                videoJitterMinimumDelayMs = sd.videoJitterMinimumDelayMs
-            )
-        } else {
-            StreamingData(
-                streamName = streamName,
-                accountId = getAccountId(savedStateHandle),
-                useDevEnv = false,
-                disableAudio = false,
-                rtcLogs = false,
-                videoJitterMinimumDelayMs = 0
-            )
-        }
-
-        withContext(dispatcherProvider.main) {
-            _uiState.update {
-                it.copy(
-                    inProgress = true,
-                    accountId = streamingData.accountId,
-                    streamName = streamingData.streamName
+            val streamDetail = recentStreamsDataStore.recentStream(streamName)
+            val streamingData = if (streamDetail != null) {
+                StreamingData(
+                    streamName = streamName,
+                    accountId = streamDetail.accountID,
+                    useDevEnv = streamDetail.useDevEnv,
+                    disableAudio = streamDetail.disableAudio,
+                    rtcLogs = streamDetail.rtcLogs,
+                    videoJitterMinimumDelayMs = streamDetail.videoJitterMinimumDelayMs
+                )
+            } else {
+                StreamingData(
+                    streamName = streamName,
+                    accountId = getAccountId(savedStateHandle),
+                    useDevEnv = false,
+                    disableAudio = false,
+                    rtcLogs = false,
+                    videoJitterMinimumDelayMs = 0
                 )
             }
+
+            withContext(dispatcherProvider.main) {
+                _uiState.update {
+                    it.copy(
+                        inProgress = true,
+                        accountId = streamingData.accountId,
+                        streamName = streamingData.streamName
+                    )
+                }
+            }
+            repository.connect(streamingData)
         }
-        repository.connect(streamingData)
     }
 
     private suspend fun update(data: MultiStreamingData) = withContext(dispatcherProvider.main) {
@@ -94,5 +97,13 @@ class MultiStreamingViewModel @Inject constructor(
                 )
             }
         }
+    }
+
+    private fun updateSelectedVideo(id: String?) {
+        _uiState.update { data -> data.copy(selectedVideoTrackId = id) }
+    }
+
+    fun disconnect() {
+        repository.disconnect()
     }
 }
