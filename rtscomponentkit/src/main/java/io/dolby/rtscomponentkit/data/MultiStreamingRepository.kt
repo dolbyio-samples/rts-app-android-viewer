@@ -23,7 +23,8 @@ data class MultiStreamingData(
     val viewerCount: Int = 0,
     val trackInfos: List<TrackInfo> = emptyList(),
     val error: String? = null,
-    val isSubscribed: Boolean = false
+    val isSubscribed: Boolean = false,
+    val streamingData: StreamingData? = null
 ) {
     data class Video(val id: String?, val videoTrack: VideoTrack, val sourceId: String?)
     data class Audio(val id: String?, val audioTrack: AudioTrack)
@@ -105,6 +106,7 @@ class MultiStreamingRepository(context: Context, millicastSdk: MillicastSdk) {
         Log.d(TAG, "Connecting ...")
 
         subscriber.connect()
+        _data.update { data -> data.copy(streamingData = streamingData) }
     }
 
     fun disconnect() {
@@ -221,11 +223,6 @@ class MultiStreamingRepository(context: Context, millicastSdk: MillicastSdk) {
             Log.d(TAG, "onActive: $p0, $p1, ${p2.getOrNull()}")
             p1.forEach { trackInfo ->
                 Log.d(TAG, "track: $trackInfo")
-                /*
-                mediaType (p1[0])
-                trackId (p1[1])
-                sourceId (p2)
-                 */
                 val trackInfoSplit = trackInfo.split("/")
                 trackInfoSplit.firstOrNull()?.let { mediaType ->
                     Log.d(TAG, "mediaType: $mediaType")

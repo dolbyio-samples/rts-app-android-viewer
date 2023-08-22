@@ -94,7 +94,8 @@ class MultiStreamingViewModel @Inject constructor(
                     inProgress = false,
                     videoTracks = data.videoTracks,
                     audioTracks = data.audioTracks,
-                    selectedVideoTrackId = data.selectedVideoTrackId
+                    selectedVideoTrackId = data.selectedVideoTrackId,
+                    streamName = data.streamingData?.streamName
                 )
             }
         }

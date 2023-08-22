@@ -48,7 +48,7 @@ fun ListViewScreen(
 
     Scaffold(
         topBar = {
-            TopAppBar(title = uiState.streamName.toString()) {
+            TopAppBar(title = uiState.streamName ?: screenContentDescription) {
                 onBack()
                 viewModel.disconnect()
             }
@@ -85,7 +85,6 @@ fun ListViewScreen(
                             Box(modifier = Modifier.clickable {
                                 onMainClick(uiState.videoTracks.firstOrNull()?.id)
                             }) {
-                                val selectedVideoTrackId = uiState.selectedVideoTrackId
                                 AndroidView(
                                     factory = { context ->
                                         val view = VideoRenderer(context)
@@ -101,12 +100,14 @@ fun ListViewScreen(
                                     }
                                 )
                                 Text(
-                                    text = selectedVideoTrackId ?: "Main",
+                                    text = uiState.selectedVideoTrackId ?: "Main",
                                     modifier = Modifier.align(
                                         Alignment.BottomStart
                                     )
                                 )
                             }
+                            val otherTracks = uiState.videoTracks.filter { it.sourceId != uiState.selectedVideoTrackId }
+                            Log.d("===>", "other tracks: $otherTracks, selectedSourceId = ${uiState.selectedVideoTrackId}")
                             LazyVerticalGrid(
                                 columns = GridCells.Fixed(count = 2),
                                 modifier = Modifier
@@ -115,7 +116,7 @@ fun ListViewScreen(
                                 verticalArrangement = Arrangement.spacedBy(5.dp),
                                 horizontalArrangement = Arrangement.spacedBy(5.dp),
                             ) {
-                                items(items = uiState.videoTracks.filter { it.sourceId != uiState.selectedVideoTrackId }) { videoTrack ->
+                                items(items = otherTracks) { videoTrack ->
                                     Box {
                                         AndroidView(
                                             modifier = Modifier
