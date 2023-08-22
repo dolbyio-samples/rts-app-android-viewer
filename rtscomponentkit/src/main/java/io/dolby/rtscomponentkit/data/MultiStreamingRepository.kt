@@ -19,42 +19,36 @@ import kotlin.jvm.optionals.getOrNull
 data class MultiStreamingData(
     val videoTracks: List<Video> = emptyList(),
     val audioTracks: List<Audio> = emptyList(),
-    val selectedVideoTrack: String? = null,
+    val selectedVideoTrackId: String? = null,
     val viewerCount: Int = 0,
     val trackInfos: List<TrackInfo> = emptyList(),
     val error: String? = null,
     val isSubscribed: Boolean = false
 ) {
-    data class Video(val id: String?, val videoTrack: VideoTrack)
+    data class Video(val id: String?, val videoTrack: VideoTrack, val sourceId: String?)
     data class Audio(val id: String?, val audioTrack: AudioTrack)
 
     data class TrackInfo(val mediaType: String, val trackId: String, val sourceId: String)
 
     fun appendVideoTrackAndClone(
         videoTrack: VideoTrack,
-        mid: Optional<String>
+        mid: String?,
+        sourceId: String?
     ): MultiStreamingData {
-        val selected = selectedVideoTrack ?: mid.getOrNull()
         val videoTracks = videoTracks.toMutableList().apply {
-            add(Video(mid.getOrNull(), videoTrack))
+            add(Video(mid, videoTrack, sourceId))
         }
-        return copy(videoTracks = videoTracks, selectedVideoTrack = selected)
+        return copy(videoTracks = videoTracks)
     }
 
-    fun appendAudioTrackAndClone(audioTrack: AudioTrack, id: Optional<String>): MultiStreamingData {
+    fun appendAudioTrackAndClone(audioTrack: AudioTrack, id: String?): MultiStreamingData {
         val audioTracks = audioTracks.toMutableList().apply {
-            add(Audio(id.getOrNull(), audioTrack))
+            add(Audio(id, audioTrack))
         }
         return copy(audioTracks = audioTracks)
     }
 
     fun getTrackInfoOrNull(): TrackInfo? = trackInfos.firstOrNull()
-
-//    fun removeTrackInfoAndClone(trackInfo: TrackInfo): MultiStreamingData {
-//        val mutableTrackInfos = trackInfos.toMutableList()
-//        mutableTrackInfos.remove(trackInfo)
-//        return copy(trackInfos = mutableTrackInfos)
-//    }
 
     fun updateTrackInfosAndClone(
         mediaType: String,
@@ -76,20 +70,15 @@ data class MultiStreamingData(
     fun appendOtherVideoTrackAndClone(
         trackInfo: TrackInfo,
         videoTrack: VideoTrack,
-        mid: Optional<String>
+        mid: Optional<String>,
+        sourceId: String
     ): MultiStreamingData {
         val trackInfos = trackInfos.toMutableList().apply { remove(trackInfo) }
-//        return copy(trackInfos = mutableTrackInfos)
 
-//        val selected = selectedVideoTrack ?: mid.getOrNull()
         val videoTracks = videoTracks.toMutableList().apply {
-            add(Video(mid.getOrNull(), videoTrack))
+            add(Video(mid.getOrNull(), videoTrack, sourceId))
         }
-//        return copy(videoTracks = videoTracks, selectedVideoTrack = selected)
         return copy(videoTracks = videoTracks, trackInfos = trackInfos)
-
-//        val tempTrackInfos = removeTrackInfoAndClone(trackInfo)
-//        tempTrackInfos.appendVideoTrackAndClone(p0, p1)
     }
 }
 
@@ -134,6 +123,10 @@ class MultiStreamingRepository(context: Context, millicastSdk: MillicastSdk) {
             credentials.apiUrl = "https://director.millicast.com/api/director/subscribe"
         }
         return credentials
+    }
+
+    fun updateSelectedVideoTrackId(sourceId: String?) {
+        _data.update { data -> data.copy(selectedVideoTrackId = sourceId) }
     }
 
     private class Listener(
@@ -203,27 +196,20 @@ class MultiStreamingRepository(context: Context, millicastSdk: MillicastSdk) {
             Log.d(TAG, "onVideoTrack: $mid, $p0")
             data.update { data ->
                 if (data.videoTracks.isEmpty()) {
-                    data.appendVideoTrackAndClone(p0, p1)
+                    data.appendVideoTrackAndClone(p0, mid, null)
                 } else {
                     data.getTrackInfoOrNull()?.let { trackInfo ->
                         val projectionData = createProjectionData(mid, trackInfo)
                         subscriber?.project(trackInfo.sourceId, arrayListOf(projectionData))
-                        data.appendOtherVideoTrackAndClone(trackInfo, p0, p1)
+                        data.appendOtherVideoTrackAndClone(trackInfo, p0, p1, trackInfo.sourceId)
                     } ?: data
                 }
-//                data.getTrackInfoOrNull()?.let { trackInfo ->
-//                    val projectionData = createProjectionData(mid, trackInfo)
-//                    subscriber?.project(trackInfo.sourceId, arrayListOf(projectionData))
-//                    val tempTrackInfos = data.removeTrackInfoAndClone(trackInfo)
-//                    tempTrackInfos.appendVideoTrackAndClone(p0, p1)
-////                } ?: data.appendVideoTrackAndCopy(p0, p1)
-//                } ?: data
             }
         }
 
         override fun onTrack(p0: AudioTrack, p1: Optional<String>) {
             Log.d(TAG, "onAudioTrack: ${p1.getOrNull()}, $p0")
-            data.update { data -> data.appendAudioTrackAndClone(p0, p1) }
+            data.update { data -> data.appendAudioTrackAndClone(p0, p1.getOrNull()) }
         }
 
         override fun onFrameMetadata(p0: Int, p1: Int, p2: ByteArray?) {
@@ -243,10 +229,10 @@ class MultiStreamingRepository(context: Context, millicastSdk: MillicastSdk) {
                 trackInfoSplit.firstOrNull()?.let { mediaType ->
                     Log.d(TAG, "mediaType: $mediaType")
                     subscriber?.addRemoteTrack(mediaType)
-                    val mid = p2.getOrNull()
-                    if (mediaType == "video" && mid != null) {
+                    val sourceId = p2.getOrNull()
+                    if (mediaType == "video" && sourceId != null) {
                         data.update { data ->
-                            data.updateTrackInfosAndClone(mediaType, trackInfoSplit[1], mid)
+                            data.updateTrackInfosAndClone(mediaType, trackInfoSplit[1], sourceId)
                         }
                     }
                 }

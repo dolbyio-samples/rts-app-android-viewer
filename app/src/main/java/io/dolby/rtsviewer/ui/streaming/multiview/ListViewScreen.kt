@@ -13,6 +13,7 @@ import androidx.compose.foundation.lazy.grid.LazyVerticalGrid
 import androidx.compose.foundation.lazy.grid.items
 import androidx.compose.material.CircularProgressIndicator
 import androidx.compose.material.Scaffold
+import androidx.compose.material.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
 import androidx.compose.ui.Alignment
@@ -47,7 +48,7 @@ fun ListViewScreen(
 
     Scaffold(
         topBar = {
-            TopAppBar(title = "Stream") {
+            TopAppBar(title = uiState.streamName.toString()) {
                 onBack()
                 viewModel.disconnect()
             }
@@ -81,18 +82,31 @@ fun ListViewScreen(
                     ) {
                         SetupVolumeControlAudioStream()
                         Column {
-                            AndroidView(
-                                factory = { context -> VideoRenderer(context) },
-                                update = { view ->
-                                    view.setScalingType(RendererCommon.ScalingType.SCALE_ASPECT_FIT)
-                                    uiState.videoTracks.firstOrNull()?.videoTrack?.setRenderer(
+                            Box(modifier = Modifier.clickable {
+                                onMainClick(uiState.videoTracks.firstOrNull()?.id)
+                            }) {
+                                val selectedVideoTrackId = uiState.selectedVideoTrackId
+                                AndroidView(
+                                    factory = { context ->
+                                        val view = VideoRenderer(context)
+                                        view.setZOrderOnTop(true)
+                                        view.setZOrderMediaOverlay(true)
                                         view
+                                    },
+                                    update = { view ->
+                                        view.setScalingType(RendererCommon.ScalingType.SCALE_ASPECT_FIT)
+                                        uiState.videoTracks.firstOrNull()?.videoTrack?.setRenderer(
+                                            view
+                                        )
+                                    }
+                                )
+                                Text(
+                                    text = selectedVideoTrackId ?: "Main",
+                                    modifier = Modifier.align(
+                                        Alignment.BottomStart
                                     )
-                                },
-                                modifier = Modifier.clickable {
-                                    onMainClick(uiState.videoTracks.firstOrNull()?.id)
-                                }
-                            )
+                                )
+                            }
                             LazyVerticalGrid(
                                 columns = GridCells.Fixed(count = 2),
                                 modifier = Modifier
@@ -101,18 +115,25 @@ fun ListViewScreen(
                                 verticalArrangement = Arrangement.spacedBy(5.dp),
                                 horizontalArrangement = Arrangement.spacedBy(5.dp),
                             ) {
-                                if (uiState.videoTracks.size > 1) {
-//                                    items(items = uiState.videoTracks.filter { it.id != uiState.selectedVideoTrackId }) { videoTrack ->
-                                    items(items = uiState.videoTracks.drop(1)) { videoTrack ->
+                                items(items = uiState.videoTracks.filter { it.sourceId != uiState.selectedVideoTrackId }) { videoTrack ->
+                                    Box {
                                         AndroidView(
-                                            modifier = Modifier.aspectRatio(1F),
+                                            modifier = Modifier
+                                                .aspectRatio(1F)
+                                                .clickable {
+                                                    viewModel.selectVideoTrack(videoTrack.sourceId)
+                                                },
                                             factory = { context -> VideoRenderer(context) },
                                             update = { view ->
-//                                                if (view.width > 0 && view.height > 0) {
-                                                    view.setScalingType(RendererCommon.ScalingType.SCALE_ASPECT_FIT)
-                                                    videoTrack.videoTrack.setRenderer(view)
-//                                                }
+                                                view.setScalingType(RendererCommon.ScalingType.SCALE_ASPECT_FIT)
+                                                videoTrack.videoTrack.setRenderer(view)
                                             }
+                                        )
+                                        Text(
+                                            text = videoTrack.sourceId ?: "Main",
+                                            modifier = Modifier.align(
+                                                Alignment.BottomStart
+                                            )
                                         )
                                     }
                                 }

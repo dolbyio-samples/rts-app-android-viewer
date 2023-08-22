@@ -93,17 +93,18 @@ class MultiStreamingViewModel @Inject constructor(
                 it.copy(
                     inProgress = false,
                     videoTracks = data.videoTracks,
-                    audioTracks = data.audioTracks
+                    audioTracks = data.audioTracks,
+                    selectedVideoTrackId = data.selectedVideoTrackId
                 )
             }
         }
     }
 
-    private fun updateSelectedVideo(id: String?) {
-        _uiState.update { data -> data.copy(selectedVideoTrackId = id) }
-    }
-
     fun disconnect() {
         repository.disconnect()
+    }
+
+    fun selectVideoTrack(id: String?) {
+        repository.updateSelectedVideoTrackId(id)
     }
 }
