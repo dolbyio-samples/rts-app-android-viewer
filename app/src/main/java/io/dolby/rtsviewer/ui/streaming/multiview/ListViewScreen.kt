@@ -28,6 +28,7 @@ import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import com.millicast.VideoRenderer
 import io.dolby.rtscomponentkit.ui.DolbyBackgroundBox
+import io.dolby.rtscomponentkit.ui.LiveIndicator
 import io.dolby.rtscomponentkit.ui.TopAppBar
 import io.dolby.rtsviewer.MainActivity
 import io.dolby.rtsviewer.R
@@ -140,6 +141,10 @@ fun ListViewScreen(
                                 }
                             }
                         }
+                        LiveIndicator(
+                            modifier = Modifier.align(Alignment.TopStart),
+                            on = uiState.videoTracks.isNotEmpty() || uiState.audioTracks.isNotEmpty()
+                        )
                     }
                 }
             }

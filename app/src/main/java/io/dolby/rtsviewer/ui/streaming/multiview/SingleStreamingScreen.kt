@@ -21,6 +21,7 @@ import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import com.millicast.VideoRenderer
 import io.dolby.rtscomponentkit.ui.DolbyBackgroundBox
+import io.dolby.rtscomponentkit.ui.LiveIndicator
 import io.dolby.rtscomponentkit.ui.TopAppBar
 import io.dolby.rtsviewer.R
 import io.dolby.rtsviewer.ui.streaming.multiview.MultiStreamingViewModel
@@ -65,6 +66,11 @@ fun SingleStreamingScreen(
                     )
                 }
             }
+
+            LiveIndicator(
+                modifier = Modifier.align(Alignment.TopStart),
+                on = uiState.videoTracks.isNotEmpty() || uiState.audioTracks.isNotEmpty()
+            )
         }
     }
 }
