@@ -95,7 +95,10 @@ fun ListViewScreen(
                                     },
                                     update = { view ->
                                         view.setScalingType(RendererCommon.ScalingType.SCALE_ASPECT_FIT)
-                                        uiState.videoTracks.firstOrNull()?.videoTrack?.setRenderer(
+                                        val videoTrack = uiState.selectedVideoTrackId?.let { selectedVideoTrackId ->
+                                            uiState.videoTracks.firstOrNull { it.sourceId == selectedVideoTrackId }
+                                        } ?: uiState.videoTracks.firstOrNull()
+                                        videoTrack?.videoTrack?.setRenderer(
                                             view
                                         )
                                     }
@@ -128,6 +131,7 @@ fun ListViewScreen(
                                             factory = { context -> VideoRenderer(context) },
                                             update = { view ->
                                                 view.setScalingType(RendererCommon.ScalingType.SCALE_ASPECT_FIT)
+                                                view.release()
                                                 videoTrack.videoTrack.setRenderer(view)
                                             }
                                         )
