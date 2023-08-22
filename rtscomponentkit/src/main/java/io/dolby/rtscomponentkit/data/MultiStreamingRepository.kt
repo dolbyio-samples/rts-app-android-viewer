@@ -108,6 +108,7 @@ class MultiStreamingRepository(context: Context, millicastSdk: MillicastSdk) {
     }
 
     fun disconnect() {
+        _data.update { MultiStreamingData() }
         listener?.disconnect()
     }
 
