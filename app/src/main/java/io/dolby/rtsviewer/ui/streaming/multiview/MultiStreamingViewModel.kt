@@ -34,7 +34,6 @@ class MultiStreamingViewModel @Inject constructor(
             connect()
             repository.data.collect { data ->
                 update(data)
-                Log.d("===>", "viewModel: ${data.videoTracks.size}")
             }
         }
     }
@@ -90,9 +89,6 @@ class MultiStreamingViewModel @Inject constructor(
         when {
             data.error != null -> _uiState.update { it.copy(error = data.error) }
             data.videoTracks.isNotEmpty() -> _uiState.update {
-                if (data.selectedVideoTrackId != it.selectedVideoTrackId) {
-                    it.videoTracks.forEach { videoTrack -> videoTrack.videoTrack.removeRenderer() }
-                }
                 it.copy(
                     inProgress = false,
                     videoTracks = data.videoTracks,

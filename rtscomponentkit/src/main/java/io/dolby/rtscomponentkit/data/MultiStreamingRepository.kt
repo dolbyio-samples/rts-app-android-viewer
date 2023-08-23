@@ -20,6 +20,7 @@ data class MultiStreamingData(
     val videoTracks: List<Video> = emptyList(),
     val audioTracks: List<Audio> = emptyList(),
     val selectedVideoTrackId: String? = null,
+    val selectedAudioTrackId: String? = null,
     val viewerCount: Int = 0,
     val trackInfos: List<TrackInfo> = emptyList(),
     val error: String? = null,
@@ -129,7 +130,11 @@ class MultiStreamingRepository(context: Context, millicastSdk: MillicastSdk) {
     }
 
     fun updateSelectedVideoTrackId(sourceId: String?) {
-        _data.update { data -> data.copy(selectedVideoTrackId = sourceId) }
+        _data.update { data ->
+            val oldSelectedVideoTrackId = data.selectedVideoTrackId
+            data.videoTracks.find { it.sourceId == oldSelectedVideoTrackId }?.videoTrack?.removeRenderer()
+            data.copy(selectedVideoTrackId = sourceId)
+        }
     }
 
     private class Listener(
@@ -169,11 +174,13 @@ class MultiStreamingRepository(context: Context, millicastSdk: MillicastSdk) {
             data.update {
                 it.copy(error = p1 ?: "Unknown error")
             }
-            disconnect()
         }
 
         override fun onSignalingError(p0: String?) {
-            TODO("Not yet implemented")
+            Log.d(TAG, "onSignalingError: $p0")
+            data.update {
+                it.copy(error = p0 ?: "Signaling error")
+            }
         }
 
         override fun onStatsReport(p0: RTCStatsReport?) {
@@ -191,7 +198,10 @@ class MultiStreamingRepository(context: Context, millicastSdk: MillicastSdk) {
         }
 
         override fun onSubscribedError(p0: String?) {
-            TODO("Not yet implemented")
+            Log.d(TAG, "onSubscribedError: $p0")
+            data.update {
+                it.copy(error = p0 ?: "Subscribed error")
+            }
         }
 
         override fun onTrack(p0: VideoTrack, p1: Optional<String>) {
@@ -237,8 +247,18 @@ class MultiStreamingRepository(context: Context, millicastSdk: MillicastSdk) {
             }
         }
 
-        override fun onInactive(p0: String?, p1: Optional<String>?) {
-            TODO("Not yet implemented")
+        override fun onInactive(p0: String, p1: Optional<String>) {
+            data.update { data ->
+                data.videoTracks.filter { it.sourceId == p1.getOrNull() }
+                    .forEach { it.videoTrack.removeRenderer() }
+                val temp = data.videoTracks.toMutableList()
+                temp.removeAll { it.sourceId == p1.getOrNull() }
+                return@update if (data.selectedVideoTrackId == p1.getOrNull()) {
+                    data.copy(selectedVideoTrackId = null, videoTracks = temp)
+                } else {
+                    data.copy(videoTracks = temp)
+                }
+            }
         }
 
         override fun onStopped() {

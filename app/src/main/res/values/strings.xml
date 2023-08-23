@@ -80,5 +80,6 @@
     <string name="statisticsScreen_jitter_bufffer_delay">Jitter buffer delay</string>
     <string name="statisticsScreen_jitter_bufffer_target_delay">Jitter buffer target delay</string>
     <string name="statisticsScreen_jitter_bufffer_min_delay">Jitter buffer min delay</string>
+    <string name="main_source_name">Main</string>
 
 </resources>
