@@ -1,5 +1,6 @@
 package io.dolby.rtsviewer.ui.navigation
 
+import androidx.compose.animation.ExperimentalAnimationApi
 import androidx.compose.runtime.Composable
 import androidx.navigation.NavHostController
 import androidx.navigation.compose.NavHost
@@ -10,6 +11,7 @@ import io.dolby.rtsviewer.ui.streaming.multiview.ListViewScreen
 import io.dolby.rtsviewer.ui.streaming.SingleStreamingScreen
 import io.dolby.rtsviewer.utils.isTV
 
+@OptIn(ExperimentalAnimationApi::class)
 @Composable
 fun AppNavigation(navController: NavHostController) {
     NavHost(
