@@ -11,6 +11,8 @@ import io.dolby.rtscomponentkit.domain.StreamingData
 import io.dolby.rtscomponentkit.utils.DispatcherProvider
 import io.dolby.rtsviewer.datastore.RecentStreamsDataStore
 import io.dolby.rtsviewer.ui.navigation.Screen
+import io.dolby.rtsviewer.ui.streaming.Error
+import io.dolby.rtsviewer.utils.NetworkStatusObserver
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
@@ -25,6 +27,7 @@ class MultiStreamingViewModel @Inject constructor(
     private val repository: MultiStreamingRepository,
     private val recentStreamsDataStore: RecentStreamsDataStore,
     private val dispatcherProvider: DispatcherProvider,
+    private val networkStatusObserver: NetworkStatusObserver
 ) : ViewModel() {
     private val _uiState = MutableStateFlow(MultiStreamingUiState())
     val uiState: StateFlow<MultiStreamingUiState> = _uiState.asStateFlow()
@@ -87,7 +90,14 @@ class MultiStreamingViewModel @Inject constructor(
 
     private suspend fun update(data: MultiStreamingData) = withContext(dispatcherProvider.main) {
         when {
-            data.error != null -> _uiState.update { it.copy(error = data.error) }
+            data.error != null -> {
+                networkStatusObserver.status.collect { networkStatus ->
+                    when (networkStatus) {
+                        NetworkStatusObserver.Status.Unavailable -> _uiState.update { it.copy(error = Error.NO_INTERNET_CONNECTION) }
+                        else -> _uiState.update { it.copy(error = Error.STREAM_NOT_ACTIVE) }
+                    }
+                }
+            }
             data.videoTracks.isNotEmpty() -> _uiState.update {
                 it.copy(
                     inProgress = false,
