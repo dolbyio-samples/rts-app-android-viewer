@@ -22,6 +22,10 @@ class DetailInputViewModel @Inject constructor(
     private val dispatcherProvider: DispatcherProvider,
     private val recentStreamsDataStore: RecentStreamsDataStore
 ) : ViewModel() {
+    companion object {
+        const val DEV = false
+    }
+
     private val defaultCoroutineScope = CoroutineScope(dispatcherProvider.default)
 
     private val _uiState = MutableStateFlow(DetailInputScreenUiState())
@@ -35,10 +39,10 @@ class DetailInputViewModel @Inject constructor(
 
     private var isDemo = false
 
-    private val _useDevEnv = MutableStateFlow(true)
+    private val _useDevEnv = MutableStateFlow(DEV)
     val useDevEnv = _useDevEnv.asStateFlow()
 
-    private val _disableAudio = MutableStateFlow(true)
+    private val _disableAudio = MutableStateFlow(DEV)
     val disableAudio = _disableAudio.asStateFlow()
 
     private val _rtcLogs = MutableStateFlow(false)
@@ -89,8 +93,8 @@ class DetailInputViewModel @Inject constructor(
             isDemo = false
             _streamName.value = ""
             _accountId.value = ""
-            _useDevEnv.value = true
-            _disableAudio.value = true
+            _useDevEnv.value = DEV
+            _disableAudio.value = DEV
             _rtcLogs.value = false
             _videoJitterMinimumDelayMs.value = "0"
         }

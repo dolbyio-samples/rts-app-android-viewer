@@ -105,7 +105,11 @@ class SubscriptionManager(
                     autoReconnect = true
                     disableAudio = sd.disableAudio
                     forcePlayoutDelay = sd.useDevEnv
-                    videoJitterMinimumDelayMs = Optional.of(sd.videoJitterMinimumDelayMs)
+                    videoJitterMinimumDelayMs = if(sd.useDevEnv) {
+                        Optional.of(sd.videoJitterMinimumDelayMs)
+                    } else {
+                        Optional.empty()
+                    }
                     if (sd.rtcLogs) {
                         rtcEventLogOutputPath = Optional.of(path + "/${timeStamp}_rtclogs.proto")
                         logger = MCLogger(path = path, timeStamp = timeStamp.toString())
