@@ -283,6 +283,15 @@ fun DetailInputScreen(
                 }
 
                 Spacer(modifier = modifier.height(8.dp))
+
+                StyledButton(
+                    buttonText = stringResource(id = R.string.demo_streams_button),
+                    onClickAction = {
+                        viewModel.useDemoStream()
+                        playStream()
+                    },
+                    buttonType = ButtonType.SECONDARY
+                )
             }
         }
     }
