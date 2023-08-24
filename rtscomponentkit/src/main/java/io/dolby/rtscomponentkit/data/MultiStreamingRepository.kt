@@ -356,7 +356,7 @@ class MultiStreamingRepository(context: Context, millicastSdk: MillicastSdk) {
                 it.trackId = audio
                 it.media = audio
             }
-            subscriber?.project(audioTrack.sourceId, arrayListOf(projectionData))
+            subscriber?.project(audioTrack.sourceId ?: "", arrayListOf(projectionData))
         }
     }
 
