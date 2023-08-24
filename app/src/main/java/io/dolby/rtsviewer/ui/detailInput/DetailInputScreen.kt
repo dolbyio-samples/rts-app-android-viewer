@@ -242,62 +242,9 @@ fun DetailInputScreen(
                         ),
                         maximumCharacters = MAXIMUM_CHARACTERS
                     )
-
-                    Spacer(modifier = modifier.height(8.dp))
-
-                    TextInput(
-                        value = videoJitterMinimumDelayMs.value,
-                        onValueChange = {
-                            viewModel.updateJitterBufferMinimumDelay(it)
-                        },
-                        label = stringResource(id = R.string.jitter_buffer),
-                        keyboardOptions = KeyboardOptions(
-                            keyboardType = KeyboardType.NumberPassword,
-                            imeAction = ImeAction.Done
-                        ),
-                        keyboardActions = KeyboardActions(
-                            onDone = { playStream() }
-                        )
-                    )
                 }
 
-                Column {
-                    Row {
-                        Column {
-                            Text("Dev")
-                            Switch(
-                                checked = useDevEnv.value,
-                                onCheckedChange = { viewModel.updateUseDevEnv(it) }
-                            )
-                        }
-                        Spacer(modifier = modifier.weight(1.0f))
-                        Column {
-                            Text("No Playout Delay")
-                            Switch(
-                                checked = useDevEnv.value,
-                                enabled = false,
-                                onCheckedChange = { }
-                            )
-                        }
-                    }
-                    Row {
-                        Column {
-                            Text("Disable Audio")
-                            Switch(
-                                checked = disableAudio.value,
-                                onCheckedChange = { viewModel.updateDisableAudio(it) }
-                            )
-                        }
-                        Spacer(modifier = modifier.weight(1.0f))
-                        Column {
-                            Text("RTC Logs")
-                            Switch(
-                                checked = rtcLogs.value,
-                                onCheckedChange = { viewModel.updateRtcLogs(it) }
-                            )
-                        }
-                    }
-                }
+                Spacer(modifier = modifier.height(8.dp))
 
                 StyledButton(
                     buttonText = stringResource(id = R.string.play_button),
@@ -336,15 +283,6 @@ fun DetailInputScreen(
                 }
 
                 Spacer(modifier = modifier.height(8.dp))
-
-                StyledButton(
-                    buttonText = stringResource(id = R.string.demo_streams_button),
-                    onClickAction = {
-                        viewModel.useDemoStream()
-                        playStream()
-                    },
-                    buttonType = ButtonType.SECONDARY
-                )
             }
         }
     }
