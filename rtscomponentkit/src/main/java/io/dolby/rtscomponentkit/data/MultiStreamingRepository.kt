@@ -32,7 +32,7 @@ data class MultiStreamingData(
     val streamingData: StreamingData? = null
 ) {
     class Video(val id: String?, val videoTrack: VideoTrack, val sourceId: String?)
-    class Audio(val id: String?, val audioTrack: AudioTrack)
+    class Audio(val id: String?, val audioTrack: AudioTrack, val sourceId: String?)
 
     class PendingTrack(val mediaType: String, val trackId: String, val sourceId: String)
 
@@ -48,14 +48,19 @@ data class MultiStreamingData(
         return copy(videoTracks = videoTracks)
     }
 
-    fun appendAudioTrackAndClone(audioTrack: AudioTrack, id: String?): MultiStreamingData {
+    fun appendAudioTrackAndClone(
+        audioTrack: AudioTrack,
+        id: String?,
+        sourceId: String?
+    ): MultiStreamingData {
         val audioTracks = audioTracks.toMutableList().apply {
-            add(Audio(id, audioTrack))
+            add(Audio(id, audioTrack, sourceId))
         }
         return copy(audioTracks = audioTracks)
     }
 
     fun getPendingVideoTrackInfoOrNull(): PendingTrack? = pendingVideoTracks.firstOrNull()
+    fun getPendingAudioTrackInfoOrNull(): PendingTrack? = pendingAudioTracks.firstOrNull()
 
     fun appendOtherVideoTrackAndClone(
         pendingTrack: PendingTrack,
@@ -169,7 +174,15 @@ class MultiStreamingRepository(context: Context, millicastSdk: MillicastSdk) {
     fun updateSelectedVideoTrackId(sourceId: String?) {
         _data.update { data ->
             val oldSelectedVideoTrackId = data.selectedVideoTrackId
-            data.videoTracks.find { it.sourceId == oldSelectedVideoTrackId }?.videoTrack?.removeRenderer()
+            val oldSelectedVideoTrack =
+                data.videoTracks.find { it.sourceId == oldSelectedVideoTrackId }
+            oldSelectedVideoTrack?.videoTrack?.removeRenderer()
+            val newSelectedVideoTrack = data.videoTracks.find { it.sourceId == sourceId }
+            val index = data.videoTracks.indexOf(newSelectedVideoTrack)
+            if (index < data.audioTracks.size) {
+                val newSelectedAudioTrack = data.audioTracks[index]
+                listener?.playAudio(newSelectedAudioTrack)
+            }
             data.copy(selectedVideoTrackId = sourceId)
         }
     }
@@ -259,7 +272,15 @@ class MultiStreamingRepository(context: Context, millicastSdk: MillicastSdk) {
 
         override fun onTrack(p0: AudioTrack, p1: Optional<String>) {
             Log.d(TAG, "onAudioTrack: ${p1.getOrNull()}, $p0")
-            data.update { data -> data.appendAudioTrackAndClone(p0, p1.getOrNull()) }
+            data.update { data ->
+                if (data.videoTracks.isEmpty()) {
+                    data.appendAudioTrackAndClone(p0, p1.getOrNull(), null)
+                } else {
+                    data.getPendingAudioTrackInfoOrNull()?.let { trackInfo ->
+                        data.appendAudioTrackAndClone(p0, p1.getOrNull(), trackInfo.sourceId)
+                    } ?: data
+                }
+            }
         }
 
         override fun onFrameMetadata(p0: Int, p1: Int, p2: ByteArray?) {
@@ -291,12 +312,24 @@ class MultiStreamingRepository(context: Context, millicastSdk: MillicastSdk) {
             data.update { data ->
                 data.videoTracks.filter { it.sourceId == p1.getOrNull() }
                     .forEach { it.videoTrack.removeRenderer() }
-                val temp = data.videoTracks.toMutableList()
-                temp.removeAll { it.sourceId == p1.getOrNull() }
+                val tempVideo = data.videoTracks.toMutableList()
+                tempVideo.removeAll { it.sourceId == p1.getOrNull() }
+                val tempAudio = data.audioTracks.toMutableList()
+                tempAudio.removeAll { it.sourceId == p1.getOrNull() }
                 return@update if (data.selectedVideoTrackId == p1.getOrNull()) {
-                    data.copy(selectedVideoTrackId = null, videoTracks = temp)
+                    data.copy(
+                        selectedVideoTrackId = null,
+                        videoTracks = tempVideo,
+                        audioTracks = tempAudio
+                    )
+                } else if (data.selectedAudioTrackId == p1.getOrNull()) {
+                    data.copy(
+                        selectedAudioTrackId = null,
+                        videoTracks = tempVideo,
+                        audioTracks = tempAudio
+                    )
                 } else {
-                    data.copy(videoTracks = temp)
+                    data.copy(videoTracks = tempVideo, audioTracks = tempAudio)
                 }
             }
         }
@@ -311,6 +344,19 @@ class MultiStreamingRepository(context: Context, millicastSdk: MillicastSdk) {
 
         override fun onLayers(p0: String?, p1: Array<out LayerData>?, p2: Array<out LayerData>?) {
             TODO("Not yet implemented")
+        }
+
+        fun playAudio(audioTrack: MultiStreamingData.Audio) {
+            data.value.audioTracks.forEach {
+                subscriber?.unproject(arrayListOf(it.id))
+            }
+
+            val projectionData = ProjectionData().also {
+                it.mid = audioTrack.id
+                it.trackId = audio
+                it.media = audio
+            }
+            subscriber?.project(audioTrack.sourceId, arrayListOf(projectionData))
         }
     }
 
