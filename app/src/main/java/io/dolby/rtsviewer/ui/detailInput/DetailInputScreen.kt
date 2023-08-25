@@ -88,6 +88,7 @@ fun DetailInputScreen(
     val disableAudio = viewModel.disableAudio.collectAsState()
     val rtcLogs = viewModel.rtcLogs.collectAsState()
     val videoJitterMinimumDelayMs = viewModel.videoJitterMinimumDelayMs.collectAsState()
+    var sliderValue by remember { mutableStateOf(0f) }
 
     fun playStream() {
         if (!viewModel.shouldPlayStream) {
@@ -258,10 +259,11 @@ fun DetailInputScreen(
                         Spacer(modifier = modifier.width(5.dp))
 
                         Slider(
-                            value = videoJitterMinimumDelayMs.value,
+                            value = sliderValue,
                             valueRange = 0f..2000f,
-                            steps = 40,
+                            steps = (2000 / 50) - 1,
                             onValueChange = {
+                                sliderValue = it
                                 viewModel.updateJitterBufferMinimumDelay(it)
                             },
                             modifier = modifier.width(220.dp)
