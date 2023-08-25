@@ -44,7 +44,7 @@ class DetailInputViewModel @Inject constructor(
     private val _rtcLogs = MutableStateFlow(false)
     val rtcLogs = _rtcLogs.asStateFlow()
 
-    private val _videoJitterMinimumDelayMs = MutableStateFlow("0")
+    private val _videoJitterMinimumDelayMs = MutableStateFlow(0f)
     val videoJitterMinimumDelayMs = _videoJitterMinimumDelayMs.asStateFlow()
 
     init {
@@ -61,11 +61,7 @@ class DetailInputViewModel @Inject constructor(
     }
 
     fun connect() : StreamingData {
-        val jb = if (videoJitterMinimumDelayMs.value.isNotBlank()) {
-            videoJitterMinimumDelayMs.value.toInt()
-        } else {
-            0
-        }
+        val jb = videoJitterMinimumDelayMs.value.toInt()
         val sd = StreamingData(
             streamName = streamName.value,
             accountId = accountId.value,
@@ -92,7 +88,7 @@ class DetailInputViewModel @Inject constructor(
             _useDevEnv.value = true
             _disableAudio.value = true
             _rtcLogs.value = false
-            _videoJitterMinimumDelayMs.value = "0"
+            _videoJitterMinimumDelayMs.value = 0f
         }
     }
 
@@ -113,7 +109,7 @@ class DetailInputViewModel @Inject constructor(
                 updateUseDevEnv(it.useDevEnv)
                 updateDisableAudio(it.disableAudio)
                 updateRtcLogs(it.rtcLogs)
-                updateJitterBufferMinimumDelay(it.videoJitterMinimumDelayMs.toString())
+                updateJitterBufferMinimumDelay(it.videoJitterMinimumDelayMs.toFloat())
             }
         }
     }
@@ -138,7 +134,7 @@ class DetailInputViewModel @Inject constructor(
         _rtcLogs.value = state
     }
 
-    fun updateJitterBufferMinimumDelay(delayMs: String) {
+    fun updateJitterBufferMinimumDelay(delayMs: Float) {
         _videoJitterMinimumDelayMs.value = delayMs
     }
 
@@ -149,6 +145,6 @@ class DetailInputViewModel @Inject constructor(
         _useDevEnv.value = false
         _disableAudio.value = false
         _rtcLogs.value = false
-        _videoJitterMinimumDelayMs.value = "0"
+        _videoJitterMinimumDelayMs.value = 0f
     }
 }

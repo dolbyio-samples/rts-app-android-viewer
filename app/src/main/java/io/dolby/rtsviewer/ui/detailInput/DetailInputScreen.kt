@@ -15,10 +15,10 @@ import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.MaterialTheme
 import androidx.compose.material.Scaffold
+import androidx.compose.material.Slider
 import androidx.compose.material.Switch
 import androidx.compose.material.Text
 import androidx.compose.material.TextButton
-import androidx.compose.material.TextField
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.collectAsState
@@ -39,8 +39,8 @@ import androidx.compose.ui.semantics.contentDescription
 import androidx.compose.ui.semantics.semantics
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.input.ImeAction
-import androidx.compose.ui.text.input.KeyboardType
 import androidx.compose.ui.text.style.TextAlign
+import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
@@ -243,22 +243,39 @@ fun DetailInputScreen(
                         maximumCharacters = MAXIMUM_CHARACTERS
                     )
 
-                    Spacer(modifier = modifier.height(8.dp))
+                    Spacer(modifier = modifier.height(16.dp))
 
-                    TextInput(
-                        value = videoJitterMinimumDelayMs.value,
-                        onValueChange = {
-                            viewModel.updateJitterBufferMinimumDelay(it)
-                        },
-                        label = stringResource(id = R.string.jitter_buffer),
-                        keyboardOptions = KeyboardOptions(
-                            keyboardType = KeyboardType.NumberPassword,
-                            imeAction = ImeAction.Done
-                        ),
-                        keyboardActions = KeyboardActions(
-                            onDone = { playStream() }
+                    Text(text = stringResource(id = R.string.jitter_buffer) + " - " + videoJitterMinimumDelayMs.value.toInt() + "ms")
+                    Row(
+                        verticalAlignment = Alignment.CenterVertically
+                    ) {
+                        Text(
+                            "0",
+                            overflow = TextOverflow.Visible,
+                            maxLines = 1
                         )
-                    )
+
+                        Spacer(modifier = modifier.width(5.dp))
+
+                        Slider(
+                            value = videoJitterMinimumDelayMs.value,
+                            valueRange = 0f..2000f,
+                            steps = 40,
+                            onValueChange = {
+                                viewModel.updateJitterBufferMinimumDelay(it)
+                            },
+                            modifier = modifier.width(220.dp)
+                        )
+
+                        Spacer(modifier = modifier.width(5.dp))
+
+                        Text(
+                            "2sec",
+                            overflow = TextOverflow.Visible,
+                            maxLines = 1
+                        )
+                    }
+
                 }
 
                 Column {

@@ -24,7 +24,7 @@
     <string name="stream_detail_subtitle">Enter your stream name and publisher\naccount ID to view a stream.</string>
     <string name="stream_name_placeholder">Enter your stream name</string>
     <string name="account_id_placeholder">Enter your account ID</string>
-    <string name="jitter_buffer">Jitter Buffer Delay (ms)</string>
+    <string name="jitter_buffer">Jitter Buffer Delay</string>
     <string name="play_button">Play</string>
     <string name="saved_streams_button">Saved Streams</string>
     <string name="demo_streams_button">Demo Stream</string>
