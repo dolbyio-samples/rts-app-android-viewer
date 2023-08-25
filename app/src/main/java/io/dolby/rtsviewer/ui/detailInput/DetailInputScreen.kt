@@ -112,6 +112,10 @@ fun DetailInputScreen(
         }
     }
 
+    LaunchedEffect(Unit) {
+        sliderValue = videoJitterMinimumDelayMs.value
+    }
+
     if (showMissingStreamDetailDialog) {
         DetailInputValidationAlert(
             onDismiss = { showMissingStreamDetailDialog = false },
