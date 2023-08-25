@@ -1,5 +1,6 @@
 package io.dolby.rtsviewer
 
+import android.media.AudioManager
 import android.os.Bundle
 import android.os.Handler
 import android.os.Looper
@@ -24,6 +25,14 @@ class MainActivity : ComponentActivity() {
                 AppNavigation(navController)
             }
         }
+    }
+
+    override fun onResume() {
+        super.onResume()
+        //volumeControlStream = AudioManager.STREAM_MUSIC
+        val am = getSystemService(AudioManager::class.java) as AudioManager
+        am.mode = AudioManager.MODE_IN_COMMUNICATION
+        am.isSpeakerphoneOn = true
     }
 
     override fun onDestroy() {
