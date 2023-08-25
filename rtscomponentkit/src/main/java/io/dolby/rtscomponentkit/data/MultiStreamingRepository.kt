@@ -34,21 +34,26 @@ data class MultiStreamingData(
     class Video(val id: String?, val videoTrack: VideoTrack, val sourceId: String?)
     class Audio(val id: String?, val audioTrack: AudioTrack, val sourceId: String?)
 
-    class PendingTrack(val mediaType: String, val trackId: String, val sourceId: String)
+    data class PendingTrack(
+        val mediaType: String,
+        val trackId: String,
+        val sourceId: String,
+        val added: Boolean
+    )
 
     internal class PendingTracks(
         val videoTracks: List<PendingTrack>,
         val audioTracks: List<PendingTrack>
     )
 
-    fun appendMainVideoTrackAndClone(videoTrack: VideoTrack, mid: String?): MultiStreamingData {
+    internal fun appendMainVideoTrack(videoTrack: VideoTrack, mid: String?): MultiStreamingData {
         val videoTracks = videoTracks.toMutableList().apply {
             add(Video(mid, videoTrack, null))
         }
         return copy(videoTracks = videoTracks)
     }
 
-    fun appendAudioTrackAndClone(
+    internal fun appendAudioTrack(
         audioTrack: AudioTrack,
         id: String?,
         sourceId: String?
@@ -59,10 +64,10 @@ data class MultiStreamingData(
         return copy(audioTracks = audioTracks)
     }
 
-    fun getPendingVideoTrackInfoOrNull(): PendingTrack? = pendingVideoTracks.firstOrNull()
-    fun getPendingAudioTrackInfoOrNull(): PendingTrack? = pendingAudioTracks.firstOrNull()
+    internal fun getPendingVideoTrackInfoOrNull(): PendingTrack? = pendingVideoTracks.firstOrNull()
+    internal fun getPendingAudioTrackInfoOrNull(): PendingTrack? = pendingAudioTracks.firstOrNull()
 
-    fun appendOtherVideoTrackAndClone(
+    internal fun appendOtherVideoTrack(
         pendingTrack: PendingTrack,
         videoTrack: VideoTrack,
         mid: String?,
@@ -76,7 +81,7 @@ data class MultiStreamingData(
         return copy(videoTracks = videoTracks, pendingVideoTracks = pendingVideoTracks)
     }
 
-    internal fun addPendingTracksAndClone(pendingTracks: PendingTracks): MultiStreamingData {
+    internal fun addPendingTracks(pendingTracks: PendingTracks): MultiStreamingData {
         val pendingVideoTracks = pendingVideoTracks.toMutableList().apply {
             addAll(pendingTracks.videoTracks)
         }
@@ -86,6 +91,15 @@ data class MultiStreamingData(
         return copy(
             pendingVideoTracks = pendingVideoTracks,
             pendingAudioTracks = pendingAudioTracks
+        )
+    }
+
+    fun markPendingTracksAsAdded(): MultiStreamingData {
+        val pendingVideoTracks = pendingVideoTracks.map { it.copy(added = true) }
+        val pendingAudioTracks = pendingAudioTracks.map { it.copy(added = true) }
+        return copy(
+            pendingVideoTracks = pendingVideoTracks,
+            pendingAudioTracks = pendingAudioTracks,
         )
     }
 
@@ -107,14 +121,16 @@ data class MultiStreamingData(
                             PendingTrack(
                                 mediaType,
                                 trackInfoSplit[1],
-                                sourceId
+                                sourceId,
+                                added = false
                             )
                         )
                         audio -> audioTracks.add(
                             PendingTrack(
                                 mediaType,
                                 trackInfoSplit[1],
-                                sourceId
+                                sourceId,
+                                added = false
                             )
                         )
                         else -> Unit
@@ -244,7 +260,8 @@ class MultiStreamingRepository(context: Context, millicastSdk: MillicastSdk) {
 
         override fun onSubscribed() {
             Log.d(TAG, "onSubscribed")
-            data.update { data -> data.copy(isSubscribed = true) }
+            val newData = data.updateAndGet { data -> data.copy(isSubscribed = true) }
+            processPendingTracks(newData)
         }
 
         override fun onSubscribedError(p0: String?) {
@@ -259,12 +276,12 @@ class MultiStreamingRepository(context: Context, millicastSdk: MillicastSdk) {
             Log.d(TAG, "onVideoTrack: $mid, $p0")
             data.update { data ->
                 if (data.videoTracks.isEmpty()) {
-                    data.appendMainVideoTrackAndClone(p0, mid)
+                    data.appendMainVideoTrack(p0, mid)
                 } else {
                     data.getPendingVideoTrackInfoOrNull()?.let { trackInfo ->
                         val projectionData = createProjectionData(mid, trackInfo)
                         subscriber?.project(trackInfo.sourceId, arrayListOf(projectionData))
-                        data.appendOtherVideoTrackAndClone(trackInfo, p0, mid, trackInfo.sourceId)
+                        data.appendOtherVideoTrack(trackInfo, p0, mid, trackInfo.sourceId)
                     } ?: data
                 }
             }
@@ -274,10 +291,10 @@ class MultiStreamingRepository(context: Context, millicastSdk: MillicastSdk) {
             Log.d(TAG, "onAudioTrack: ${p1.getOrNull()}, $p0")
             data.update { data ->
                 if (data.videoTracks.isEmpty()) {
-                    data.appendAudioTrackAndClone(p0, p1.getOrNull(), null)
+                    data.appendAudioTrack(p0, p1.getOrNull(), null)
                 } else {
                     data.getPendingAudioTrackInfoOrNull()?.let { trackInfo ->
-                        data.appendAudioTrackAndClone(p0, p1.getOrNull(), trackInfo.sourceId)
+                        data.appendAudioTrack(p0, p1.getOrNull(), trackInfo.sourceId)
                     } ?: data
                 }
             }
@@ -295,17 +312,8 @@ class MultiStreamingRepository(context: Context, millicastSdk: MillicastSdk) {
             Log.d(TAG, "onActive: $stream, $tracksInfo, ${optionalSourceId.getOrNull()}")
             val sourceId = optionalSourceId.getOrNull() ?: return
             val pendingTracks = MultiStreamingData.parseTracksInfo(tracksInfo, sourceId)
-            val data = data.updateAndGet { data ->
-                data.addPendingTracksAndClone(pendingTracks)
-            }
-            if (data.isSubscribed) {
-                repeat(pendingTracks.videoTracks.size) {
-                    subscriber?.addRemoteTrack(video)
-                }
-                repeat(pendingTracks.audioTracks.size) {
-                    subscriber?.addRemoteTrack(audio)
-                }
-            }
+            val newData = data.updateAndGet { data -> data.addPendingTracks(pendingTracks) }
+            processPendingTracks(newData)
         }
 
         override fun onInactive(p0: String, p1: Optional<String>) {
@@ -357,6 +365,20 @@ class MultiStreamingRepository(context: Context, millicastSdk: MillicastSdk) {
                 it.media = audio
             }
             subscriber?.project(audioTrack.sourceId ?: "", arrayListOf(projectionData))
+        }
+
+        private fun processPendingTracks(data: MultiStreamingData) {
+            if (data.isSubscribed) {
+                val pendingTracks = data.pendingVideoTracks.count { !it.added }
+                val pendingAudioTracks = data.pendingAudioTracks.count { !it.added }
+                repeat(pendingTracks) {
+                    subscriber?.addRemoteTrack(video)
+                }
+                repeat(pendingAudioTracks) {
+                    subscriber?.addRemoteTrack(audio)
+                }
+                this.data.update { it.markPendingTracksAsAdded() }
+            }
         }
     }
 
