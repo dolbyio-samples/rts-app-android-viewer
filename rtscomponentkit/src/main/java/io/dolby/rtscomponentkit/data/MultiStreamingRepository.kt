@@ -29,7 +29,8 @@ data class MultiStreamingData(
     val pendingAudioTracks: List<PendingTrack> = emptyList(),
     val error: String? = null,
     val isSubscribed: Boolean = false,
-    val streamingData: StreamingData? = null
+    val streamingData: StreamingData? = null,
+    val statisticsData: MultiStreamStatisticsData? = null
 ) {
     class Video(val id: String?, val videoTrack: VideoTrack, val sourceId: String?)
     class Audio(val id: String?, val audioTrack: AudioTrack, val sourceId: String?)
@@ -158,6 +159,12 @@ class MultiStreamingRepository(context: Context, millicastSdk: MillicastSdk) {
         val listener = Listener(streamingData, _data)
         this.listener = listener
         val subscriber = Subscriber.createSubscriber(listener)
+
+        val options = Subscriber.Option()
+        options.statsDelayMs = 10_000
+        subscriber?.setOptions(options)
+        subscriber.getStats(1_000)
+
         listener.subscriber = subscriber
 
         subscriber.credentials = credential(subscriber.credentials, streamingData)
@@ -250,7 +257,9 @@ class MultiStreamingRepository(context: Context, millicastSdk: MillicastSdk) {
         }
 
         override fun onStatsReport(p0: RTCStatsReport?) {
-            TODO("Not yet implemented")
+            p0?.let { report ->
+                val statisticsData = MultiStreamStatisticsData.from(report)
+            }
         }
 
         override fun onViewerCount(p0: Int) {

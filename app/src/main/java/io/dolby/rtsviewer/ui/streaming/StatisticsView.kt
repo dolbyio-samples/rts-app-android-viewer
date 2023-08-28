@@ -39,8 +39,11 @@ private const val TAG = "StatisticsView"
 
 @OptIn(ExperimentalFoundationApi::class)
 @Composable
-fun StatisticsView(viewModel: StreamingViewModel, modifier: Modifier = Modifier) {
-    val statistics by viewModel.streamingStatistics.collectAsStateWithLifecycle(initialValue = null)
+fun StatisticsView(
+    statistics: List<Pair<Int, String>>?,
+    updateStatistics: (Boolean) -> Unit,
+    modifier: Modifier = Modifier
+) {
     val statisticsTitle = stringResource(id = R.string.streaming_statistics_title)
     val localClipboardManager = LocalClipboardManager.current
     val context = LocalContext.current
@@ -57,8 +60,17 @@ fun StatisticsView(viewModel: StreamingViewModel, modifier: Modifier = Modifier)
             .combinedClickable(
                 onLongClick = {
                     // https://developer.android.com/develop/ui/views/touch-and-input/copy-paste
-                    localClipboardManager.setText(AnnotatedString(formattedText(context, statistics)))
-                    Toast.makeText(context, "Stats copied", Toast.LENGTH_SHORT).show()
+                    localClipboardManager.setText(
+                        AnnotatedString(
+                            formattedText(
+                                context,
+                                statistics
+                            )
+                        )
+                    )
+                    Toast
+                        .makeText(context, "Stats copied", Toast.LENGTH_SHORT)
+                        .show()
                 },
                 onClick = {},
             ),
@@ -73,9 +85,7 @@ fun StatisticsView(viewModel: StreamingViewModel, modifier: Modifier = Modifier)
             )
             StyledIconButton(
                 icon = painterResource(id = io.dolby.uikit.R.drawable.ic_close),
-                onClick = {
-                    viewModel.updateStatistics(false)
-                }
+                onClick = { updateStatistics(false) }
             )
         }
 
@@ -137,14 +147,15 @@ fun StatisticsView(viewModel: StreamingViewModel, modifier: Modifier = Modifier)
     }
 }
 
-fun formattedText(context: Context, statistics: List<Pair<Int, String>>?) : String {
+fun formattedText(context: Context, statistics: List<Pair<Int, String>>?): String {
     val textBuilder = StringBuilder()
-    statistics?.forEach  {(key, value) ->
+    statistics?.forEach { (key, value) ->
         val str = context.resources.getString(key)
         textBuilder.append("$str: $value\n")
     }
     return textBuilder.toString()
 }
+
 @Composable
 fun StatisticsRow(title: String, value: String, modifier: Modifier = Modifier) {
     Row(modifier = modifier) {

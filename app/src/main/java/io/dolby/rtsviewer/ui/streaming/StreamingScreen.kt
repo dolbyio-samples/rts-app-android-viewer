@@ -94,8 +94,10 @@ fun StreamingScreen(viewModel: StreamingViewModel = hiltViewModel(), onBack: () 
             }
 
             if (showStatistics.value && uiState.subscribed) {
+                val statistics by viewModel.streamingStatistics.collectAsStateWithLifecycle(initialValue = null)
                 StatisticsView(
-                    viewModel = viewModel,
+                    statistics = statistics,
+                    updateStatistics = { showStatistics: Boolean -> viewModel.updateStatistics(showStatistics)},
                     modifier = Modifier
                         .align(Alignment.BottomStart)
                         .padding(horizontal = 22.dp, vertical = 15.dp)

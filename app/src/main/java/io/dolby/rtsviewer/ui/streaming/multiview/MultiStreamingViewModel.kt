@@ -12,10 +12,13 @@ import io.dolby.rtscomponentkit.utils.DispatcherProvider
 import io.dolby.rtsviewer.datastore.RecentStreamsDataStore
 import io.dolby.rtsviewer.ui.navigation.Screen
 import io.dolby.rtsviewer.ui.streaming.Error
+import io.dolby.rtsviewer.ui.streaming.StreamingViewModel.Companion.getStatisticsValuesList
 import io.dolby.rtsviewer.utils.NetworkStatusObserver
+import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
+import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
@@ -29,8 +32,11 @@ class MultiStreamingViewModel @Inject constructor(
     private val dispatcherProvider: DispatcherProvider,
     private val networkStatusObserver: NetworkStatusObserver
 ) : ViewModel() {
+
     private val _uiState = MutableStateFlow(MultiStreamingUiState())
+
     val uiState: StateFlow<MultiStreamingUiState> = _uiState.asStateFlow()
+//    val streamingStatistics: Flow<List<Pair<Int, String>>?> = streamingStatistics()
 
     init {
         viewModelScope.launch {
@@ -117,4 +123,11 @@ class MultiStreamingViewModel @Inject constructor(
     fun selectVideoTrack(id: String?) {
         repository.updateSelectedVideoTrackId(id)
     }
+
+    fun updateStatistics(show: Boolean) {
+        _uiState.update { it.copy(showStatistics = show) }
+    }
+
+//    private fun streamingStatistics(): Flow<List<Pair<Int, String>>?> =
+//        repository.data.value.statisticsData.video.map { statisticsData -> getStatisticsValuesList(statisticsData) }
 }

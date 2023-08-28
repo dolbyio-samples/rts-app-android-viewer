@@ -94,10 +94,10 @@ fun ListViewScreen(
                     } else {
                         verticalTopListView(
                             modifier = Modifier.align(Alignment.Center),
-                                uiState,
-                                onMainClick,
-                                onOtherClick
-                            )
+                            uiState,
+                            onMainClick,
+                            onOtherClick
+                        )
                     }
                 }
             }
@@ -118,9 +118,10 @@ fun horizontalEndListView(
         SetupVolumeControlAudioStream()
         Row {
             Box(modifier = Modifier.clickable {
-                onMainClick(uiState.videoTracks.firstOrNull()?.id)
+                onMainClick(uiState.videoTracks.find { it.sourceId == uiState.selectedVideoTrackId }?.id)
             }) {
                 AndroidView(
+                    modifier = Modifier.aspectRatio(16F / 9),
                     factory = { context ->
                         val view = VideoRenderer(context)
                         view.setZOrderOnTop(true)
@@ -133,9 +134,7 @@ fun horizontalEndListView(
                             uiState.selectedVideoTrackId?.let { selectedVideoTrackId ->
                                 uiState.videoTracks.firstOrNull { it.sourceId == selectedVideoTrackId }
                             } ?: uiState.videoTracks.firstOrNull()
-                        videoTrack?.videoTrack?.setRenderer(
-                            view
-                        )
+                        videoTrack?.videoTrack?.setRenderer(view)
                     }
                 )
                 Text(
@@ -150,7 +149,7 @@ fun horizontalEndListView(
             LazyColumn(
                 modifier = Modifier
                     .fillMaxHeight()
-                    .padding(top = 5.dp),
+                    .padding(start = 5.dp),
                 verticalArrangement = Arrangement.spacedBy(5.dp)
             ) {
                 items(otherTracks) { videoTrack ->
@@ -196,9 +195,11 @@ fun verticalTopListView(
         SetupVolumeControlAudioStream()
         Column {
             Box(modifier = Modifier.clickable {
-                onMainClick(uiState.videoTracks.firstOrNull()?.id)
+                onMainClick(uiState.videoTracks.find { it.sourceId == uiState.selectedVideoTrackId }?.id)
             }) {
                 AndroidView(
+                    modifier = Modifier
+                        .aspectRatio(16F / 9),
                     factory = { context ->
                         val view = VideoRenderer(context)
                         view.setZOrderOnTop(true)
@@ -238,9 +239,7 @@ fun verticalTopListView(
                         AndroidView(
                             modifier = Modifier
                                 .aspectRatio(16F / 9)
-                                .clickable {
-
-                                },
+                                .clickable { onOtherClick(videoTrack) },
                             factory = { context -> VideoRenderer(context) },
                             update = { view ->
                                 view.setScalingType(RendererCommon.ScalingType.SCALE_ASPECT_FIT)
