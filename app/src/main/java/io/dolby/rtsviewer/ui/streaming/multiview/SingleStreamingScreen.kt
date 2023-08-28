@@ -92,15 +92,15 @@ fun SingleStreamingScreen(
                 }
             )
 
-            if (viewModel.uiState.value.showStatistics && viewModel.uiState.value.videoTracks.isNotEmpty()) {
-//                val statistics by viewModel.streamingStatistics.collectAsStateWithLifecycle(initialValue = null)
-//                StatisticsView(
-//                    statistics = statistics,
-//                    updateStatistics = { showStatistics: Boolean -> viewModel.updateStatistics(showStatistics)},
-//                    modifier = Modifier
-//                        .align(Alignment.BottomStart)
-//                        .padding(horizontal = 22.dp, vertical = 15.dp)
-//                )
+            if (viewModel.uiState.value.showStatistics && viewModel.uiState.value.statisticsData != null) {
+                val statistics = viewModel.streamingStatistics()
+                StatisticsView(
+                    statistics = statistics,
+                    updateStatistics = { showStatistics: Boolean -> viewModel.updateStatistics(showStatistics)},
+                    modifier = Modifier
+                        .align(Alignment.BottomStart)
+                        .padding(horizontal = 22.dp, vertical = 15.dp)
+                )
             }
         }
     }

@@ -1,6 +1,5 @@
 package io.dolby.rtsviewer.ui.streaming.multiview
 
-import android.util.Log
 import androidx.lifecycle.SavedStateHandle
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
@@ -12,13 +11,11 @@ import io.dolby.rtscomponentkit.utils.DispatcherProvider
 import io.dolby.rtsviewer.datastore.RecentStreamsDataStore
 import io.dolby.rtsviewer.ui.navigation.Screen
 import io.dolby.rtsviewer.ui.streaming.Error
-import io.dolby.rtsviewer.ui.streaming.StreamingViewModel.Companion.getStatisticsValuesList
+import io.dolby.rtsviewer.ui.streaming.StreamingViewModel.Companion.inboundRtpVideoDataToList
 import io.dolby.rtsviewer.utils.NetworkStatusObserver
-import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
-import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
@@ -36,7 +33,6 @@ class MultiStreamingViewModel @Inject constructor(
     private val _uiState = MutableStateFlow(MultiStreamingUiState())
 
     val uiState: StateFlow<MultiStreamingUiState> = _uiState.asStateFlow()
-//    val streamingStatistics: Flow<List<Pair<Int, String>>?> = streamingStatistics()
 
     init {
         viewModelScope.launch {
@@ -110,7 +106,8 @@ class MultiStreamingViewModel @Inject constructor(
                     videoTracks = data.videoTracks,
                     audioTracks = data.audioTracks,
                     selectedVideoTrackId = data.selectedVideoTrackId,
-                    streamName = data.streamingData?.streamName
+                    streamName = data.streamingData?.streamName,
+                    statisticsData = data.statisticsData
                 )
             }
         }
@@ -128,6 +125,9 @@ class MultiStreamingViewModel @Inject constructor(
         _uiState.update { it.copy(showStatistics = show) }
     }
 
-//    private fun streamingStatistics(): Flow<List<Pair<Int, String>>?> =
-//        repository.data.value.statisticsData.video.map { statisticsData -> getStatisticsValuesList(statisticsData) }
+    fun streamingStatistics(): List<Pair<Int, String>>? {
+        val selectedId = uiState.value.videoTracks.find { it.sourceId == uiState.value.selectedVideoTrackId }?.id
+        val selectedStatistics = uiState.value.statisticsData?.video?.firstOrNull { it.mid == selectedId }
+        return inboundRtpVideoDataToList(selectedStatistics)
+    }
 }

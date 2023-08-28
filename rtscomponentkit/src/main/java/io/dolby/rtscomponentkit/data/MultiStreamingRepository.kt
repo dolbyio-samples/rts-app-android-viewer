@@ -258,7 +258,7 @@ class MultiStreamingRepository(context: Context, millicastSdk: MillicastSdk) {
 
         override fun onStatsReport(p0: RTCStatsReport?) {
             p0?.let { report ->
-                val statisticsData = MultiStreamStatisticsData.from(report)
+                data.update { data -> data.copy(statisticsData = MultiStreamStatisticsData.from(report)) }
             }
         }
 

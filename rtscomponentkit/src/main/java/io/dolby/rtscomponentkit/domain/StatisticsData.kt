@@ -88,7 +88,7 @@ data class StatsInboundRtp(
     val jitterBufferDelay: Double,
     val jitterBufferTargetDelay: Double?,
     val jitterBufferMinimumDelay: Double?,
-    val nackCount: Long,
+    val nackCount: Long?,
     val totalSamplesDuration: Double?,
     val packetsReceived: Long,
     val timestamp: Double
@@ -123,7 +123,7 @@ data class StatsInboundRtp(
                 jitterBufferDelay = statsMembers["jitterBufferDelay"] as Double,
                 jitterBufferTargetDelay = statsMembers["jitterBufferTargetDelay"] as Double?,
                 jitterBufferMinimumDelay = statsMembers["jitterBufferMinimumDelay"] as Double?,
-                nackCount = statsMembers["nackCount"] as Long,
+                nackCount = statsMembers["nackCount"] as Long?,
                 totalSamplesDuration = statsMembers["totalSamplesDuration"] as Double?,
                 packetsReceived = statsMembers["packetsReceived"] as Long,
                 timestamp = timestamp

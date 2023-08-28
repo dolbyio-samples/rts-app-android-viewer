@@ -1,5 +1,6 @@
 package io.dolby.rtsviewer.ui.streaming.multiview
 
+import io.dolby.rtscomponentkit.data.MultiStreamStatisticsData
 import io.dolby.rtscomponentkit.data.MultiStreamingData
 
 data class MultiStreamingUiState(
@@ -10,5 +11,6 @@ data class MultiStreamingUiState(
     val videoTracks: List<MultiStreamingData.Video> = emptyList(),
     val audioTracks: List<MultiStreamingData.Audio> = emptyList(),
     val selectedVideoTrackId: String? = null,
+    val statisticsData: MultiStreamStatisticsData? = null,
     val error: io.dolby.rtsviewer.ui.streaming.Error? = null
 )

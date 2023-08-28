@@ -8,6 +8,7 @@ import androidx.lifecycle.viewModelScope
 import dagger.hilt.android.lifecycle.HiltViewModel
 import io.dolby.rtscomponentkit.data.RTSViewerDataStore
 import io.dolby.rtscomponentkit.data.StatisticsData
+import io.dolby.rtscomponentkit.data.StatsInboundRtp
 import io.dolby.rtscomponentkit.domain.StreamingData
 import io.dolby.rtscomponentkit.utils.DispatcherProvider
 import io.dolby.rtsviewer.R
@@ -333,136 +334,7 @@ class StreamingViewModel @Inject constructor(
     companion object {
         fun getStatisticsValuesList(statisticsData: StatisticsData?): List<Pair<Int, String>>? {
             statisticsData?.let { statistics ->
-                val statisticsValuesList = mutableListOf<Pair<Int, String>>()
-
-                statistics.video?.mid?.let {
-                    statisticsValuesList.add(Pair(R.string.statisticsScreen_mid, it))
-                }
-
-                statistics.video?.decoderImplementation?.let {
-                    statisticsValuesList.add(Pair(R.string.statisticsScreen_decoder_impl, it))
-                }
-
-                statistics.video?.processingDelay?.let { pd ->
-                    statistics.video?.framesDecoded?.let { fd ->
-                        statisticsValuesList.add(
-                            Pair(
-                                R.string.statisticsScreen_processing_delay,
-                                String.format("%.2f ms", msNormalised(pd, fd.toDouble()))
-                            )
-                        )
-                    }
-                }
-
-                statistics.video?.decodeTime?.let { dt ->
-                    statistics.video?.framesDecoded?.let { fd ->
-                        statisticsValuesList.add(
-                            Pair(
-                                R.string.statisticsScreen_decode_time,
-                                String.format("%.2f ms", msNormalised(dt, fd.toDouble()))
-                            )
-                        )
-                    }
-                }
-
-                statistics.video?.videoResolution?.let {
-                    statisticsValuesList.add(Pair(R.string.statisticsScreen_videoResolution, it))
-                }
-
-                statistics.video?.fps?.let {
-                    statisticsValuesList.add(Pair(R.string.statisticsScreen_fps, "${it.toLong()}"))
-                }
-
-                statistics.video?.bytesReceived?.let {
-                    statisticsValuesList.add(
-                        Pair(
-                            R.string.statisticsScreen_videoTotal,
-                            formattedByteCount(it.toLong())
-                        )
-                    )
-                }
-
-                statistics.video?.packetsReceived?.let {
-                    statisticsValuesList.add(
-                        Pair(
-                            R.string.statisticsScreen_packets_received,
-                            "$it"
-                        )
-                    )
-                }
-
-                statistics.video?.framesDecoded?.let {
-                    statisticsValuesList.add(Pair(R.string.statisticsScreen_frames_decoded, "$it"))
-                }
-
-                statistics.video?.framesDropped?.let {
-                    statisticsValuesList.add(Pair(R.string.statisticsScreen_packets_dropped, "$it"))
-                }
-
-                statistics.video?.jitterBufferEmittedCount?.let {
-                    statisticsValuesList.add(
-                        Pair(
-                            R.string.statisticsScreen_jitter_bufffer_ec,
-                            "$it"
-                        )
-                    )
-                }
-
-                statistics.video?.jitter?.let {
-                    statisticsValuesList.add(
-                        Pair(
-                            R.string.statisticsScreen_videoJitter,
-                            "${it.times(1000)} ms"
-                        )
-                    )
-                }
-
-                statistics.video?.jitterBufferDelay?.let { jbd ->
-                    statistics.video?.jitterBufferEmittedCount?.let { jbec ->
-                        statisticsValuesList.add(
-                            Pair(
-                                R.string.statisticsScreen_jitter_bufffer_delay,
-                                String.format("%.2f ms", msNormalised(jbd, jbec.toDouble()))
-                            )
-                        )
-                    }
-                }
-
-                statistics.video?.jitterBufferDelay?.let { jbd ->
-                    statistics.video?.jitterBufferEmittedCount?.let { jbec ->
-                        statisticsValuesList.add(
-                            Pair(
-                                R.string.statisticsScreen_jitter_bufffer_target_delay,
-                                String.format("%.2f ms", msNormalised(jbd, jbec.toDouble()))
-                            )
-                        )
-                    }
-                }
-
-//            statistics.video?.jitterBufferTargetDelay?.let {
-//                statisticsValuesList.add(
-//                    Pair(
-//                        R.string.statisticsScreen_jitter_bufffer_target_delay,
-//                        String.format("%.2f ms", it)
-//                    )
-//                )
-//            }
-
-                statistics.video?.jitterBufferMinimumDelay?.let { jbmd ->
-                    statistics.video?.jitterBufferEmittedCount?.let { jbec ->
-                        statisticsValuesList.add(
-                            Pair(
-                                R.string.statisticsScreen_jitter_bufffer_min_delay,
-                                String.format("%.2f ms", msNormalised(jbmd, jbec.toDouble()))
-                            )
-                        )
-                    }
-                }
-
-                statistics.video?.packetsLost?.let {
-                    statisticsValuesList.add(Pair(R.string.statisticsScreen_videoLoss, "$it"))
-                }
-
+                val statisticsValuesList = inboundRtpVideoDataToList(statistics.video).toMutableList()
                 statistics.roundTripTime?.let {
                     statisticsValuesList.add(
                         Pair(
@@ -488,6 +360,138 @@ class StreamingViewModel @Inject constructor(
                 return statisticsValuesList
             }
             return null
+        }
+
+        fun inboundRtpVideoDataToList(statistics: StatsInboundRtp?): List<Pair<Int, String>> {
+            val statisticsValuesList = mutableListOf<Pair<Int, String>>()
+            statistics?.mid?.let {
+                statisticsValuesList.add(Pair(R.string.statisticsScreen_mid, it))
+            }
+
+            statistics?.decoderImplementation?.let {
+                statisticsValuesList.add(Pair(R.string.statisticsScreen_decoder_impl, it))
+            }
+
+            statistics?.processingDelay?.let { pd ->
+                statistics.framesDecoded?.let { fd ->
+                    statisticsValuesList.add(
+                        Pair(
+                            R.string.statisticsScreen_processing_delay,
+                            String.format("%.2f ms", msNormalised(pd, fd.toDouble()))
+                        )
+                    )
+                }
+            }
+
+            statistics?.decodeTime?.let { dt ->
+                statistics.framesDecoded?.let { fd ->
+                    statisticsValuesList.add(
+                        Pair(
+                            R.string.statisticsScreen_decode_time,
+                            String.format("%.2f ms", msNormalised(dt, fd.toDouble()))
+                        )
+                    )
+                }
+            }
+
+            statistics?.videoResolution?.let {
+                statisticsValuesList.add(Pair(R.string.statisticsScreen_videoResolution, it))
+            }
+
+            statistics?.fps?.let {
+                statisticsValuesList.add(Pair(R.string.statisticsScreen_fps, "${it.toLong()}"))
+            }
+
+            statistics?.bytesReceived?.let {
+                statisticsValuesList.add(
+                    Pair(
+                        R.string.statisticsScreen_videoTotal,
+                        formattedByteCount(it.toLong())
+                    )
+                )
+            }
+
+            statistics?.packetsReceived?.let {
+                statisticsValuesList.add(
+                    Pair(
+                        R.string.statisticsScreen_packets_received,
+                        "$it"
+                    )
+                )
+            }
+
+            statistics?.framesDecoded?.let {
+                statisticsValuesList.add(Pair(R.string.statisticsScreen_frames_decoded, "$it"))
+            }
+
+            statistics?.framesDropped?.let {
+                statisticsValuesList.add(Pair(R.string.statisticsScreen_packets_dropped, "$it"))
+            }
+
+            statistics?.jitterBufferEmittedCount?.let {
+                statisticsValuesList.add(
+                    Pair(
+                        R.string.statisticsScreen_jitter_bufffer_ec,
+                        "$it"
+                    )
+                )
+            }
+
+            statistics?.jitter?.let {
+                statisticsValuesList.add(
+                    Pair(
+                        R.string.statisticsScreen_videoJitter,
+                        "${it.times(1000)} ms"
+                    )
+                )
+            }
+
+            statistics?.jitterBufferDelay?.let { jbd ->
+                statistics.jitterBufferEmittedCount.let { jbec ->
+                    statisticsValuesList.add(
+                        Pair(
+                            R.string.statisticsScreen_jitter_bufffer_delay,
+                            String.format("%.2f ms", msNormalised(jbd, jbec.toDouble()))
+                        )
+                    )
+                }
+            }
+
+            statistics?.jitterBufferDelay?.let { jbd ->
+                statistics.jitterBufferEmittedCount.let { jbec ->
+                    statisticsValuesList.add(
+                        Pair(
+                            R.string.statisticsScreen_jitter_bufffer_target_delay,
+                            String.format("%.2f ms", msNormalised(jbd, jbec.toDouble()))
+                        )
+                    )
+                }
+            }
+
+            //            statistics.video?.jitterBufferTargetDelay?.let {
+            //                statisticsValuesList.add(
+            //                    Pair(
+            //                        R.string.statisticsScreen_jitter_bufffer_target_delay,
+            //                        String.format("%.2f ms", it)
+            //                    )
+            //                )
+            //            }
+
+            statistics?.jitterBufferMinimumDelay?.let { jbmd ->
+                statistics.jitterBufferEmittedCount.let { jbec ->
+                    statisticsValuesList.add(
+                        Pair(
+                            R.string.statisticsScreen_jitter_bufffer_min_delay,
+                            String.format("%.2f ms", msNormalised(jbmd, jbec.toDouble()))
+                        )
+                    )
+                }
+            }
+
+            statistics?.packetsLost?.let {
+                statisticsValuesList.add(Pair(R.string.statisticsScreen_videoLoss, "$it"))
+            }
+            return statisticsValuesList
         }
 
         private fun getDateTime(timeStamp: Double): String? {
