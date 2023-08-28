@@ -124,7 +124,7 @@ fun ListViewScreen(
                                     Box {
                                         AndroidView(
                                             modifier = Modifier
-                                                .aspectRatio(1F)
+                                                .aspectRatio(16F / 9)
                                                 .clickable {
                                                     viewModel.selectVideoTrack(videoTrack.sourceId)
                                                 },
