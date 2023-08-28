@@ -34,7 +34,7 @@ android {
     compileSdk 33
 
     defaultConfig {
-        applicationId "io.dolby.rtsviewer"
+        applicationId "io.dolby.ultra"
         minSdk 27
         targetSdk 33
         versionCode appVersionCode
