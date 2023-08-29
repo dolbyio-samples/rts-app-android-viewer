@@ -37,7 +37,7 @@ fun AppNavigation(navController: NavHostController) {
         }
 
         composable(
-            route = Screen.StreamingScreen.route
+            route = Screen.MultiStreamingScreen.route
         ) {
             val accountId = it.arguments?.getString(Screen.StreamingScreen.ARG_ACCOUNT_ID)
             val streamName = it.arguments?.getString(Screen.StreamingScreen.ARG_STREAM_NAME)
@@ -65,7 +65,7 @@ fun AppNavigation(navController: NavHostController) {
         ) {
             SavedStreamScreen(
                 onPlayStream = { streamDetail ->
-                    navController.navigate(Screen.StreamingScreen.route(streamDetail))
+                    navController.navigate(Screen.MultiStreamingScreen.route(streamDetail))
                 },
                 onBack = {
                     navController.popBackStack()
