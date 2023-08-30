@@ -148,10 +148,6 @@ class MultiStreamingRepository(context: Context, millicastSdk: MillicastSdk) {
     val data: StateFlow<MultiStreamingData> = _data.asStateFlow()
     private var listener: Listener? = null
 
-    init {
-        millicastSdk.init(context)
-    }
-
     fun connect(streamingData: StreamingData) {
         if (listener?.connected() == true) {
             return

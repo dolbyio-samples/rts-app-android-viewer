@@ -44,13 +44,16 @@ import javax.inject.Singleton
 object DataModule {
 
     @Provides
-    fun provideMillicastSdk(): MillicastSdk = object : MillicastSdk {
-        override fun init(context: Context) = Client.initMillicastSdk(context)
+    @Singleton
+    fun provideMillicastSdk(@ApplicationContext context: Context): MillicastSdk {
+        val result = object : MillicastSdk {
+            override fun getMedia(context: Context): Media = Media.getInstance(context)
 
-        override fun getMedia(context: Context): Media = Media.getInstance(context)
-
-        override fun initSubscriptionManager(subscriptionDelegate: Subscriber.Listener): SubscriptionManagerInterface =
-            SubscriptionManager(subscriptionDelegate)
+            override fun initSubscriptionManager(subscriptionDelegate: Subscriber.Listener): SubscriptionManagerInterface =
+                SubscriptionManager(subscriptionDelegate)
+        }
+        Client.initMillicastSdk(context)
+        return result
     }
 
     @Provides

@@ -185,7 +185,6 @@ class RTSViewerDataStore constructor(
         _selectedStreamQualityType.asStateFlow()
 
     init {
-        millicastSdk.init(context)
         media = millicastSdk.getMedia(context)
         audioPlayback = media.audioPlayback
     }

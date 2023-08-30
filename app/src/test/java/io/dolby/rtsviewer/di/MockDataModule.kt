@@ -31,7 +31,6 @@ import org.mockito.kotlin.mock
 class MockDataModule {
     @Provides
     fun provideMillicastSdk(): MillicastSdk = object : MillicastSdk {
-        override fun init(context: Context) = Unit
 
         override fun getMedia(context: Context): Media = mock()
 
