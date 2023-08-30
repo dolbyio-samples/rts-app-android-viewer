@@ -71,8 +71,8 @@ class StreamingViewModel @Inject constructor(
 
     init {
         viewModelScope.launch {
-            tickerFlow(5.seconds).onEach {
-                if (_uiState.value.initiateConnection || (!_uiState.value.connecting)) {
+            //tickerFlow(5.seconds).onEach {
+                if (_uiState.value.initiateConnection) {
                     // TODO: Figure out why this is firing again before state is changed to connecting
                     _uiState.update {
                         it.copy(initiateConnection = false)
@@ -80,7 +80,7 @@ class StreamingViewModel @Inject constructor(
                     Log.d(">>>>>>", _uiState.value.toString())
                     connect()
                 }
-            }.launchIn(viewModelScope)
+            //}.launchIn(viewModelScope)
         }
 
         viewModelScope.launch {

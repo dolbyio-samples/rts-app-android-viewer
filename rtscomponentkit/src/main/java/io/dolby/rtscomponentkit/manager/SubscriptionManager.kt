@@ -102,7 +102,7 @@ class SubscriptionManager(
                     .replace(':', '-')
                 // Set Subscriber Options
                 val currentOptionSub = Subscriber.Option().apply {
-                    autoReconnect = false
+                    autoReconnect = true
                     disableAudio = sd.disableAudio
                     forcePlayoutDelay = sd.useDevEnv
                     videoJitterMinimumDelayMs = Optional.of(sd.videoJitterMinimumDelayMs)
