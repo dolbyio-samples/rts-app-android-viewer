@@ -104,6 +104,10 @@ android {
     }
 }
 
+kotlin {
+    jvmToolchain(17)
+}
+
 dependencies {
     implementation project(path: ':uikit')
     implementation project(path: ':rtscomponentkit')

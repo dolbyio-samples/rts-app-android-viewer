@@ -6,11 +6,11 @@ plugins {
 
 android {
     namespace 'io.dolby.rtscomponentkit'
-    compileSdk 33
+    compileSdk 34
 
     defaultConfig {
         minSdk 27
-        targetSdk 33
+        targetSdk 34
 
         testInstrumentationRunner "androidx.test.runner.AndroidJUnitRunner"
         consumerProguardFiles "consumer-rules.pro"
@@ -30,6 +30,10 @@ android {
     composeOptions {
         kotlinCompilerExtensionVersion kotlin_compiler_version
     }
+}
+
+kotlin {
+    jvmToolchain(17)
 }
 
 dependencies {
