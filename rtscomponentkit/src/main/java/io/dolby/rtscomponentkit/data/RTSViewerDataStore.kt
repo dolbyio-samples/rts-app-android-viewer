@@ -33,6 +33,7 @@ class RTSViewerDataStore constructor(
 
     private val subscriptionDelegate = object : Subscriber.Listener {
         override fun onSubscribed() {
+            Log.d(TAG, "onSubscribed")
             apiScope.launch {
                 _state.emit(State.Subscribed)
             }
@@ -75,12 +76,16 @@ class RTSViewerDataStore constructor(
         }
 
         override fun onConnected() {
-            Log.d(TAG, "onConnected")
-            startSubscribe()
+            Log.d(TAG, "onConnected $state")
+            if(!subscribing) {
+                subscribing = true
+                startSubscribe()
+            }
         }
 
         override fun onDisconnected() {
             Log.d(TAG, "onDisconnected")
+            subscribing = false
         }
 
         override fun onConnectionError(p0: Int, reason: String?) {
@@ -122,7 +127,11 @@ class RTSViewerDataStore constructor(
             _statistics.value = null
         }
 
-        override fun onLayers(mid: String?, activeLayers: Array<out LayerData>?, inactiveLayers: Array<out LayerData>?) {
+        override fun onLayers(
+            mid: String?,
+            activeLayers: Array<out LayerData>?,
+            inactiveLayers: Array<out LayerData>?
+        ) {
             Log.d(TAG, "onLayers: $activeLayers")
             val filteredActiveLayers = activeLayers?.filter {
                 // For H.264 there are no temporal layers and the id is set to 255. For VP8 use the first temporal layer.
@@ -138,6 +147,7 @@ class RTSViewerDataStore constructor(
                             StreamQualityType.Low(activeLayers[1])
                         )
                     }
+
                     3 -> {
                         listOf(
                             StreamQualityType.Auto,
@@ -146,6 +156,7 @@ class RTSViewerDataStore constructor(
                             StreamQualityType.Low(activeLayers[2])
                         )
                     }
+
                     else -> emptyList()
                 }
 
@@ -163,6 +174,7 @@ class RTSViewerDataStore constructor(
         }
     }
 
+    private var subscribing = false
     private val subscriptionManager: SubscriptionManagerInterface =
         millicastSdk.initSubscriptionManager(subscriptionDelegate)
 
@@ -258,16 +270,19 @@ class RTSViewerDataStore constructor(
                 return other is Auto
             }
         }
+
         data class High(val layer: LayerData) : StreamQualityType() {
             override fun equals(other: Any?): Boolean {
                 return other is High && other.layer.isEqualTo(this.layer)
             }
         }
+
         data class Medium(val layer: LayerData) : StreamQualityType() {
             override fun equals(other: Any?): Boolean {
                 return other is Medium && other.layer.isEqualTo(this.layer)
             }
         }
+
         data class Low(val layer: LayerData) : StreamQualityType() {
             override fun equals(other: Any?): Boolean {
                 return other is Low && other.layer.isEqualTo(this.layer)

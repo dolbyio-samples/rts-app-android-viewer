@@ -72,12 +72,12 @@ class StreamingViewModel @Inject constructor(
     init {
         viewModelScope.launch {
             tickerFlow(5.seconds).onEach {
-                Log.d(">>>>>>", _uiState.value.toString())
-                if (_uiState.value.initiateConnection || (!_uiState.value.connecting && (_uiState.value.error != null || _uiState.value.disconnected))) {
+                if (_uiState.value.initiateConnection || (!_uiState.value.connecting)) {
                     // TODO: Figure out why this is firing again before state is changed to connecting
                     _uiState.update {
                         it.copy(initiateConnection = false)
                     }
+                    Log.d(">>>>>>", _uiState.value.toString())
                     connect()
                 }
             }.launchIn(viewModelScope)
