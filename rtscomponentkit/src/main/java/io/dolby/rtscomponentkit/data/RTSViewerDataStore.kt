@@ -90,6 +90,7 @@ class RTSViewerDataStore constructor(
 
         override fun onConnectionError(p0: Int, reason: String?) {
             Log.d(TAG, "onConnectionError: $reason")
+            subscribing = false
             _statistics.value = null
             apiScope.launch {
                 _state.emit(State.Error(SubscriptionError.ConnectError(reason!!)))

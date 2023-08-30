@@ -128,7 +128,7 @@ class SubscriptionManager(
         // Stop subscribing to Millicast.
         var success = true
         try {
-            subscriber?.unsubscribe()
+            success = subscriber?.unsubscribe() ?: false
         } catch (e: Exception) {
             success = false
             Log.d(TAG, "${e.message}")
@@ -136,12 +136,13 @@ class SubscriptionManager(
 
         // Disconnect from Millicast.
         try {
-            subscriber?.disconnect()
+            success = subscriber?.disconnect() ?: false
         } catch (e: java.lang.Exception) {
             success = false
             Log.d(TAG, "${e.message}")
         }
         enableStatsSub(0)
+        subscriber = null
         return success
     }
 
