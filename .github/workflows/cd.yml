@@ -99,4 +99,4 @@ jobs:
           versionName='1.0.'$GITHUB_RUN_NUMBER
           versionCode=$GITHUB_RUN_NUMBER
           export ANDROID_PUBLISHER_CREDENTIALS=$ANDROID_PUBLISHER_CREDENTIALS
-          chmod +x ./gradlew && ./gradlew publishMobileReleaseBundle --artifact-dir ./app/build/outputs/bundle/mobileRelease/ --release-name "$versionCode ($versionName) Mobile" --stacktrace
+          chmod +x ./gradlew && ./gradlew publishMobileReleaseBundle --artifact-dir ./app/build/outputs/bundle/mobileRelease/ --release-name "$versionCode ($versionName) Mobile Multiview" --stacktrace
