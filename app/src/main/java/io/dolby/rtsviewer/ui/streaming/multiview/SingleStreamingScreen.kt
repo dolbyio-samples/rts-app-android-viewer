@@ -11,6 +11,7 @@ import androidx.compose.material.Scaffold
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.remember
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.res.painterResource
@@ -41,11 +42,11 @@ fun SingleStreamingScreen(
     val screenContentDescription = stringResource(id = R.string.streaming_screen_contentDescription)
     val selectedItem =
         uiState.videoTracks.firstOrNull { it.sourceId == uiState.selectedVideoTrackId }
-    val title =
-        mutableStateOf(selectedItem?.sourceId ?: stringResource(id = R.string.main_source_name))
+    val mainSourceName = stringResource(id = R.string.main_source_name)
+    val (title, setTitle) = remember { mutableStateOf(selectedItem?.sourceId ?: mainSourceName) }
 
     Scaffold(
-        topBar = { TopAppBar(title = title.value) { onBack() } }
+        topBar = { TopAppBar(title = title) { onBack() } }
     ) { paddingValues ->
         DolbyBackgroundBox(
             modifier = Modifier
@@ -58,8 +59,7 @@ fun SingleStreamingScreen(
             val pagerState = rememberPagerState(
                 initialPage = initialPage,
                 pageCount = { uiState.videoTracks.size })
-            title.value = uiState.videoTracks[pagerState.currentPage].sourceId
-                ?: stringResource(id = R.string.main_source_name)
+            setTitle(uiState.videoTracks[pagerState.currentPage].sourceId ?: mainSourceName)
 
             HorizontalPager(state = pagerState) { page ->
                 Box(modifier = Modifier.fillMaxSize()) {
@@ -92,7 +92,7 @@ fun SingleStreamingScreen(
                 }
             )
 
-            if (viewModel.uiState.value.showStatistics && viewModel.uiState.value.statisticsData != null) {
+            if (uiState.showStatistics && uiState.statisticsData != null) {
                 val statistics =
                     viewModel.streamingStatistics(uiState.videoTracks[pagerState.currentPage].id)
                 StatisticsView(
