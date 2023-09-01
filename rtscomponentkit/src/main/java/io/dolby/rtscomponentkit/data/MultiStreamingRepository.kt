@@ -16,6 +16,7 @@ import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.flow.updateAndGet
 import org.webrtc.RTCStatsReport
+import java.util.Arrays
 import java.util.Optional
 import kotlin.jvm.optionals.getOrNull
 
@@ -30,7 +31,8 @@ data class MultiStreamingData(
     val error: String? = null,
     val isSubscribed: Boolean = false,
     val streamingData: StreamingData? = null,
-    val statisticsData: MultiStreamStatisticsData? = null
+    val statisticsData: MultiStreamStatisticsData? = null,
+    val trackLayerData: Map<String, List<MultiStreamingRepository.LowLevelVideoQuality>> = emptyMap()
 ) {
     class Video(val id: String?, val videoTrack: VideoTrack, val sourceId: String?)
     class Audio(val id: String?, val audioTrack: AudioTrack, val sourceId: String?)
@@ -126,6 +128,7 @@ data class MultiStreamingData(
                                 added = false
                             )
                         )
+
                         audio -> audioTracks.add(
                             PendingTrack(
                                 mediaType,
@@ -355,8 +358,42 @@ class MultiStreamingRepository(context: Context, millicastSdk: MillicastSdk) {
             TODO("Not yet implemented")
         }
 
-        override fun onLayers(p0: String?, p1: Array<out LayerData>?, p2: Array<out LayerData>?) {
-            TODO("Not yet implemented")
+        override fun onLayers(
+            mid: String?,
+            activeLayers: Array<out LayerData>?,
+            inactiveLayers: Array<out LayerData>?
+        ) {
+            Log.d(
+                TAG,
+                "onLayers: $mid, ${Arrays.toString(activeLayers)}, ${Arrays.toString(inactiveLayers)}"
+            )
+            mid?.let {
+                val filteredActiveLayers =
+                    activeLayers?.filter { it.temporalLayerId == 0 || it.temporalLayerId == 0xff }
+                val trackLayerDataList = when (filteredActiveLayers?.count()) {
+                    2 -> listOf(
+                        LowLevelVideoQuality.Auto(),
+                        LowLevelVideoQuality.High(filteredActiveLayers[0]),
+                        LowLevelVideoQuality.Low(filteredActiveLayers[1])
+                    )
+
+                    3 -> listOf(
+                        LowLevelVideoQuality.Auto(),
+                        LowLevelVideoQuality.High(filteredActiveLayers[0]),
+                        LowLevelVideoQuality.Medium(filteredActiveLayers[1]),
+                        LowLevelVideoQuality.Low(filteredActiveLayers[2])
+                    )
+
+                    else -> listOf(
+                        LowLevelVideoQuality.Auto()
+                    )
+                }
+                data.update {
+                    val mutableOldTrackLayerData = it.trackLayerData.toMutableMap()
+                    mutableOldTrackLayerData.replace(mid, trackLayerDataList)
+                    it.copy(trackLayerData = mutableOldTrackLayerData.toMap())
+                }
+            }
         }
 
         fun playAudio(audioTrack: MultiStreamingData.Audio) {
@@ -397,5 +434,12 @@ class MultiStreamingRepository(context: Context, millicastSdk: MillicastSdk) {
                 it.media = pendingTrack.mediaType
                 it.layer = null
             }
+    }
+
+    sealed class LowLevelVideoQuality(val layerData: LayerData?) {
+        class Auto : LowLevelVideoQuality(null)
+        class Low(layerData: LayerData?) : LowLevelVideoQuality(layerData)
+        class Medium(layerData: LayerData?) : LowLevelVideoQuality(layerData)
+        class High(layerData: LayerData?) : LowLevelVideoQuality(layerData)
     }
 }
