@@ -1,4 +1,4 @@
-<resources xmlns:tools="http://schemas.android.com/tools">
+<resources>
     <string name="app_name">Dolby.io Stream Monitor</string>
 
     <!-- Streaming Screen -->
@@ -73,12 +73,14 @@
     <string name="statisticsScreen_decoder_impl">Decoder Impl</string>
     <string name="statisticsScreen_processing_delay">Processing delay</string>
     <string name="statisticsScreen_decode_time">Decode time</string>
-    <string name="statisticsScreen_packets_received">Packets rec.</string>
+    <string name="statisticsScreen_video_packets_received">Video Packets rec.</string>
+    <string name="statisticsScreen_audio_packets_received">Audio Packets rec.</string>
     <string name="statisticsScreen_frames_decoded">Frames dec.</string>
-    <string name="statisticsScreen_packets_dropped">Packets dropped</string>
+    <string name="statisticsScreen_video_packets_dropped">Video Packets dropped</string>
+    <string name="statisticsScreen_audio_packets_dropped">Audio Packets dropped</string>
     <string name="statisticsScreen_jitter_bufffer_ec">Jitter buffer est count</string>
-    <string name="statisticsScreen_jitter_bufffer_delay">Jitter buffer delay</string>
-    <string name="statisticsScreen_jitter_bufffer_target_delay">Jitter buffer target delay</string>
+    <string name="statisticsScreen_audio_jitter_bufffer_delay">Audio Jitter buffer delay</string>
+    <string name="statisticsScreen_video_jitter_bufffer_target_delay">Video Jitter buffer target delay</string>
     <string name="statisticsScreen_jitter_bufffer_min_delay">Jitter buffer min delay</string>
     <string name="main_source_name">Main</string>
 

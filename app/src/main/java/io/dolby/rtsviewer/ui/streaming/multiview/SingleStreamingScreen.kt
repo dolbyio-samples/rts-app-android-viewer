@@ -98,9 +98,7 @@ fun SingleStreamingScreen(
                 StatisticsView(
                     statistics = statistics,
                     updateStatistics = { showStatistics: Boolean ->
-                        viewModel.updateStatistics(
-                            showStatistics
-                        )
+                        viewModel.updateStatistics(showStatistics)
                     },
                     modifier = Modifier
                         .align(Alignment.BottomStart)

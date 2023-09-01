@@ -11,7 +11,7 @@ import io.dolby.rtscomponentkit.utils.DispatcherProvider
 import io.dolby.rtsviewer.datastore.RecentStreamsDataStore
 import io.dolby.rtsviewer.ui.navigation.Screen
 import io.dolby.rtsviewer.ui.streaming.Error
-import io.dolby.rtsviewer.ui.streaming.StreamingViewModel.Companion.inboundRtpVideoDataToList
+import io.dolby.rtsviewer.ui.streaming.StreamingViewModel.Companion.inboundRtpAudioVideoDataToList
 import io.dolby.rtsviewer.utils.NetworkStatusObserver
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
@@ -100,6 +100,7 @@ class MultiStreamingViewModel @Inject constructor(
                     }
                 }
             }
+
             data.videoTracks.isNotEmpty() -> _uiState.update {
                 it.copy(
                     inProgress = false,
@@ -126,11 +127,14 @@ class MultiStreamingViewModel @Inject constructor(
     }
 
     fun streamingStatistics(mid: String?): List<Pair<Int, String>> {
-        val selectedTrackStatistics =
+        val selectedVideoTrackStatistics =
             uiState.value.statisticsData?.video?.firstOrNull { it.mid == mid }
-        val selectedTrackStatisticsAudio = uiState.value.statisticsData?.audio?.firstOrNull()
-        val list = inboundRtpVideoDataToList(selectedTrackStatistics).toMutableList()
-        list.addAll(inboundRtpVideoDataToList(selectedTrackStatisticsAudio))
-        return list
+        val selectedAudioTrackStatistics =
+            uiState.value.statisticsData?.video?.firstOrNull()
+
+        return inboundRtpAudioVideoDataToList(
+            videoStatistics = selectedVideoTrackStatistics,
+            audioStatistics = selectedAudioTrackStatistics
+        )
     }
 }
