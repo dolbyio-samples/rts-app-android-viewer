@@ -455,11 +455,21 @@ class StreamingViewModel @Inject constructor(
             }
 
             audioStatistics?.framesDropped?.let {
-                statisticsValuesList.add(Pair(R.string.statisticsScreen_audio_packets_dropped, "$it"))
+                statisticsValuesList.add(
+                    Pair(
+                        R.string.statisticsScreen_audio_packets_dropped,
+                        "$it"
+                    )
+                )
             }
 
             videoStatistics?.framesDropped?.let {
-                statisticsValuesList.add(Pair(R.string.statisticsScreen_video_packets_dropped, "$it"))
+                statisticsValuesList.add(
+                    Pair(
+                        R.string.statisticsScreen_video_packets_dropped,
+                        "$it"
+                    )
+                )
             }
 
             videoStatistics?.jitterBufferEmittedCount?.let {
@@ -521,8 +531,26 @@ class StreamingViewModel @Inject constructor(
                 statisticsValuesList.add(Pair(R.string.statisticsScreen_videoLoss, "$it"))
             }
 
+            audioStatistics?.codecName?.let { audioCodec ->
+                val codecs = audioCodec + (videoStatistics?.codecName?.let { videoCodec ->
+                    ", $videoCodec"
+                } ?: "")
+                statisticsValuesList.add(Pair(R.string.statisticsScreen_codecs, codecs))
+            } ?: {
+                videoStatistics?.codecName?.let { videoCodec ->
+                    statisticsValuesList.add(
+                        Pair(R.string.statisticsScreen_codecs, videoCodec)
+                    )
+                }
+            }
+
             videoStatistics?.timestamp?.let {
-                statisticsValuesList.add(Pair(R.string.statisticsScreen_timestamp, "${getDateTime(it)}"))
+                statisticsValuesList.add(
+                    Pair(
+                        R.string.statisticsScreen_timestamp,
+                        "${getDateTime(it)}"
+                    )
+                )
             }
 
             return statisticsValuesList

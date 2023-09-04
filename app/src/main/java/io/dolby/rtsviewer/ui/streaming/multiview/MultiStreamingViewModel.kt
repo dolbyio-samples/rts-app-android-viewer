@@ -130,7 +130,7 @@ class MultiStreamingViewModel @Inject constructor(
         val selectedVideoTrackStatistics =
             uiState.value.statisticsData?.video?.firstOrNull { it.mid == mid }
         val selectedAudioTrackStatistics =
-            uiState.value.statisticsData?.video?.firstOrNull()
+            uiState.value.statisticsData?.audio?.firstOrNull()
 
         return inboundRtpAudioVideoDataToList(
             videoStatistics = selectedVideoTrackStatistics,
