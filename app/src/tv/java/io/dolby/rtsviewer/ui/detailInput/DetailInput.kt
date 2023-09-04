@@ -32,80 +32,32 @@ fun DetailInput(
     videoJitterMinimumDelayMs: State<String>,
     playStream: () -> Unit
 ) {
-    if (isTV()) {
-        TvTextInput(
-            value = streamName.value,
-            label = stringResource(id = R.string.stream_name_placeholder),
-            onValueChange = {
-                viewModel.updateStreamName(it)
-            },
-            keyboardOptions = KeyboardOptions(imeAction = ImeAction.Next),
-            keyboardActions = KeyboardActions(
-                onNext = { localFocusManager.moveFocus(FocusDirection.Down) }
-            ),
-            maximumCharacters = MAXIMUM_CHARACTERS,
-            modifier = Modifier.focusRequester(focusRequester)
-        )
-    } else {
-        TextInput(
-            value = streamName.value,
-            label = stringResource(id = R.string.stream_name_placeholder),
-            onValueChange = {
-                viewModel.updateStreamName(it)
-            },
-            keyboardOptions = KeyboardOptions(imeAction = ImeAction.Next),
-            keyboardActions = KeyboardActions(
-                onNext = { localFocusManager.moveFocus(FocusDirection.Down) }
-            ),
-            maximumCharacters = MAXIMUM_CHARACTERS,
-            modifier = Modifier.focusRequester(focusRequester)
-        )
-    }
+    TvTextInput(
+        value = streamName.value,
+        label = stringResource(id = R.string.stream_name_placeholder),
+        onValueChange = {
+            viewModel.updateStreamName(it)
+        },
+        keyboardOptions = KeyboardOptions(imeAction = ImeAction.Next),
+        keyboardActions = KeyboardActions(
+            onNext = { localFocusManager.moveFocus(FocusDirection.Down) }
+        ),
+        maximumCharacters = MAXIMUM_CHARACTERS,
+        modifier = Modifier.focusRequester(focusRequester)
+    )
 
     Spacer(modifier = Modifier.height(8.dp))
 
-    if (isTV()) {
-        TvTextInput(
-            value = accountId.value,
-            label = stringResource(id = R.string.account_id_placeholder),
-            onValueChange = {
-                viewModel.updateAccountId(it)
-            },
-            keyboardOptions = KeyboardOptions(imeAction = ImeAction.Done),
-            keyboardActions = KeyboardActions(
-                onDone = { playStream() }
-            ),
-            maximumCharacters = MAXIMUM_CHARACTERS
-        )
-    } else {
-        TextInput(
-            value = accountId.value,
-            label = stringResource(id = R.string.account_id_placeholder),
-            onValueChange = {
-                viewModel.updateAccountId(it)
-            },
-            keyboardOptions = KeyboardOptions(imeAction = ImeAction.Done),
-            keyboardActions = KeyboardActions(
-                onDone = { playStream() }
-            ),
-            maximumCharacters = MAXIMUM_CHARACTERS
-        )
-
-        Spacer(modifier = Modifier.height(8.dp))
-
-        TextInput(
-            value = videoJitterMinimumDelayMs.value,
-            onValueChange = {
-                viewModel.updateJitterBufferMinimumDelay(it)
-            },
-            label = stringResource(id = R.string.jitter_buffer),
-            keyboardOptions = KeyboardOptions(
-                keyboardType = KeyboardType.NumberPassword,
-                imeAction = ImeAction.Done
-            ),
-            keyboardActions = KeyboardActions(
-                onDone = { playStream() }
-            )
-        )
-    }
+    TvTextInput(
+        value = accountId.value,
+        label = stringResource(id = R.string.account_id_placeholder),
+        onValueChange = {
+            viewModel.updateAccountId(it)
+        },
+        keyboardOptions = KeyboardOptions(imeAction = ImeAction.Done),
+        keyboardActions = KeyboardActions(
+            onDone = { playStream() }
+        ),
+        maximumCharacters = MAXIMUM_CHARACTERS
+    )
 }
