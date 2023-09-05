@@ -1,6 +1,5 @@
 package io.dolby.rtscomponentkit.data
 
-import android.content.Context
 import android.util.Log
 import com.millicast.AudioTrack
 import com.millicast.LayerData
@@ -146,7 +145,7 @@ data class MultiStreamingData(
     }
 }
 
-class MultiStreamingRepository(context: Context, millicastSdk: MillicastSdk) {
+class MultiStreamingRepository {
     private val _data = MutableStateFlow(MultiStreamingData())
     val data: StateFlow<MultiStreamingData> = _data.asStateFlow()
     private var listener: Listener? = null

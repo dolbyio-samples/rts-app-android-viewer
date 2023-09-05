@@ -65,10 +65,7 @@ object DataModule {
 
     @Provides
     @Singleton
-    fun provideMultiStreamingDataStore(
-        @ApplicationContext context: Context,
-        millicastSdk: MillicastSdk
-    ): MultiStreamingRepository = MultiStreamingRepository(context, millicastSdk)
+    fun provideMultiStreamingDataStore(): MultiStreamingRepository = MultiStreamingRepository()
 
     @Provides
     @Singleton

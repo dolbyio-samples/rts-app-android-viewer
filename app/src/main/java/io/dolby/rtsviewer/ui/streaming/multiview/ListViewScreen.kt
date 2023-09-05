@@ -85,14 +85,14 @@ fun ListViewScreen(
                     }
 
                     if (configuration.orientation == Configuration.ORIENTATION_LANDSCAPE) {
-                        horizontalEndListView(
+                        HorizontalEndListView(
                             modifier = Modifier,
                             uiState,
                             onMainClick,
                             onOtherClick
                         )
                     } else {
-                        verticalTopListView(
+                        VerticalTopListView(
                             modifier = Modifier.align(Alignment.Center),
                             uiState,
                             onMainClick,
@@ -106,7 +106,7 @@ fun ListViewScreen(
 }
 
 @Composable
-fun horizontalEndListView(
+fun HorizontalEndListView(
     modifier: Modifier,
     uiState: MultiStreamingUiState,
     onMainClick: (String?) -> Unit,
@@ -175,7 +175,7 @@ fun horizontalEndListView(
                 }
             }
         }
-        liveIndicatorComponent(
+        LiveIndicatorComponent(
             modifier = Modifier.align(Alignment.TopStart),
             on = uiState.videoTracks.isNotEmpty() || uiState.audioTracks.isNotEmpty()
         )
@@ -183,7 +183,7 @@ fun horizontalEndListView(
 }
 
 @Composable
-fun verticalTopListView(
+fun VerticalTopListView(
     modifier: Modifier,
     uiState: MultiStreamingUiState,
     onMainClick: (String?) -> Unit,
@@ -257,7 +257,7 @@ fun verticalTopListView(
                 }
             }
         }
-        liveIndicatorComponent(
+        LiveIndicatorComponent(
             modifier = Modifier.align(Alignment.TopStart),
             on = uiState.videoTracks.isNotEmpty() || uiState.audioTracks.isNotEmpty()
         )
@@ -265,7 +265,7 @@ fun verticalTopListView(
 }
 
 @Composable
-fun liveIndicatorComponent(modifier: Modifier, on: Boolean) {
+fun LiveIndicatorComponent(modifier: Modifier, on: Boolean) {
     LiveIndicator(
         modifier = modifier,
         on = on
