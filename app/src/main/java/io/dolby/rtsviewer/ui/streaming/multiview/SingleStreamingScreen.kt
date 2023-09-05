@@ -23,6 +23,7 @@ import androidx.compose.ui.viewinterop.AndroidView
 import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import com.millicast.VideoRenderer
+import io.dolby.rtscomponentkit.data.MultiStreamingRepository
 import io.dolby.rtscomponentkit.ui.DolbyBackgroundBox
 import io.dolby.rtscomponentkit.ui.LiveIndicator
 import io.dolby.rtscomponentkit.ui.TopAppBar
@@ -38,6 +39,7 @@ fun SingleStreamingScreen(
     onBack: () -> Unit
 ) {
     val uiState by viewModel.uiState.collectAsStateWithLifecycle()
+    val statisticsState by viewModel.statisticsState.collectAsStateWithLifecycle()
 
     val screenContentDescription = stringResource(id = R.string.streaming_screen_contentDescription)
     val selectedItem =
@@ -72,6 +74,15 @@ fun SingleStreamingScreen(
                             view.setScalingType(RendererCommon.ScalingType.SCALE_ASPECT_FIT)
                             view.release()
                             uiState.videoTracks[page].videoTrack.setRenderer(view)
+                            val isSelected =
+                                uiState.selectedVideoTrackId == uiState.videoTracks[page].sourceId
+                            viewModel.playVideo(
+                                uiState.videoTracks[page],
+                                if (isSelected) MultiStreamingRepository.VideoQuality.HIGH else MultiStreamingRepository.VideoQuality.AUTO
+                            )
+                        },
+                        onRelease = { view ->
+                            viewModel.stopVideo(uiState.videoTracks[page])
                         }
                     )
                 }
@@ -92,7 +103,7 @@ fun SingleStreamingScreen(
                 }
             )
 
-            if (uiState.showStatistics && uiState.statisticsData != null) {
+            if (statisticsState.showStatistics && statisticsState.statisticsData != null) {
                 val statistics =
                     viewModel.streamingStatistics(uiState.videoTracks[pagerState.currentPage].id)
                 StatisticsView(

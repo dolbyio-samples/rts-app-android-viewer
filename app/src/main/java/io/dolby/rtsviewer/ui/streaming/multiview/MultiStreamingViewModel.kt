@@ -4,6 +4,7 @@ import androidx.lifecycle.SavedStateHandle
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import dagger.hilt.android.lifecycle.HiltViewModel
+import io.dolby.rtscomponentkit.data.MultiStreamStatisticsData
 import io.dolby.rtscomponentkit.data.MultiStreamingData
 import io.dolby.rtscomponentkit.data.MultiStreamingRepository
 import io.dolby.rtscomponentkit.domain.StreamingData
@@ -31,14 +32,17 @@ class MultiStreamingViewModel @Inject constructor(
 ) : ViewModel() {
 
     private val _uiState = MutableStateFlow(MultiStreamingUiState())
+    private val _statisticsState = MutableStateFlow(MultiStreamingStatisticsState())
 
     val uiState: StateFlow<MultiStreamingUiState> = _uiState.asStateFlow()
+    val statisticsState: StateFlow<MultiStreamingStatisticsState> = _statisticsState.asStateFlow()
 
     init {
         viewModelScope.launch {
             connect()
             repository.data.collect { data ->
                 update(data)
+                updateStatistics(data)
             }
         }
     }
@@ -107,10 +111,15 @@ class MultiStreamingViewModel @Inject constructor(
                     videoTracks = data.videoTracks,
                     audioTracks = data.audioTracks,
                     selectedVideoTrackId = data.selectedVideoTrackId,
-                    streamName = data.streamingData?.streamName,
-                    statisticsData = data.statisticsData
+                    streamName = data.streamingData?.streamName
                 )
             }
+        }
+    }
+
+    private suspend fun updateStatistics(data: MultiStreamingData) = withContext(dispatcherProvider.main) {
+        _statisticsState.update {
+            it.copy(statisticsData = data.statisticsData)
         }
     }
 
@@ -122,15 +131,26 @@ class MultiStreamingViewModel @Inject constructor(
         repository.updateSelectedVideoTrackId(id)
     }
 
+    fun playVideo(
+        video: MultiStreamingData.Video,
+        preferredVideoQuality: MultiStreamingRepository.VideoQuality
+    ) {
+        repository.playVideo(video, preferredVideoQuality)
+    }
+
+    fun stopVideo(video: MultiStreamingData.Video) {
+        repository.stopVideo(video)
+    }
+
     fun updateStatistics(show: Boolean) {
-        _uiState.update { it.copy(showStatistics = show) }
+        _statisticsState.update { it.copy(showStatistics = show) }
     }
 
     fun streamingStatistics(mid: String?): List<Pair<Int, String>> {
         val selectedVideoTrackStatistics =
-            uiState.value.statisticsData?.video?.firstOrNull { it.mid == mid }
+            statisticsState.value.statisticsData?.video?.firstOrNull { it.mid == mid }
         val selectedAudioTrackStatistics =
-            uiState.value.statisticsData?.audio?.firstOrNull()
+            statisticsState.value.statisticsData?.audio?.firstOrNull()
 
         return inboundRtpAudioVideoDataToList(
             videoStatistics = selectedVideoTrackStatistics,

@@ -33,8 +33,15 @@ data class MultiStreamingData(
     val statisticsData: MultiStreamStatisticsData? = null,
     val trackLayerData: Map<String, List<MultiStreamingRepository.LowLevelVideoQuality>> = emptyMap()
 ) {
-    class Video(val id: String?, val videoTrack: VideoTrack, val sourceId: String?)
-    class Audio(val id: String?, val audioTrack: AudioTrack, val sourceId: String?)
+    data class Video(
+        val id: String?,
+        val videoTrack: VideoTrack,
+        val sourceId: String?,
+        val mediaType: String?,
+        val trackId: String?
+    )
+
+    data class Audio(val id: String?, val audioTrack: AudioTrack, val sourceId: String?)
 
     data class PendingTrack(
         val mediaType: String,
@@ -50,7 +57,7 @@ data class MultiStreamingData(
 
     internal fun appendMainVideoTrack(videoTrack: VideoTrack, mid: String?): MultiStreamingData {
         val videoTracks = videoTracks.toMutableList().apply {
-            add(Video(mid, videoTrack, null))
+            add(Video(mid, videoTrack, null, null, null))
         }
         return copy(videoTracks = videoTracks)
     }
@@ -78,7 +85,7 @@ data class MultiStreamingData(
         val pendingVideoTracks = pendingVideoTracks.toMutableList().apply { remove(pendingTrack) }
 
         val videoTracks = videoTracks.toMutableList().apply {
-            add(Video(mid, videoTrack, sourceId))
+            add(Video(mid, videoTrack, sourceId, pendingTrack.mediaType, pendingTrack.trackId))
         }
         return copy(videoTracks = videoTracks, pendingVideoTracks = pendingVideoTracks)
     }
@@ -136,6 +143,7 @@ data class MultiStreamingData(
                                 added = false
                             )
                         )
+
                         else -> Unit
                     }
                 }
@@ -208,6 +216,14 @@ class MultiStreamingRepository {
         }
     }
 
+    fun playVideo(video: MultiStreamingData.Video, preferredVideoQuality: VideoQuality) {
+        listener?.playVideo(video, preferredVideoQuality)
+    }
+
+    fun stopVideo(video: MultiStreamingData.Video) {
+        listener?.stopVideo(video)
+    }
+
     private class Listener(
         private val streamingData: StreamingData,
         private val data: MutableStateFlow<MultiStreamingData>
@@ -256,7 +272,13 @@ class MultiStreamingRepository {
 
         override fun onStatsReport(p0: RTCStatsReport?) {
             p0?.let { report ->
-                data.update { data -> data.copy(statisticsData = MultiStreamStatisticsData.from(report)) }
+                data.update { data ->
+                    data.copy(
+                        statisticsData = MultiStreamStatisticsData.from(
+                            report
+                        )
+                    )
+                }
             }
         }
 
@@ -286,8 +308,6 @@ class MultiStreamingRepository {
                     data.appendMainVideoTrack(p0, mid)
                 } else {
                     data.getPendingVideoTrackInfoOrNull()?.let { trackInfo ->
-                        val projectionData = createProjectionData(mid, trackInfo)
-                        subscriber?.project(trackInfo.sourceId, arrayListOf(projectionData))
                         data.appendOtherVideoTrack(trackInfo, p0, mid, trackInfo.sourceId)
                     } ?: data
                 }
@@ -389,10 +409,25 @@ class MultiStreamingRepository {
                 }
                 data.update {
                     val mutableOldTrackLayerData = it.trackLayerData.toMutableMap()
-                    mutableOldTrackLayerData.replace(mid, trackLayerDataList)
+                    mutableOldTrackLayerData[mid] = trackLayerDataList
                     it.copy(trackLayerData = mutableOldTrackLayerData.toMap())
                 }
             }
+        }
+
+        fun playVideo(
+            video: MultiStreamingData.Video,
+            preferredVideoQuality: VideoQuality
+        ) {
+            val availablePreferredVideoQuality = data.value.trackLayerData[video.id]?.find {
+                it.videoQuality() == preferredVideoQuality
+            }
+            val projectionData = createProjectionData(video, availablePreferredVideoQuality)
+            subscriber?.project(video.sourceId ?: "", arrayListOf(projectionData))
+        }
+
+        fun stopVideo(video: MultiStreamingData.Video) {
+            subscriber?.unproject(arrayListOf(video.id))
         }
 
         fun playAudio(audioTrack: MultiStreamingData.Audio) {
@@ -426,19 +461,57 @@ class MultiStreamingRepository {
     companion object {
         private const val TAG = "MultiStreamingRepository"
 
-        fun createProjectionData(mid: String?, pendingTrack: MultiStreamingData.PendingTrack) =
-            ProjectionData().also {
-                it.mid = mid
-                it.trackId = pendingTrack.trackId
-                it.media = pendingTrack.mediaType
-                it.layer = null
+//        fun createProjectionData(
+//            mid: String?,
+//            pendingTrack: MultiStreamingData.PendingTrack,
+//            availablePreferredVideoQuality: LowLevelVideoQuality?
+//        ): ProjectionData {
+//            val layerData: LayerData? = availablePreferredVideoQuality?.layerData
+//            return layerData?.let {
+//                ProjectionData().also {
+//                    it.mid = mid
+//                    it.trackId = pendingTrack.trackId
+//                    it.media = pendingTrack.mediaType
+//                    it.layer = Optional.of(layerData)
+//                }
+//            } ?: ProjectionData().also {
+//                it.mid = mid
+//                it.trackId = pendingTrack.trackId
+//                it.media = pendingTrack.mediaType
+//                it.layer = null
+//            }
+//        }
+
+        fun createProjectionData(
+            video: MultiStreamingData.Video,
+            availablePreferredVideoQuality: LowLevelVideoQuality?
+        ): ProjectionData = ProjectionData().also {
+            it.mid = video.id
+            it.trackId = video.trackId ?: "video"
+            it.media = video.mediaType ?: "video"
+            it.layer = availablePreferredVideoQuality?.layerData?.let { layerData ->
+                Optional.of(layerData)
             }
+        }
     }
 
     sealed class LowLevelVideoQuality(val layerData: LayerData?) {
+        open fun videoQuality() = VideoQuality.AUTO
         class Auto : LowLevelVideoQuality(null)
-        class Low(layerData: LayerData?) : LowLevelVideoQuality(layerData)
-        class Medium(layerData: LayerData?) : LowLevelVideoQuality(layerData)
-        class High(layerData: LayerData?) : LowLevelVideoQuality(layerData)
+        class Low(layerData: LayerData?) : LowLevelVideoQuality(layerData) {
+            override fun videoQuality() = VideoQuality.LOW
+        }
+
+        class Medium(layerData: LayerData?) : LowLevelVideoQuality(layerData) {
+            override fun videoQuality() = VideoQuality.MEDIUM
+        }
+
+        class High(layerData: LayerData?) : LowLevelVideoQuality(layerData) {
+            override fun videoQuality() = VideoQuality.HIGH
+        }
+    }
+
+    enum class VideoQuality {
+        AUTO, LOW, MEDIUM, HIGH
     }
 }
