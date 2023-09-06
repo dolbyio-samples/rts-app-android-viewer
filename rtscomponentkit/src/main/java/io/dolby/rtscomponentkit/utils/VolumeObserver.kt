@@ -12,8 +12,15 @@ class VolumeObserver constructor(
     private val audioTrack: AudioTrack
 ) : ContentObserver(handler) {
 
+    init {
+        adjustVolume()
+    }
     override fun onChange(selfChange: Boolean) {
         super.onChange(selfChange)
+        adjustVolume()
+    }
+
+    private fun adjustVolume() {
         val audioManager = context.getSystemService(Context.AUDIO_SERVICE) as AudioManager
         val currentVolume: Int = audioManager.getStreamVolume(AudioManager.STREAM_MUSIC)
         val maxVolume: Int = audioManager.getStreamMaxVolume(AudioManager.STREAM_MUSIC)
