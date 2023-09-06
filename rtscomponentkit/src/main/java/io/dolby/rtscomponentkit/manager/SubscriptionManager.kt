@@ -51,11 +51,7 @@ class SubscriptionManager(
             val credentials = it.credentials
             credentials.streamName = streamingData.streamName
             credentials.accountId = streamingData.accountId
-            if (streamingData.useDevEnv) {
-                credentials.apiUrl = "https://director-dev.millicast.com/api/director/subscribe"
-            } else {
-                credentials.apiUrl = "https://director.millicast.com/api/director/subscribe"
-            }
+            credentials.apiUrl = "https://director.millicast.com/api/director/subscribe"
             it.credentials = credentials
         }
         // Connect Subscriber.
@@ -89,27 +85,9 @@ class SubscriptionManager(
         var success = true
         try {
             streamingData?.let { sd ->
-                val path = Environment.getExternalStoragePublicDirectory(
-                    Environment.DIRECTORY_DOWNLOADS
-                ).absolutePath + "/Ultra"
-                createDirectoryIfNotExists(path)
-                val formatter = DateTimeFormatter.ISO_LOCAL_DATE_TIME.withZone(
-                    ZoneId.from(
-                        ZoneOffset.UTC
-                    )
-                )
-                val timeStamp = formatter.format(Instant.now().truncatedTo(ChronoUnit.SECONDS))
-                    .replace(':', '-')
                 // Set Subscriber Options
                 val currentOptionSub = Subscriber.Option().apply {
                     autoReconnect = true
-                    disableAudio = sd.disableAudio
-                    forcePlayoutDelay = sd.useDevEnv
-                    videoJitterMinimumDelayMs = Optional.of(sd.videoJitterMinimumDelayMs)
-                    if (sd.rtcLogs) {
-                        rtcEventLogOutputPath = Optional.of(path + "/${timeStamp}.proto")
-                        logger = MCLogger(path = path, timeStamp = timeStamp.toString())
-                    }
                 }
 
                 subscriber?.setOptions(currentOptionSub)

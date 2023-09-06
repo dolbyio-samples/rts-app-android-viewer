@@ -22,7 +22,6 @@ fun AppNavigation(navController: NavHostController) {
             route = Screen.DetailInputScreen.route
         ) {
             DetailInputScreen(
-                initialStreamName = null,
                 onPlayClick = {
                     if (isTV(navController.context)) {
                         navController.navigate(Screen.StreamingScreen.route(it))

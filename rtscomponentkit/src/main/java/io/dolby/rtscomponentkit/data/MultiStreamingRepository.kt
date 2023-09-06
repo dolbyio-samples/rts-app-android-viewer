@@ -162,7 +162,7 @@ class MultiStreamingRepository {
         if (listener?.connected() == true) {
             return
         }
-        val listener = Listener(streamingData, _data)
+        val listener = Listener(_data)
         this.listener = listener
         val subscriber = Subscriber.createSubscriber(listener)
 
@@ -192,11 +192,7 @@ class MultiStreamingRepository {
     ): Subscriber.Credential {
         credentials.streamName = streamingData.streamName
         credentials.accountId = streamingData.accountId
-        if (streamingData.useDevEnv) {
-            credentials.apiUrl = "https://director-dev.millicast.com/api/director/subscribe"
-        } else {
-            credentials.apiUrl = "https://director.millicast.com/api/director/subscribe"
-        }
+        credentials.apiUrl = "https://director.millicast.com/api/director/subscribe"
         return credentials
     }
 
@@ -225,7 +221,6 @@ class MultiStreamingRepository {
     }
 
     private class Listener(
-        private val streamingData: StreamingData,
         private val data: MutableStateFlow<MultiStreamingData>
     ) : Subscriber.Listener {
 
@@ -243,9 +238,6 @@ class MultiStreamingRepository {
 
             val options = Subscriber.Option().apply {
                 autoReconnect = true
-                disableAudio = streamingData.disableAudio
-                forcePlayoutDelay = streamingData.useDevEnv
-                videoJitterMinimumDelayMs = Optional.of(streamingData.videoJitterMinimumDelayMs)
             }
 
             subscriber.setOptions(options)
@@ -422,6 +414,7 @@ class MultiStreamingRepository {
             val availablePreferredVideoQuality = data.value.trackLayerData[video.id]?.find {
                 it.videoQuality() == preferredVideoQuality
             }
+            Log.d("RTS", "project video ${video.id}, quality = $availablePreferredVideoQuality")
             val projectionData = createProjectionData(video, availablePreferredVideoQuality)
             subscriber?.project(video.sourceId ?: "", arrayListOf(projectionData))
         }

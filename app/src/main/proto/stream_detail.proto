@@ -8,11 +8,7 @@ option java_multiple_files = true;
 message StreamDetail {
   string accountID = 1;
   string streamName = 2;
-  bool useDevEnv = 3;
-  bool disableAudio = 4;
-  bool rtcLogs = 5;
-  int32 videoJitterMinimumDelayMs = 6;
-  google.protobuf.Timestamp lastUsedDate = 7;
+  google.protobuf.Timestamp lastUsedDate = 3;
 }
 
 message RecentStreams {

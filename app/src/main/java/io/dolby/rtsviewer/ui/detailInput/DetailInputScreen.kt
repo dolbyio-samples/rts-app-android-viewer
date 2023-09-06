@@ -10,10 +10,11 @@ import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.shape.RoundedCornerShape
+import androidx.compose.foundation.text.KeyboardActions
+import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.MaterialTheme
 import androidx.compose.material.Scaffold
-import androidx.compose.material.Switch
 import androidx.compose.material.Text
 import androidx.compose.material.TextButton
 import androidx.compose.runtime.Composable
@@ -27,12 +28,15 @@ import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
+import androidx.compose.ui.focus.FocusDirection
 import androidx.compose.ui.focus.FocusRequester
+import androidx.compose.ui.focus.focusRequester
 import androidx.compose.ui.platform.LocalFocusManager
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.semantics.contentDescription
 import androidx.compose.ui.semantics.semantics
 import androidx.compose.ui.text.font.FontWeight
+import androidx.compose.ui.text.input.ImeAction
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import androidx.hilt.navigation.compose.hiltViewModel
@@ -46,16 +50,19 @@ import io.dolby.rtsviewer.ui.alert.ClearStreamConfirmationAlert
 import io.dolby.rtsviewer.ui.alert.DetailInputValidationAlert
 import io.dolby.rtsviewer.uikit.button.ButtonType
 import io.dolby.rtsviewer.uikit.button.StyledButton
+import io.dolby.rtsviewer.uikit.input.TvTextInput
 import io.dolby.rtsviewer.uikit.theme.fontColor
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
+
+private const val MAXIMUM_CHARACTERS1: Int = 64
 
 @Composable
 fun DetailInputScreen(
     onPlayClick: (StreamingData) -> Unit,
     onSavedStreamsClick: () -> Unit,
     modifier: Modifier = Modifier,
-    initialStreamName: String? = null,
+    streamingData: StreamingData? = null,
     viewModel: DetailInputViewModel = hiltViewModel()
 ) {
     var showMissingStreamDetailDialog by remember { mutableStateOf(false) }
@@ -72,30 +79,31 @@ fun DetailInputScreen(
     val background = MaterialTheme.colors.background
     val coroutineScope = rememberCoroutineScope()
 
-    val useDevEnv = viewModel.useDevEnv.collectAsState()
-    val disableAudio = viewModel.disableAudio.collectAsState()
-    val rtcLogs = viewModel.rtcLogs.collectAsState()
-    val videoJitterMinimumDelayMs = viewModel.videoJitterMinimumDelayMs.collectAsState()
-
     fun playStream() {
         if (!viewModel.shouldPlayStream) {
             showMissingStreamDetailDialog = true
         } else {
-            val sd = viewModel.connect()
+            viewModel.connect()
+
             coroutineScope.launch(Dispatchers.Main) {
-                onPlayClick(sd)
-                viewModel.resetStreamIfDemo()
+                onPlayClick(
+                    StreamingData(
+                        streamName = streamName.value,
+                        accountId = accountId.value
+                    )
+                )
             }
         }
     }
-
     LaunchedEffect(Unit) {
         focusRequester.requestFocus()
     }
 
     LaunchedEffect(Unit) {
-        initialStreamName?.let {
-            viewModel.useStreamingData(it)
+        streamingData?.let {
+            viewModel.updateStreamName(it.streamName)
+            viewModel.updateAccountId(it.accountId)
+            playStream()
         }
     }
 
@@ -145,7 +153,7 @@ fun DetailInputScreen(
                     .padding(vertical = 16.dp)
             ) {
                 Text(
-                    stringResource(id = R.string.app_name),
+                    stringResource(id = R.string.stream_detail_header),
                     style = MaterialTheme.typography.body1,
                     fontWeight = FontWeight.Medium,
                     color = fontColor(background),
@@ -171,58 +179,34 @@ fun DetailInputScreen(
                 )
 
                 Spacer(modifier = modifier.height(12.dp))
-                DetailInput(
-                    accountId = accountId,
-                    streamName = streamName,
-                    viewModel = viewModel,
-                    localFocusManager = localFocusManager,
-                    focusRequester = focusRequester,
-                    videoJitterMinimumDelayMs = videoJitterMinimumDelayMs
-                ) { playStream() }
-                Column {
-                    Row {
-                        Column {
-                            Text("Dev")
-                            Switch(
-                                checked = useDevEnv.value,
-                                onCheckedChange = { viewModel.updateUseDevEnv(it) }
-                            )
-                        }
-                        Spacer(modifier = modifier.weight(1.0f))
-                        Column {
-                            Text("No Playout Delay")
-                            Switch(
-                                checked = useDevEnv.value,
-                                enabled = false,
-                                onCheckedChange = { }
-                            )
-                        }
-                    }
-                    Row {
-                        Column {
-                            Text("Disable Audio")
-                            Switch(
-                                checked = disableAudio.value,
-                                onCheckedChange = { viewModel.updateDisableAudio(it) }
-                            )
-                        }
-                        Spacer(modifier = modifier.weight(1.0f))
-                        Column {
-                            Text("RTC Logs")
-                            Switch(
-                                checked = rtcLogs.value,
-                                onCheckedChange = { viewModel.updateRtcLogs(it) }
-                            )
-                        }
-                    }
-                }
 
-                StyledButton(
-                    buttonText = stringResource(id = R.string.play_button),
-                    onClickAction = {
-                        playStream()
+                TvTextInput(
+                    value = streamName.value,
+                    label = stringResource(id = R.string.stream_name_placeholder),
+                    onValueChange = {
+                        viewModel.updateStreamName(it)
                     },
-                    buttonType = ButtonType.PRIMARY
+                    keyboardOptions = KeyboardOptions(imeAction = ImeAction.Next),
+                    keyboardActions = KeyboardActions(
+                        onNext = { localFocusManager.moveFocus(FocusDirection.Down) }
+                    ),
+                    maximumCharacters = MAXIMUM_CHARACTERS1,
+                    modifier = Modifier.focusRequester(focusRequester)
+                )
+
+                Spacer(modifier = modifier.height(8.dp))
+
+                TvTextInput(
+                    value = accountId.value,
+                    label = stringResource(id = R.string.account_id_placeholder),
+                    onValueChange = {
+                        viewModel.updateAccountId(it)
+                    },
+                    keyboardOptions = KeyboardOptions(imeAction = ImeAction.Done),
+                    keyboardActions = KeyboardActions(
+                        onDone = { playStream() }
+                    ),
+                    maximumCharacters = MAXIMUM_CHARACTERS1
                 )
 
                 Spacer(modifier = modifier.height(8.dp))
@@ -236,6 +220,16 @@ fun DetailInputScreen(
                         buttonType = ButtonType.SECONDARY
                     )
                 }
+
+                Spacer(modifier = modifier.height(8.dp))
+
+                StyledButton(
+                    buttonText = stringResource(id = R.string.play_button),
+                    onClickAction = {
+                        playStream()
+                    },
+                    buttonType = ButtonType.PRIMARY
+                )
 
                 if (uiState.recentStreams.isNotEmpty()) {
                     Row(
@@ -252,17 +246,6 @@ fun DetailInputScreen(
                         }
                     }
                 }
-
-                Spacer(modifier = modifier.height(8.dp))
-
-                StyledButton(
-                    buttonText = stringResource(id = R.string.demo_streams_button),
-                    onClickAction = {
-                        viewModel.useDemoStream()
-                        playStream()
-                    },
-                    buttonType = ButtonType.SECONDARY
-                )
             }
         }
     }

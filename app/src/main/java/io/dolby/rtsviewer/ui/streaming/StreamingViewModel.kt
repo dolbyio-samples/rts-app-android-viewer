@@ -246,20 +246,12 @@ class StreamingViewModel @Inject constructor(
         val streamingData = if (sd != null) {
             StreamingData(
                 streamName = streamName,
-                accountId = sd.accountID,
-                useDevEnv = sd.useDevEnv,
-                disableAudio = sd.disableAudio,
-                rtcLogs = sd.rtcLogs,
-                videoJitterMinimumDelayMs = sd.videoJitterMinimumDelayMs
+                accountId = sd.accountID
             )
         } else {
             StreamingData(
                 streamName = streamName,
-                accountId = getAccountId(savedStateHandle),
-                useDevEnv = false,
-                disableAudio = false,
-                rtcLogs = false,
-                videoJitterMinimumDelayMs = 0
+                accountId = getAccountId(savedStateHandle)
             )
         }
 

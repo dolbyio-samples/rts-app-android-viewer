@@ -60,21 +60,4 @@ fun DetailInput(
         ),
         maximumCharacters = MAXIMUM_CHARACTERS
     )
-
-    Spacer(modifier = Modifier.height(8.dp))
-
-    TextInput(
-        value = videoJitterMinimumDelayMs.value,
-        onValueChange = {
-            viewModel.updateJitterBufferMinimumDelay(it)
-        },
-        label = stringResource(id = R.string.jitter_buffer),
-        keyboardOptions = KeyboardOptions(
-            keyboardType = KeyboardType.NumberPassword,
-            imeAction = ImeAction.Done
-        ),
-        keyboardActions = KeyboardActions(
-            onDone = { playStream() }
-        )
-    )
 }

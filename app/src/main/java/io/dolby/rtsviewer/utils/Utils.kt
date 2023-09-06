@@ -49,6 +49,7 @@ fun Context.findActivity(): Activity? {
     }
     return null
 }
+
 @Composable
 fun isTVDeclarative(): Boolean {
     val context = LocalContext.current
@@ -77,11 +78,9 @@ fun RTSViewerDataStore.StreamQualityType.titleResourceId(): Int {
     }
 }
 
-fun StreamingData.Companion.from(streamDetail : StreamDetail): StreamingData {
-    return StreamingData(accountId = streamDetail.accountID,
-    streamName = streamDetail.streamName,
-    useDevEnv = streamDetail.useDevEnv,
-    disableAudio = streamDetail.disableAudio,
-    rtcLogs = streamDetail.rtcLogs,
-    videoJitterMinimumDelayMs = streamDetail.videoJitterMinimumDelayMs)
+fun streamingDataFrom(streamDetail: StreamDetail): StreamingData {
+    return StreamingData(
+        accountId = streamDetail.accountID,
+        streamName = streamDetail.streamName
+    )
 }

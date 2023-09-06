@@ -63,21 +63,13 @@ class MultiStreamingViewModel @Inject constructor(
             val streamDetail = recentStreamsDataStore.recentStream(streamName)
             val streamingData = if (streamDetail != null) {
                 StreamingData(
-                    streamName = streamName,
-                    accountId = streamDetail.accountID,
-                    useDevEnv = streamDetail.useDevEnv,
-                    disableAudio = streamDetail.disableAudio,
-                    rtcLogs = streamDetail.rtcLogs,
-                    videoJitterMinimumDelayMs = streamDetail.videoJitterMinimumDelayMs
+                    streamName = streamName.trim(),
+                    accountId = streamDetail.accountID.trim()
                 )
             } else {
                 StreamingData(
-                    streamName = streamName,
-                    accountId = getAccountId(savedStateHandle),
-                    useDevEnv = false,
-                    disableAudio = false,
-                    rtcLogs = false,
-                    videoJitterMinimumDelayMs = 0
+                    streamName = streamName.trim(),
+                    accountId = getAccountId(savedStateHandle)
                 )
             }
 

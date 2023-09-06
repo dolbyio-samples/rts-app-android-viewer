@@ -35,20 +35,16 @@ import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
-import androidx.navigation.compose.rememberNavController
 import io.dolby.rtscomponentkit.domain.StreamingData
 import io.dolby.rtscomponentkit.ui.DolbyBackgroundBox
-import io.dolby.rtscomponentkit.ui.DolbyCopyrightFooterView
-import io.dolby.rtscomponentkit.ui.TopActionBar
 import io.dolby.rtscomponentkit.ui.TopAppBar
 import io.dolby.rtsviewer.R
-import io.dolby.rtsviewer.datastore.StreamDetail
 import io.dolby.rtsviewer.uikit.button.ButtonType
 import io.dolby.rtsviewer.uikit.button.StyledButton
 import io.dolby.rtsviewer.uikit.theme.fontColor
-import io.dolby.rtsviewer.utils.from
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.launch
+import io.dolby.rtsviewer.utils.streamingDataFrom
 
 @OptIn(ExperimentalFoundationApi::class)
 @Composable
@@ -129,9 +125,9 @@ fun SavedStreamScreen(
                         val lastPlayedStream = uiState.recentStreams.first()
 
                         StyledButton(
-                            buttonText = "${lastPlayedStream.streamName} / ID ${lastPlayedStream.accountID} \n useDev: ${lastPlayedStream.useDevEnv} disableAudio: ${lastPlayedStream.disableAudio} rtcLogs: ${lastPlayedStream.rtcLogs} \n JitterBuffer: ${lastPlayedStream.videoJitterMinimumDelayMs}",
+                            buttonText = "${lastPlayedStream.streamName} / ID ${lastPlayedStream.accountID}",
                             onClickAction = {
-                                onPlayStream(StreamingData.from(lastPlayedStream))
+                                onPlayStream(streamingDataFrom(lastPlayedStream))
                             },
                             buttonType = ButtonType.BASIC,
                             capitalize = false,
@@ -178,9 +174,9 @@ fun SavedStreamScreen(
                     key = { it.streamName + it.accountID }
                 ) { streamDetail ->
                     StyledButton(
-                        buttonText = "${streamDetail.streamName} / ID ${streamDetail.accountID} \n useDev: ${streamDetail.useDevEnv} disableAudio: ${streamDetail.disableAudio} rtcLogs: ${streamDetail.rtcLogs} \n JitterBuffer: ${streamDetail.videoJitterMinimumDelayMs}",
+                        buttonText = "${streamDetail.streamName} / ID ${streamDetail.accountID}",
                         onClickAction = {
-                            onPlayStream(StreamingData.from(streamDetail))
+                            onPlayStream(streamingDataFrom(streamDetail))
                         },
                         buttonType = ButtonType.BASIC,
                         capitalize = false
