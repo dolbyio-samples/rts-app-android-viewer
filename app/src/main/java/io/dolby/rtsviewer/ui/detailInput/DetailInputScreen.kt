@@ -180,33 +180,22 @@ fun DetailInputScreen(
 
                 Spacer(modifier = modifier.height(12.dp))
 
-                TvTextInput(
-                    value = streamName.value,
-                    label = stringResource(id = R.string.stream_name_placeholder),
-                    onValueChange = {
-                        viewModel.updateStreamName(it)
-                    },
-                    keyboardOptions = KeyboardOptions(imeAction = ImeAction.Next),
-                    keyboardActions = KeyboardActions(
-                        onNext = { localFocusManager.moveFocus(FocusDirection.Down) }
-                    ),
-                    maximumCharacters = MAXIMUM_CHARACTERS1,
-                    modifier = Modifier.focusRequester(focusRequester)
-                )
+                DetailInput(
+                    accountId = accountId,
+                    streamName = streamName,
+                    viewModel = viewModel,
+                    localFocusManager = localFocusManager,
+                    focusRequester = focusRequester
+                ) { playStream() }
 
-                Spacer(modifier = modifier.height(8.dp))
+                Spacer(modifier = modifier.height(12.dp))
 
-                TvTextInput(
-                    value = accountId.value,
-                    label = stringResource(id = R.string.account_id_placeholder),
-                    onValueChange = {
-                        viewModel.updateAccountId(it)
+                StyledButton(
+                    buttonText = stringResource(id = R.string.play_button),
+                    onClickAction = {
+                        playStream()
                     },
-                    keyboardOptions = KeyboardOptions(imeAction = ImeAction.Done),
-                    keyboardActions = KeyboardActions(
-                        onDone = { playStream() }
-                    ),
-                    maximumCharacters = MAXIMUM_CHARACTERS1
+                    buttonType = ButtonType.PRIMARY
                 )
 
                 Spacer(modifier = modifier.height(8.dp))
@@ -220,16 +209,6 @@ fun DetailInputScreen(
                         buttonType = ButtonType.SECONDARY
                     )
                 }
-
-                Spacer(modifier = modifier.height(8.dp))
-
-                StyledButton(
-                    buttonText = stringResource(id = R.string.play_button),
-                    onClickAction = {
-                        playStream()
-                    },
-                    buttonType = ButtonType.PRIMARY
-                )
 
                 if (uiState.recentStreams.isNotEmpty()) {
                     Row(
@@ -246,6 +225,17 @@ fun DetailInputScreen(
                         }
                     }
                 }
+
+                Spacer(modifier = modifier.height(8.dp))
+
+                StyledButton(
+                    buttonText = stringResource(id = R.string.demo_streams_button),
+                    onClickAction = {
+                        viewModel.useDemoStream()
+                        playStream()
+                    },
+                    buttonType = ButtonType.SECONDARY
+                )
             }
         }
     }

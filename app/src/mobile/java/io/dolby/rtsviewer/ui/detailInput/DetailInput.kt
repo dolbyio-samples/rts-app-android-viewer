@@ -29,7 +29,6 @@ fun DetailInput(
     viewModel: DetailInputViewModel,
     localFocusManager: FocusManager,
     focusRequester: FocusRequester,
-    videoJitterMinimumDelayMs: State<String>,
     playStream: () -> Unit
 ) {
     TextInput(

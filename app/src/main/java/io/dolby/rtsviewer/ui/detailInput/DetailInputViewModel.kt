@@ -32,6 +32,8 @@ class DetailInputViewModel @Inject constructor(
     private val _accountId = MutableStateFlow("")
     var accountId = _accountId.asStateFlow()
 
+    private var isDemo = false
+
     init {
         defaultCoroutineScope.launch {
             recentStreamsDataStore.recentStreams
@@ -46,7 +48,8 @@ class DetailInputViewModel @Inject constructor(
     }
 
     fun connect() {
-        val streamingData = StreamingData(streamName = streamName.value, accountId = accountId.value)
+        val streamingData =
+            StreamingData(streamName = streamName.value, accountId = accountId.value)
         defaultCoroutineScope.launch {
             repository.connect(streamingData)
 
@@ -70,5 +73,11 @@ class DetailInputViewModel @Inject constructor(
 
     fun updateAccountId(id: String) {
         _accountId.value = id
+    }
+
+    fun useDemoStream() {
+        isDemo = true
+        _streamName.value = "simulcastmultiview"
+        _accountId.value = "k9Mwad"
     }
 }
