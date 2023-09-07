@@ -1,0 +1,84 @@
+<resources>
+    <string name="app_name">Interactive Player</string>
+
+    <!-- Streaming Screen -->
+    <string name="streaming_screen_contentDescription">Streaming Screen</string>
+    <string name="live_label">Live</string>
+    <string name="offline_label">Offline</string>
+    <string name="stream_offline_title_label">Stream is offline</string>
+    <string name="stream_offline_subtitle_label">Please wait for livestream to begin.</string>
+    <string name="stream_network_disconnected_label">Disconnected from the network</string>
+
+    <!-- Stream Detail Input Screen -->
+    <string name="stream_detail_screen_name">Stream Detail Input Screen</string>
+    <string name="stream_detail_header">Interactive Player</string>
+    <string name="stream_detail_title">Start a stream</string>
+    <string name="stream_detail_subtitle">Enter the stream name and publisher\naccount ID to view a stream.</string>
+    <string name="stream_name_placeholder">Stream name</string>
+    <string name="account_id_placeholder">Account ID</string>
+    <string name="play_button">Play</string>
+    <string name="saved_streams_button">Saved Streams</string>
+    <string name="demo_streams_button">Demo Stream</string>
+    <string name="clear_stream_history_button">Clear stream history</string>
+    <string name="missing_stream_name_or_account_id">Please enter a Stream name and Account ID</string>
+    <string name="missing_stream_detail_dismiss_button">OK</string>
+    <string name="settings_title">Settings</string>
+    <string name="delete_all_streams_dialog_label">Are you sure you want to clear the saved streams?</string>
+    <string name="delete_all_streams_clear_button">Clear</string>
+    <string name="delete_all_streams_cancel_button">Cancel</string>
+
+    <!-- Saved Streams Screen -->
+    <string name="saved_streams_screen_title">Saved streams</string>
+    <string name="saved_streams_section_header_lastPlayed">Last played</string>
+    <string name="saved_streams_section_header_all">All</string>
+
+    <!-- Statistics Screen -->
+    <string name="streaming_statistics_title">Streaming statistics</string>
+    <string name="live_indicator_title">Live indicator</string>
+    <string name="streamingToolbar_contentDescription">Streaming Toolbar</string>
+    <string name="settingsScreen_contentDescription">Settings Screen</string>
+    <string name="statisticsScreen_contentDescription">Statistics Screen</string>
+    <string name="liveIndicator_contentDescription">Status Indicator</string>
+
+    <string name="statisticsScreen_title">Streaming statistics</string>
+    <string name="statisticsScreen_name">Name</string>
+    <string name="statisticsScreen_value">Value</string>
+    <string name="statisticsScreen_no_data">No data</string>
+
+    <string name="statisticsScreen_rtt">RTT</string>
+    <string name="statisticsScreen_mid">MID</string>
+    <string name="statisticsScreen_videoResolution">Video Resolution</string>
+    <string name="statisticsScreen_fps">FPS</string>
+    <string name="statisticsScreen_outgoingBitrate">Outgoing Bitrate</string>
+    <string name="statisticsScreen_videoBitrate">Video Bitrate</string>
+    <string name="statisticsScreen_audioBitrate">Audio Bitrate</string>
+    <string name="statisticsScreen_videoTotal">Video Total Received</string>
+    <string name="statisticsScreen_audioTotal">Audio Total Received</string>
+    <string name="statisticsScreen_videoLoss">Video Packet Loss</string>
+    <string name="statisticsScreen_audioLoss">Audio Packet Loss</string>
+    <string name="statisticsScreen_videoJitter">Video Jitter</string>
+    <string name="statisticsScreen_audioJitter">Audio Jitter</string>
+    <string name="statisticsScreen_codecs">Codecs</string>
+    <string name="statisticsScreen_timestamp">Timestamp</string>
+    <string name="statisticsScreen_server">Server</string>
+    <string name="statisticsScreen_cluster">Cluster</string>
+    <string name="statisticsScreen_decoder_impl">Decoder Impl</string>
+    <string name="statisticsScreen_processing_delay">Processing delay</string>
+    <string name="statisticsScreen_decode_time">Decode time</string>
+    <string name="statisticsScreen_video_packets_received">Video Packets rec.</string>
+    <string name="statisticsScreen_audio_packets_received">Audio Packets rec.</string>
+    <string name="statisticsScreen_frames_decoded">Frames dec.</string>
+    <string name="statisticsScreen_video_packets_dropped">Video Packets dropped</string>
+    <string name="statisticsScreen_audio_packets_dropped">Audio Packets dropped</string>
+    <string name="statisticsScreen_jitter_bufffer_ec">Jitter buffer est count</string>
+    <string name="statisticsScreen_audio_jitter_bufffer_delay">Audio Jitter buffer delay</string>
+    <string name="statisticsScreen_video_jitter_bufffer_target_delay">Video Jitter buffer target delay</string>
+    <string name="statisticsScreen_jitter_bufffer_min_delay">Jitter buffer min delay</string>
+    <string name="main_source_name">Main</string>
+
+    <!--  -->
+    <string name="footer_text">Copyright © 2023 Dolby.io — All Rights Reserved</string>
+    <string name="gradient_background_image">Background Image</string>
+    <string name="live_indicator_on">Live</string>
+    <string name="live_indicator_off">Offline</string>
+</resources>
