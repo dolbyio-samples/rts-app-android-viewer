@@ -50,3 +50,5 @@ rootProject.name = "rts-app-android-viewer"
 include ':app'
 include ':rtscomponentkit'
 include ':uikit'
+include ':interactiveplayer'
+include ':millicastsdk'

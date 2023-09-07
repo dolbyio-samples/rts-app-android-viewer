@@ -1,0 +1,121 @@
+plugins {
+    id 'com.android.application'
+    id 'org.jetbrains.kotlin.android'
+    id 'kotlin-kapt'
+    id 'com.google.dagger.hilt.android'
+    id 'com.github.triplet.play' version '3.8.1'
+    id 'com.google.protobuf'
+}
+
+protobuf {
+    protoc {
+        artifact = "com.google.protobuf:protoc:3.20.1"
+    }
+
+    generateProtoTasks {
+        all().each { task ->
+            task.builtins {
+                java {
+                    option 'lite'
+                }
+                kotlin {
+                    option 'lite'
+                }
+            }
+        }
+    }
+}
+
+android {
+    namespace 'io.dolby.interactiveplayer'
+    compileSdk 34
+
+    defaultConfig {
+        applicationId "io.dolby.interactiveplayer"
+        minSdk 27
+        targetSdk 34
+        versionCode 1
+        versionName "1.0"
+
+        testInstrumentationRunner "androidx.test.runner.AndroidJUnitRunner"
+    }
+
+    buildTypes {
+        release {
+            minifyEnabled false
+            proguardFiles getDefaultProguardFile('proguard-android-optimize.txt'), 'proguard-rules.pro'
+        }
+    }
+    compileOptions {
+        sourceCompatibility JavaVersion.VERSION_1_8
+        targetCompatibility JavaVersion.VERSION_1_8
+    }
+    kotlinOptions {
+        jvmTarget = '1.8'
+    }
+
+    signingConfigs {
+        release {
+            storeFile file('release.keystore')
+            storePassword System.env.KEYSTORE_PASSWORD
+            keyAlias System.env.KEY_ALIAS
+            keyPassword System.env.KEY_PASSWORD
+        }
+    }
+
+    buildTypes {
+        release {
+            signingConfig signingConfigs.release
+            minifyEnabled false
+            proguardFiles getDefaultProguardFile('proguard-android-optimize.txt'), 'proguard-rules.pro'
+
+            play {
+                track.set("internal")
+            }
+        }
+    }
+
+    buildFeatures {
+        compose true
+    }
+    composeOptions {
+        kotlinCompilerExtensionVersion kotlin_compiler_version
+    }
+}
+
+dependencies {
+
+    implementation libs.androidx.compose.ui
+    implementation libs.androidx.compose.ui.preview
+
+    implementation libs.androidx.core.ktx
+
+    implementation libs.androidx.compose.material
+
+    implementation libs.android.coroutines
+
+    implementation libs.hilt.android
+    kapt libs.hilt.compiler
+    implementation libs.androidx.hilt.navigation.compose
+
+    implementation libs.androidx.constraintlayout.compose
+    implementation libs.androidx.navigation.compose
+
+    implementation 'androidx.lifecycle:lifecycle-runtime-ktx:2.6.1'
+    implementation 'androidx.lifecycle:lifecycle-runtime-compose:2.6.1'
+    implementation "androidx.activity:activity-compose:1.7.2"
+
+    implementation "androidx.datastore:datastore:1.0.0"
+    implementation 'com.google.protobuf:protobuf-kotlin-lite:3.21.2'
+
+    implementation "androidx.datastore:datastore-core:1.0.0"
+    implementation "androidx.datastore:datastore-preferences:1.0.0"
+
+//    implementation 'com.millicast:millicast-sdk-android:1.5.2'
+    implementation project(":millicastsdk")
+    implementation project(path: ':uikit')
+
+    testImplementation libs.junit.junit
+    androidTestImplementation libs.androidx.test.ext.junit
+    androidTestImplementation libs.espresso.core
+}
