@@ -42,7 +42,6 @@ import io.dolby.rtscomponentkit.ui.TopAppBar
 import io.dolby.rtsviewer.MainActivity
 import io.dolby.rtsviewer.R
 import io.dolby.rtsviewer.ui.streaming.ErrorView
-import io.dolby.rtsviewer.utils.SetupVolumeControlAudioStream
 import io.dolby.rtsviewer.utils.findActivity
 import org.webrtc.RendererCommon
 
@@ -127,7 +126,6 @@ fun HorizontalEndListView(
     Box(
         modifier = modifier
     ) {
-        SetupVolumeControlAudioStream()
         Row {
             Box(modifier = Modifier.clickable {
                 onMainClick(uiState.videoTracks.find { it.sourceId == uiState.selectedVideoTrackId }?.id)
@@ -174,7 +172,14 @@ fun HorizontalEndListView(
                 verticalArrangement = Arrangement.spacedBy(5.dp)
             ) {
                 items(otherTracks) { video ->
-                    VideoView(onClick = onOtherClick, video = video, viewModel = viewModel)
+                    VideoView(
+                        viewModel = viewModel,
+                        video = video,
+                        displayLabel = true,
+                        videoQuality = MultiStreamingRepository.VideoQuality.AUTO,
+                        onClick = onOtherClick,
+                        modifier = Modifier.aspectRatio(16F / 9)
+                    )
                 }
             }
         }
@@ -196,7 +201,6 @@ fun VerticalTopListView(
     Box(
         modifier = modifier
     ) {
-        SetupVolumeControlAudioStream()
         val context = LocalContext.current
         if (uiState.audioTracks.isNotEmpty()) {
             (context.findActivity() as? MainActivity?)?.addVolumeObserver(uiState.audioTracks[0].audioTrack)
@@ -220,7 +224,6 @@ fun VerticalTopListView(
                     },
                     update = { view ->
                         view.setScalingType(RendererCommon.ScalingType.SCALE_ASPECT_FIT)
-
                         video?.play(view, viewModel)
                     },
                     onReset = {
@@ -231,9 +234,7 @@ fun VerticalTopListView(
                 )
                 Text(
                     text = uiState.selectedVideoTrackId ?: "Main",
-                    modifier = Modifier.align(
-                        Alignment.BottomStart
-                    )
+                    modifier = Modifier.align(Alignment.BottomStart)
                 )
             }
             val otherTracks =
@@ -249,7 +250,14 @@ fun VerticalTopListView(
                 horizontalArrangement = Arrangement.spacedBy(5.dp),
             ) {
                 items(items = otherTracks) { video ->
-                    VideoView(onOtherClick, video, viewModel)
+                    VideoView(
+                        viewModel = viewModel,
+                        video = video,
+                        displayLabel = true,
+                        videoQuality = MultiStreamingRepository.VideoQuality.AUTO,
+                        onClick = onOtherClick,
+                        modifier = Modifier.aspectRatio(16F / 9)
+                    )
                 }
             }
         }
@@ -261,31 +269,37 @@ fun VerticalTopListView(
 }
 
 @Composable
-private fun VideoView(
-    onClick: (MultiStreamingData.Video) -> Unit,
+fun VideoView(
+    viewModel: MultiStreamingViewModel,
     video: MultiStreamingData.Video,
-    viewModel: MultiStreamingViewModel
+    displayLabel: Boolean = true,
+    videoQuality: MultiStreamingRepository.VideoQuality = MultiStreamingRepository.VideoQuality.AUTO,
+    onClick: ((MultiStreamingData.Video) -> Unit)? = null,
+    modifier: Modifier
 ) {
+    val updatedModifier = onClick?.let {
+        modifier.clickable { onClick(video) }
+    } ?: modifier
     Box {
         AndroidView(
-            modifier = Modifier
-                .aspectRatio(16F / 9)
-                .clickable { onClick(video) },
+            modifier = updatedModifier,
             factory = { context -> VideoRenderer(context) },
             update = { view ->
                 Log.d("TAG", "*****> update item ${video.sourceId}, $view")
                 view.setScalingType(RendererCommon.ScalingType.SCALE_ASPECT_FIT)
-                video.play(view, viewModel)
+                video.play(view, viewModel, videoQuality)
             },
-            onReset = {
+            onRelease = {
                 Log.d("TAG", "*****> onReset item ${video.sourceId}, $it")
                 viewModel.stopVideo(video)
             }
         )
-        Text(
-            text = video.sourceId ?: "Main",
-            modifier = Modifier.align(Alignment.BottomStart)
-        )
+        if (displayLabel) {
+            Text(
+                text = video.sourceId ?: "Main",
+                modifier = Modifier.align(Alignment.BottomStart)
+            )
+        }
     }
 }
 

@@ -4,7 +4,6 @@ import androidx.lifecycle.SavedStateHandle
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import dagger.hilt.android.lifecycle.HiltViewModel
-import io.dolby.rtscomponentkit.data.MultiStreamStatisticsData
 import io.dolby.rtscomponentkit.data.MultiStreamingData
 import io.dolby.rtscomponentkit.data.MultiStreamingRepository
 import io.dolby.rtscomponentkit.domain.StreamingData
