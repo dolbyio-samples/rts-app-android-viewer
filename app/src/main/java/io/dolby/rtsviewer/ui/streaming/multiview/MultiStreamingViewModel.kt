@@ -32,9 +32,11 @@ class MultiStreamingViewModel @Inject constructor(
 
     private val _uiState = MutableStateFlow(MultiStreamingUiState())
     private val _statisticsState = MutableStateFlow(MultiStreamingStatisticsState())
+    private val _videoQualityState = MutableStateFlow(MultiStreamingVideoQualityState())
 
     val uiState: StateFlow<MultiStreamingUiState> = _uiState.asStateFlow()
     val statisticsState: StateFlow<MultiStreamingStatisticsState> = _statisticsState.asStateFlow()
+    val videoQualityState: StateFlow<MultiStreamingVideoQualityState> = _videoQualityState.asStateFlow()
 
     init {
         viewModelScope.launch {
@@ -42,6 +44,7 @@ class MultiStreamingViewModel @Inject constructor(
             repository.data.collect { data ->
                 update(data)
                 updateStatistics(data)
+                updateProjected(data)
             }
         }
     }
@@ -111,6 +114,12 @@ class MultiStreamingViewModel @Inject constructor(
     private suspend fun updateStatistics(data: MultiStreamingData) = withContext(dispatcherProvider.main) {
         _statisticsState.update {
             it.copy(statisticsData = data.statisticsData)
+        }
+    }
+
+    private suspend fun updateProjected(data: MultiStreamingData) = withContext(dispatcherProvider.main) {
+        _videoQualityState.update {
+            it.copy(videoQualities = data.trackProjectedData.mapValues { it.value.videoQuality })
         }
     }
 

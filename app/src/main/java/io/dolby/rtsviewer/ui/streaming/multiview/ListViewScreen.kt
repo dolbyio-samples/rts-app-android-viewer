@@ -166,6 +166,15 @@ fun HorizontalEndListView(
                         Alignment.BottomStart
                     )
                 )
+                val video =
+                    uiState.selectedVideoTrackId?.let { selectedVideoTrackId ->
+                        uiState.videoTracks.firstOrNull { it.sourceId == selectedVideoTrackId }
+                    } ?: uiState.videoTracks.firstOrNull()
+                QualityLabel(
+                    viewModel = viewModel, video = video, modifier = Modifier.align(
+                        Alignment.BottomEnd
+                    )
+                )
             }
             val otherTracks =
                 uiState.videoTracks.filter { it.sourceId != uiState.selectedVideoTrackId }
@@ -244,6 +253,11 @@ fun VerticalTopListView(
                     text = uiState.selectedVideoTrackId ?: "Main",
                     modifier = Modifier.align(Alignment.BottomStart)
                 )
+                QualityLabel(
+                    viewModel = viewModel,
+                    video = video,
+                    modifier = Modifier.align(Alignment.BottomEnd)
+                )
             }
             val otherTracks =
                 uiState.videoTracks.filter { it.sourceId != uiState.selectedVideoTrackId }
@@ -266,6 +280,7 @@ fun VerticalTopListView(
                         onClick = onOtherClick,
                         modifier = Modifier.aspectRatio(16F / 9)
                     )
+
                 }
             }
         }
@@ -308,7 +323,26 @@ fun VideoView(
                 modifier = Modifier.align(Alignment.BottomStart)
             )
         }
+        QualityLabel(
+            viewModel = viewModel,
+            video = video,
+            modifier = Modifier.align(Alignment.BottomEnd)
+        )
     }
+}
+
+@Composable
+fun QualityLabel(
+    viewModel: MultiStreamingViewModel,
+    video: MultiStreamingData.Video?,
+    modifier: Modifier
+) {
+    val videoQualityState by viewModel.videoQualityState.collectAsStateWithLifecycle()
+
+    Text(
+        text = videoQualityState.videoQualities[video?.id]?.name ?: "null",
+        modifier = modifier
+    )
 }
 
 @Composable

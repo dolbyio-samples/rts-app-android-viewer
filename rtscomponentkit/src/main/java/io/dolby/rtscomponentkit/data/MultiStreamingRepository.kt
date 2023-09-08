@@ -421,7 +421,10 @@ class MultiStreamingRepository {
             val availablePreferredVideoQuality = availablePreferredVideoQuality(video, preferredVideoQuality)
             val projected = data.value.trackProjectedData[video.id]
             if (projected == null || projected.videoQuality != availablePreferredVideoQuality?.videoQuality()) {
-                Log.d("RTS***>", "project video ${video.id}, quality = $availablePreferredVideoQuality")
+                Log.d(
+                    "RTS***>",
+                    "project video ${video.id}, quality = $availablePreferredVideoQuality"
+                )
                 val projectionData = createProjectionData(video, availablePreferredVideoQuality)
                 subscriber?.project(video.sourceId ?: "", arrayListOf(projectionData))
                 data.update {
@@ -434,7 +437,10 @@ class MultiStreamingRepository {
                     it.copy(trackProjectedData = mutableOldProjectedData.toMap())
                 }
             } else {
-                Log.d("RTS***>", "already projected video ${video.id}, quality = $availablePreferredVideoQuality")
+                Log.d(
+                    "RTS***>",
+                    "already projected video ${video.id}, quality = $availablePreferredVideoQuality"
+                )
             }
         }
 
