@@ -224,7 +224,7 @@ class MultiStreamingRepository {
         preferredVideoQuality: VideoQuality,
         preferredVideoQualities: Map<String, VideoQuality>
     ) {
-        val priorityVideoPreference = preferredVideoQualities[video.id]
+        val priorityVideoPreference = if (preferredVideoQuality != VideoQuality.AUTO) preferredVideoQualities[video.id] else null
         listener?.playVideo(video, priorityVideoPreference ?: preferredVideoQuality)
     }
 

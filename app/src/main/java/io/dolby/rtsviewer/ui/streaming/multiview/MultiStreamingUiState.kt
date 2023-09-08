@@ -11,7 +11,8 @@ data class MultiStreamingUiState(
     val videoTracks: List<MultiStreamingData.Video> = emptyList(),
     val audioTracks: List<MultiStreamingData.Audio> = emptyList(),
     val selectedVideoTrackId: String? = null,
-    val error: io.dolby.rtsviewer.ui.streaming.Error? = null
+    val error: io.dolby.rtsviewer.ui.streaming.Error? = null,
+    val layerData: Map<String, List<MultiStreamingRepository.LowLevelVideoQuality>> = emptyMap()
 )
 
 data class MultiStreamingStatisticsState(
