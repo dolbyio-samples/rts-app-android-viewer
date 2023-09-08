@@ -219,8 +219,13 @@ class MultiStreamingRepository {
         }
     }
 
-    fun playVideo(video: MultiStreamingData.Video, preferredVideoQuality: VideoQuality) {
-        listener?.playVideo(video, preferredVideoQuality)
+    fun playVideo(
+        video: MultiStreamingData.Video,
+        preferredVideoQuality: VideoQuality,
+        preferredVideoQualities: Map<String, VideoQuality>
+    ) {
+        val priorityVideoPreference = preferredVideoQualities[video.id]
+        listener?.playVideo(video, priorityVideoPreference ?: preferredVideoQuality)
     }
 
     fun stopVideo(video: MultiStreamingData.Video) {

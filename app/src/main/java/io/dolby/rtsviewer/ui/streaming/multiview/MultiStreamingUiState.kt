@@ -20,5 +20,8 @@ data class MultiStreamingStatisticsState(
 )
 
 data class MultiStreamingVideoQualityState(
-    val videoQualities: Map<String, MultiStreamingRepository.VideoQuality> = emptyMap()
+    val showVideoQualitySelectionForMid: String? = null,
+    val videoQualities: Map<String, MultiStreamingRepository.VideoQuality> = emptyMap(),
+    val availableVideoQualities: Map<String, List<MultiStreamingRepository.LowLevelVideoQuality>> = emptyMap(),
+    val preferredVideoQualities: Map<String, MultiStreamingRepository.VideoQuality> = emptyMap()
 )

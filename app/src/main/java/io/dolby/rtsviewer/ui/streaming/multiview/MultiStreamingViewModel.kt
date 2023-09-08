@@ -36,7 +36,8 @@ class MultiStreamingViewModel @Inject constructor(
 
     val uiState: StateFlow<MultiStreamingUiState> = _uiState.asStateFlow()
     val statisticsState: StateFlow<MultiStreamingStatisticsState> = _statisticsState.asStateFlow()
-    val videoQualityState: StateFlow<MultiStreamingVideoQualityState> = _videoQualityState.asStateFlow()
+    val videoQualityState: StateFlow<MultiStreamingVideoQualityState> =
+        _videoQualityState.asStateFlow()
 
     init {
         viewModelScope.launch {
@@ -44,7 +45,7 @@ class MultiStreamingViewModel @Inject constructor(
             repository.data.collect { data ->
                 update(data)
                 updateStatistics(data)
-                updateProjected(data)
+                updateLayers(data)
             }
         }
     }
@@ -111,17 +112,22 @@ class MultiStreamingViewModel @Inject constructor(
         }
     }
 
-    private suspend fun updateStatistics(data: MultiStreamingData) = withContext(dispatcherProvider.main) {
-        _statisticsState.update {
-            it.copy(statisticsData = data.statisticsData)
+    private suspend fun updateStatistics(data: MultiStreamingData) =
+        withContext(dispatcherProvider.main) {
+            _statisticsState.update {
+                it.copy(statisticsData = data.statisticsData)
+            }
         }
-    }
 
-    private suspend fun updateProjected(data: MultiStreamingData) = withContext(dispatcherProvider.main) {
-        _videoQualityState.update {
-            it.copy(videoQualities = data.trackProjectedData.mapValues { it.value.videoQuality })
+    private suspend fun updateLayers(data: MultiStreamingData) =
+        withContext(dispatcherProvider.main) {
+            _videoQualityState.update {
+                it.copy(
+                    videoQualities = data.trackProjectedData.mapValues { it.value.videoQuality },
+                    availableVideoQualities = data.trackLayerData
+                )
+            }
         }
-    }
 
     fun disconnect() {
         repository.disconnect()
@@ -135,7 +141,11 @@ class MultiStreamingViewModel @Inject constructor(
         video: MultiStreamingData.Video,
         preferredVideoQuality: MultiStreamingRepository.VideoQuality
     ) {
-        repository.playVideo(video, preferredVideoQuality)
+        repository.playVideo(
+            video = video,
+            preferredVideoQuality = preferredVideoQuality,
+            preferredVideoQualities = _videoQualityState.value.preferredVideoQualities
+        )
     }
 
     fun stopVideo(video: MultiStreamingData.Video) {
@@ -156,5 +166,19 @@ class MultiStreamingViewModel @Inject constructor(
             videoStatistics = selectedVideoTrackStatistics,
             audioStatistics = selectedAudioTrackStatistics
         )
+    }
+
+    fun showVideoQualitySelection(mid: String?, show: Boolean) {
+        _videoQualityState.update { it.copy(showVideoQualitySelectionForMid = if (show) mid else null) }
+    }
+
+    fun preferredVideoQuality(mid: String?, videoQuality: MultiStreamingRepository.VideoQuality) {
+        mid?.let {
+            _videoQualityState.update {
+                val currentPreferredVideoQuantities = it.preferredVideoQualities.toMutableMap()
+                currentPreferredVideoQuantities[mid] = videoQuality
+                it.copy(preferredVideoQualities = currentPreferredVideoQuantities)
+            }
+        }
     }
 }

@@ -2,6 +2,7 @@ package io.dolby.rtsviewer.ui.streaming.multiview
 
 import android.content.res.Configuration
 import android.util.Log
+import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
@@ -23,6 +24,7 @@ import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.platform.LocalConfiguration
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.platform.LocalFocusManager
@@ -288,6 +290,8 @@ fun VerticalTopListView(
             modifier = Modifier.align(Alignment.TopStart),
             on = uiState.videoTracks.isNotEmpty() || uiState.audioTracks.isNotEmpty()
         )
+
+        QualitySelector(viewModel = viewModel, modifier = Modifier.align(Alignment.Center))
     }
 }
 
@@ -338,11 +342,43 @@ fun QualityLabel(
     modifier: Modifier
 ) {
     val videoQualityState by viewModel.videoQualityState.collectAsStateWithLifecycle()
-
     Text(
         text = videoQualityState.videoQualities[video?.id]?.name ?: "null",
-        modifier = modifier
+        modifier = modifier.clickable {
+            video?.let {
+                viewModel.showVideoQualitySelection(it.id, true)
+            }
+        }
     )
+}
+
+@Composable
+fun QualitySelector(
+    viewModel: MultiStreamingViewModel,
+    modifier: Modifier
+) {
+    val videoQualityState by viewModel.videoQualityState.collectAsStateWithLifecycle()
+    videoQualityState.showVideoQualitySelectionForMid?.let { mid ->
+        val availableVideoQualitiesForStream =
+            videoQualityState.availableVideoQualities[mid]?.map { it.videoQuality() } ?: emptyList()
+        LazyColumn(
+            modifier = modifier
+                .background(Color.Black)
+                .padding(5.dp)
+        ) {
+            items(items = availableVideoQualitiesForStream) {
+                Text(
+                    text = it.name,
+                    modifier = Modifier
+                        .padding(3.dp)
+                        .clickable {
+                            viewModel.preferredVideoQuality(mid = mid, videoQuality = it)
+                            viewModel.showVideoQualitySelection(null, false)
+                        }
+                )
+            }
+        }
+    }
 }
 
 @Composable
