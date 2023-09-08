@@ -144,7 +144,11 @@ fun HorizontalEndListView(
                             uiState.selectedVideoTrackId?.let { selectedVideoTrackId ->
                                 uiState.videoTracks.firstOrNull { it.sourceId == selectedVideoTrackId }
                             } ?: uiState.videoTracks.firstOrNull()
-                        video?.play(view, viewModel)
+                        video?.play(
+                            view = view,
+                            viewModel = viewModel,
+                            videoQuality = MultiStreamingRepository.VideoQuality.HIGH
+                        )
                     },
                     onRelease = {
                         val video =
@@ -224,7 +228,11 @@ fun VerticalTopListView(
                     },
                     update = { view ->
                         view.setScalingType(RendererCommon.ScalingType.SCALE_ASPECT_FIT)
-                        video?.play(view, viewModel)
+                        video?.play(
+                            view = view,
+                            viewModel = viewModel,
+                            videoQuality = MultiStreamingRepository.VideoQuality.HIGH
+                        )
                     },
                     onReset = {
                         video?.let {

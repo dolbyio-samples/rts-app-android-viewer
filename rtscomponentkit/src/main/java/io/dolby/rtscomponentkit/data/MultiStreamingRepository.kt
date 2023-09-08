@@ -418,9 +418,7 @@ class MultiStreamingRepository {
             video: MultiStreamingData.Video,
             preferredVideoQuality: VideoQuality
         ) {
-            val availablePreferredVideoQuality = data.value.trackLayerData[video.id]?.find {
-                it.videoQuality() == preferredVideoQuality
-            }
+            val availablePreferredVideoQuality = availablePreferredVideoQuality(video, preferredVideoQuality)
             val projected = data.value.trackProjectedData[video.id]
             if (projected == null || projected.videoQuality != availablePreferredVideoQuality?.videoQuality()) {
                 Log.d("RTS***>", "project video ${video.id}, quality = $availablePreferredVideoQuality")
@@ -437,6 +435,20 @@ class MultiStreamingRepository {
                 }
             } else {
                 Log.d("RTS***>", "already projected video ${video.id}, quality = $availablePreferredVideoQuality")
+            }
+        }
+
+        private fun availablePreferredVideoQuality(
+            video: MultiStreamingData.Video,
+            preferredVideoQuality: VideoQuality
+        ): LowLevelVideoQuality? {
+            return data.value.trackLayerData[video.id]?.find {
+                it.videoQuality() == preferredVideoQuality
+            } ?: if (preferredVideoQuality != VideoQuality.AUTO) availablePreferredVideoQuality(
+                video,
+                preferredVideoQuality.lower()
+            ) else {
+                null
             }
         }
 
@@ -521,6 +533,15 @@ class MultiStreamingRepository {
     }
 
     enum class VideoQuality {
-        AUTO, LOW, MEDIUM, HIGH
+        AUTO, LOW, MEDIUM, HIGH;
+
+        fun lower(): VideoQuality {
+            return when (this) {
+                HIGH -> MEDIUM
+                MEDIUM -> LOW
+                LOW -> AUTO
+                AUTO -> AUTO
+            }
+        }
     }
 }
