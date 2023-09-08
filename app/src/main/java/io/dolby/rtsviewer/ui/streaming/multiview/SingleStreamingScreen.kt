@@ -29,9 +29,9 @@ import io.dolby.rtscomponentkit.ui.DolbyBackgroundBox
 import io.dolby.rtscomponentkit.ui.LiveIndicator
 import io.dolby.rtscomponentkit.ui.TopAppBar
 import io.dolby.rtsviewer.R
-import io.dolby.rtsviewer.ui.streaming.multiview.MultiStreamingStatisticsState
 import io.dolby.rtsviewer.ui.streaming.multiview.MultiStreamingUiState
 import io.dolby.rtsviewer.ui.streaming.multiview.MultiStreamingViewModel
+import io.dolby.rtsviewer.ui.streaming.multiview.QualityLabel
 import io.dolby.rtsviewer.uikit.button.StyledIconButton
 import org.webrtc.RendererCommon
 
@@ -72,6 +72,12 @@ fun SingleStreamingScreen(
             LiveIndicator(
                 modifier = Modifier.align(Alignment.TopStart),
                 on = uiState.videoTracks.isNotEmpty() || uiState.audioTracks.isNotEmpty()
+            )
+
+            QualityLabel(
+                viewModel = viewModel,
+                video = uiState.videoTracks[pagerState.currentPage],
+                modifier = Modifier.align(Alignment.BottomEnd)
             )
 
             StyledIconButton(
