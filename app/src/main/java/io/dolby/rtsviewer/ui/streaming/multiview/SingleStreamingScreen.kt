@@ -32,6 +32,7 @@ import io.dolby.rtsviewer.R
 import io.dolby.rtsviewer.ui.streaming.multiview.MultiStreamingUiState
 import io.dolby.rtsviewer.ui.streaming.multiview.MultiStreamingViewModel
 import io.dolby.rtsviewer.ui.streaming.multiview.QualityLabel
+import io.dolby.rtsviewer.ui.streaming.multiview.QualitySelector
 import io.dolby.rtsviewer.uikit.button.StyledIconButton
 import org.webrtc.RendererCommon
 
@@ -79,6 +80,8 @@ fun SingleStreamingScreen(
                 video = uiState.videoTracks[pagerState.currentPage],
                 modifier = Modifier.align(Alignment.BottomEnd)
             )
+            
+            QualitySelector(viewModel = viewModel)
 
             StyledIconButton(
                 modifier = Modifier

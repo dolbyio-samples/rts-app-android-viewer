@@ -10,7 +10,10 @@ import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.aspectRatio
 import androidx.compose.foundation.layout.fillMaxHeight
+import androidx.compose.foundation.layout.fillMaxSize
+import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.grid.GridCells
 import androidx.compose.foundation.lazy.grid.LazyVerticalGrid
@@ -291,7 +294,7 @@ fun VerticalTopListView(
             on = uiState.videoTracks.isNotEmpty() || uiState.audioTracks.isNotEmpty()
         )
 
-        QualitySelector(viewModel = viewModel, modifier = Modifier.align(Alignment.Center))
+        QualitySelector(viewModel = viewModel)
     }
 }
 
@@ -354,28 +357,37 @@ fun QualityLabel(
 
 @Composable
 fun QualitySelector(
-    viewModel: MultiStreamingViewModel,
-    modifier: Modifier
+    viewModel: MultiStreamingViewModel
 ) {
     val videoQualityState by viewModel.videoQualityState.collectAsStateWithLifecycle()
     videoQualityState.showVideoQualitySelectionForMid?.let { mid ->
         val availableVideoQualitiesForStream =
             videoQualityState.availableVideoQualities[mid]?.map { it.videoQuality() } ?: emptyList()
-        LazyColumn(
-            modifier = modifier
-                .background(Color.Black)
-                .padding(5.dp)
-        ) {
-            items(items = availableVideoQualitiesForStream) {
-                Text(
-                    text = it.name,
-                    modifier = Modifier
-                        .padding(3.dp)
-                        .clickable {
-                            viewModel.preferredVideoQuality(mid = mid, videoQuality = it)
-                            viewModel.showVideoQualitySelection(null, false)
-                        }
-                )
+        Box(modifier = Modifier.fillMaxSize().clickable { viewModel.showVideoQualitySelection(null, false) }) {
+            LazyColumn(
+                modifier = Modifier.align(Alignment.Center)
+                    .width(200.dp)
+                    .background(Color.Black)
+                    .padding(5.dp)
+            ) {
+                item {
+                    Text(
+                        text = "Select from available Layers, mid = $mid",
+                        Modifier.clickable { viewModel.showVideoQualitySelection(null, false) }
+                    )
+                }
+                items(items = availableVideoQualitiesForStream) {
+                    Text(
+                        text = it.name,
+                        modifier = Modifier
+                            .fillMaxWidth()
+                            .padding(3.dp)
+                            .clickable {
+                                viewModel.preferredVideoQuality(mid = mid, videoQuality = it)
+                                viewModel.showVideoQualitySelection(null, false)
+                            }
+                    )
+                }
             }
         }
     }
