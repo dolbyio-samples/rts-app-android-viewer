@@ -15,6 +15,7 @@ import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.flow.updateAndGet
 import org.webrtc.RTCStatsReport
+import java.lang.Exception
 import java.util.Arrays
 import java.util.Optional
 import kotlin.jvm.optionals.getOrNull
@@ -175,6 +176,7 @@ class MultiStreamingRepository {
 
         val options = Subscriber.Option()
         options.statsDelayMs = 10_000
+        options.disableAudio = false
         subscriber?.setOptions(options)
         subscriber.getStats(1_000)
 
@@ -184,7 +186,11 @@ class MultiStreamingRepository {
 
         Log.d(TAG, "Connecting ...")
 
-        subscriber.connect()
+        try {
+            subscriber.connect()
+        } catch (e: Exception) {
+            e.printStackTrace()
+        }
         _data.update { data -> data.copy(streamingData = streamingData) }
     }
 

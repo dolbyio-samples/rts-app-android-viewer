@@ -51,10 +51,10 @@ class DetailInputViewModel @Inject constructor(
         val streamingData =
             StreamingData(streamName = streamName.value, accountId = accountId.value)
         defaultCoroutineScope.launch {
-            repository.connect(streamingData)
-//
-            // Save the stream detail
-            recentStreamsDataStore.addStreamDetail(streamingData)
+            if (!isDemo) {
+                // Save the stream detail
+                recentStreamsDataStore.addStreamDetail(streamingData)
+            }
         }
     }
 

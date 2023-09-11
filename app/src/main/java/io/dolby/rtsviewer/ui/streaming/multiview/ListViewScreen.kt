@@ -363,9 +363,12 @@ fun QualitySelector(
     videoQualityState.showVideoQualitySelectionForMid?.let { mid ->
         val availableVideoQualitiesForStream =
             videoQualityState.availableVideoQualities[mid]?.map { it.videoQuality() } ?: emptyList()
-        Box(modifier = Modifier.fillMaxSize().clickable { viewModel.showVideoQualitySelection(null, false) }) {
+        Box(modifier = Modifier
+            .fillMaxSize()
+            .clickable { viewModel.showVideoQualitySelection(null, false) }) {
             LazyColumn(
-                modifier = Modifier.align(Alignment.Center)
+                modifier = Modifier
+                    .align(Alignment.Center)
                     .width(200.dp)
                     .background(Color.Black)
                     .padding(5.dp)

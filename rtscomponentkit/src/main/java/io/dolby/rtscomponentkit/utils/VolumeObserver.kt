@@ -12,9 +12,9 @@ class VolumeObserver constructor(
     private val audioTrack: AudioTrack
 ) : ContentObserver(handler) {
 
-    init {
-        adjustVolume()
-    }
+//    init {
+//        adjustVolume()
+//    }
     override fun onChange(selfChange: Boolean) {
         super.onChange(selfChange)
         adjustVolume()
