@@ -4,13 +4,14 @@ on:
   push:
     branches:
       - main
+      - dev/interactive-player
     tags:
       - '*'
 env:
   GIT_USERNAME: "dolbyio-gh-bot"
 
 jobs:
-  Android-App-Build:
+  Android-Interactive-Player-Build:
     runs-on: ubuntu-latest
     steps:
       - name: Checkout source code
@@ -30,17 +31,16 @@ jobs:
         env:
           DISTRIBUTION_CERTIFICATE_ANDROID_BASE64: ${{ secrets.RELEASE_KEYSTORE_BASE64 }}
         run: |
-          CERTIFICATE_PATH=./app/release.keystore
           INTERACTIVE_PLAYER_CERTIFICATE_PATH=./interactiveplayer/release.keystore
-          echo -n "$DISTRIBUTION_CERTIFICATE_ANDROID_BASE64" | base64 --decode > $CERTIFICATE_PATH
-
-      - name: calculate version
+          echo -n "$DISTRIBUTION_CERTIFICATE_ANDROID_BASE64" | base64 --decode > $INTERACTIVE_PLAYER_CERTIFICATE_PATH
+          
+      - name: calculate Interactive Player App version
         run: |
-          versionName='1.0.'$GITHUB_RUN_NUMBER
+          versionName='0.0.'$GITHUB_RUN_NUMBER
           versionCode=$GITHUB_RUN_NUMBER; echo "versionName: $versionName; versionCode: $versionCode"
-          echo "export VERSION_NAME=$versionName; export VERSION_CODE=$versionCode" > ~/.env_version
+          echo "export VERSION_NAME=$versionName; export VERSION_CODE=$versionCode" > ~/.env_interactive_player_version
 
-      - name: Android TV App Release Build and Interactive Player Release Build
+      - name: Interactive Player Release Build
         env:
           KEYSTORE_PASSWORD: ${{ secrets.RELEASE_KEYSTORE_STORE_PASSWORD }}
           KEY_ALIAS: ${{ secrets.RELEASE_KEYSTORE_KEY_ALIAS }}
@@ -50,18 +50,18 @@ jobs:
           export KEYSTORE_PASSWORD=$KEYSTORE_PASSWORD
           export KEY_ALIAS=$KEY_ALIAS
           export KEY_PASSWORD=$KEY_PASSWORD
-          source ~/.env_version
-          chmod +x ./gradlew && ./gradlew app::assembleTvRelease app::bundleTvRelease
+          source ~/.env_interactive_player_version
+          ./gradlew interactiveplayer::assembleRelease interactiveplayer::bundleRelease
 
-      - name: Archive Viewer production bundle
+      - name: Archive Interactive Player production bundle
         uses: actions/upload-artifact@v3
         with:
-          name: android-app-release-bundle
+          name: interactive-player-release-bundle
           path: |
-            ./app/build/outputs/bundle/tvRelease/app-tv-release.aab
+            ./interactiveplayer/build/outputs/bundle/release/interactiveplayer-release.aab
 
   Android-Play-Store-Distribution:
-    needs: Android-App-Build
+    needs: Android-Interactive-Player-Build
     runs-on: ubuntu-latest
     steps:
       - name: Checkout source code
@@ -83,21 +83,21 @@ jobs:
       - name: Download release artifacts
         uses: actions/download-artifact@v3
         with:
-          name: android-app-release-bundle
-          path: ./app/build/outputs/bundle/tvRelease/
+          name: interactive-player-release-bundle
+          path: ./interactiveplayer/build/outputs/bundle/release/
 
       - name: Create release notes
         run: |
-          RELEASE_NOTES_FILE=./app/src/main/play/release-notes/en-US/default.txt
+          RELEASE_NOTES_FILE=./interactiveplayer/src/main/play/release-notes/en-US/default.txt
           mkdir -p "$(dirname $RELEASE_NOTES_FILE)" && touch "$RELEASE_NOTES_FILE"
-          echo "Android TV app update: ${{ github.event.head_commit.message }}" > $RELEASE_NOTES_FILE
+          echo "Android Interactive Player app update: ${{ github.event.head_commit.message }}" > $RELEASE_NOTES_FILE
 
-      - name: Deploy TV app to Play Store
+      - name: Deploy Interactive Player app to Play Store
         env:
           ANDROID_PUBLISHER_CREDENTIALS: ${{ secrets.ANDROID_PUBLISHER_CREDENTIALS }}
           GIT_PAT: ${{ secrets.GITHUB_TOKEN }}
         run: |
-          versionName='1.0.'$GITHUB_RUN_NUMBER
+          versionName='0.0.'$GITHUB_RUN_NUMBER
           versionCode=$GITHUB_RUN_NUMBER
           export ANDROID_PUBLISHER_CREDENTIALS=$ANDROID_PUBLISHER_CREDENTIALS
-          chmod +x ./gradlew && ./gradlew publishTvReleaseBundle --artifact-dir ./app/build/outputs/bundle/tvRelease/ --release-name "$versionCode ($versionName) TV" --stacktrace
+          chmod +x ./gradlew && ./gradlew publishReleaseBundle --artifact-dir ./interactiveplayer/build/outputs/bundle/release/ --release-name "$versionCode ($versionName)" --stacktrace
