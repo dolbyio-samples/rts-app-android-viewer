@@ -281,7 +281,7 @@ fun VerticalTopListView(
                         viewModel = viewModel,
                         video = video,
                         displayLabel = true,
-                        videoQuality = MultiStreamingRepository.VideoQuality.AUTO,
+                        videoQuality = MultiStreamingRepository.VideoQuality.LOW,
                         onClick = onOtherClick,
                         modifier = Modifier.aspectRatio(16F / 9)
                     )
