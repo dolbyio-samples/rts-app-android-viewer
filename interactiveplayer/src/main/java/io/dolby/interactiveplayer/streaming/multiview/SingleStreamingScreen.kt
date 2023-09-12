@@ -131,9 +131,13 @@ private fun VideoView(
             modifier = Modifier
                 .aspectRatio(16F / 9)
                 .align(Alignment.Center),
-            factory = { context -> VideoRenderer(context) },
+            factory = { context ->
+                val view = VideoRenderer(context)
+                Log.d("RTS******>", "SingleStreamingScreen: created for page: $page, $view")
+                view
+            },
             update = { view ->
-                Log.d("RTS***>", "SingleStreamingScreen: update for page $page")
+                Log.d("RTS******>", "SingleStreamingScreen: update for page: $page, $view")
                 view.setScalingType(RendererCommon.ScalingType.SCALE_ASPECT_FIT)
                 uiState.videoTracks[page].videoTrack.setRenderer(view)
                 val isSelected =
@@ -143,8 +147,10 @@ private fun VideoView(
                     if (isSelected) MultiStreamingRepository.VideoQuality.HIGH else MultiStreamingRepository.VideoQuality.AUTO
                 )
             },
-            onRelease = { _ ->
+            onRelease = { view ->
+                Log.d("RTS******>", "SingleStreamingScreen: release for page: $page, $view")
                 viewModel.stopVideo(uiState.videoTracks[page])
+                view.release()
             }
         )
     }
