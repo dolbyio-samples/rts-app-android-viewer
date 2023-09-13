@@ -7,6 +7,9 @@ plugins {
     id 'com.google.protobuf'
 }
 
+def appVersionCode = Integer.valueOf(System.env.VERSION_CODE ?: 1)
+def appVersionName = System.env.VERSION_NAME ?: "0.0"
+
 protobuf {
     protoc {
         artifact = "com.google.protobuf:protoc:3.20.1"
@@ -34,8 +37,8 @@ android {
         applicationId "io.dolby.interactiveplayer"
         minSdk 27
         targetSdk 34
-        versionCode 1
-        versionName "1.0"
+        versionCode appVersionCode
+        versionName appVersionName
 
         testInstrumentationRunner "androidx.test.runner.AndroidJUnitRunner"
     }
