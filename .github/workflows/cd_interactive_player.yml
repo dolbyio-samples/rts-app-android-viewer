@@ -1,4 +1,4 @@
-name: CD Android build and distribution
+name: CD Interactive Player Android build and distribution
 
 on:
   push:
@@ -98,6 +98,6 @@ jobs:
           GIT_PAT: ${{ secrets.GITHUB_TOKEN }}
         run: |
           versionName='0.0.'$GITHUB_RUN_NUMBER
-          versionCode=$GITHUB_RUN_NUMBER
+          versionCode=$GITHUB_RUN_NUMBER; echo "versionName: $versionName; versionCode: $versionCode"
           export ANDROID_PUBLISHER_CREDENTIALS=$ANDROID_PUBLISHER_CREDENTIALS
-          chmod +x ./gradlew && ./gradlew publishReleaseBundle --artifact-dir ./interactiveplayer/build/outputs/bundle/release/ --release-name "$versionCode ($versionName)" --stacktrace
+          chmod +x ./gradlew && ./gradlew interactiveplayer::publishReleaseBundle --artifact-dir ./interactiveplayer/build/outputs/bundle/release/ --release-name "$versionCode ($versionName)" --release-status draft --stacktrace
