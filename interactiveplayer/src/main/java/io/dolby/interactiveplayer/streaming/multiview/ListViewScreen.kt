@@ -264,11 +264,11 @@ fun VerticalTopListView(
                     text = uiState.selectedVideoTrackId ?: "Main",
                     modifier = Modifier.align(Alignment.BottomStart)
                 )
-                QualityLabel(
-                    viewModel = viewModel,
-                    video = video,
-                    modifier = Modifier.align(Alignment.BottomEnd)
-                )
+//                QualityLabel(
+//                    viewModel = viewModel,
+//                    video = video,
+//                    modifier = Modifier.align(Alignment.BottomEnd)
+//                )
             }
             val otherTracks =
                 uiState.videoTracks.filter { it.sourceId != uiState.selectedVideoTrackId }
