@@ -108,7 +108,8 @@ data class MultiStreamingData(
         }
         return copy(
             pendingVideoTracks = pendingVideoTracks,
-            pendingAudioTracks = pendingAudioTracks
+            pendingAudioTracks = pendingAudioTracks,
+            error = null
         )
     }
 
@@ -120,6 +121,12 @@ data class MultiStreamingData(
             pendingAudioTracks = pendingAudioTracks
         )
     }
+
+    fun populateError(error: String): MultiStreamingData = copy(
+        videoTracks = emptyList(),
+        audioTracks = emptyList(),
+        error = error
+    )
 
     companion object {
         const val video = "video"
@@ -265,19 +272,22 @@ class MultiStreamingRepository {
 
         override fun onDisconnected() {
             Log.d(TAG, "onDisconnected")
+            data.update {
+                it.populateError(error = "Disconnected")
+            }
         }
 
         override fun onConnectionError(p0: Int, p1: String?) {
             Log.d(TAG, "onConnectionError: $p0, $p1")
             data.update {
-                it.copy(error = p1 ?: "Unknown error")
+                it.populateError(error = p1 ?: "Unknown error")
             }
         }
 
         override fun onSignalingError(p0: String?) {
             Log.d(TAG, "onSignalingError: $p0")
             data.update {
-                it.copy(error = p0 ?: "Signaling error")
+                it.populateError(error = p0 ?: "Signaling error")
             }
         }
 
@@ -300,7 +310,7 @@ class MultiStreamingRepository {
 
         override fun onSubscribed() {
             Log.d(TAG, "onSubscribed")
-            val newData = data.updateAndGet { data -> data.copy(isSubscribed = true) }
+            val newData = data.updateAndGet { data -> data.copy(isSubscribed = true, error = null) }
             processPendingTracks(newData)
         }
 
@@ -508,7 +518,7 @@ class MultiStreamingRepository {
     }
 
     companion object {
-        private const val TAG = "MultiStreamingRepository"
+        private const val TAG = "io.dolby.interactiveplayer"
 
         fun createProjectionData(
             video: MultiStreamingData.Video,

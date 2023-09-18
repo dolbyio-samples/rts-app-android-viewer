@@ -47,6 +47,14 @@ class MultiStreamingViewModel @Inject constructor(
                 updateLayers(data)
             }
         }
+        viewModelScope.launch {
+            networkStatusObserver.status.collect { networkStatus ->
+                when (networkStatus) {
+                    NetworkStatusObserver.Status.Unavailable -> _uiState.update { it.copy(hasNetwork = false) }
+                    else -> _uiState.update { it.copy(hasNetwork = true) }
+                }
+            }
+        }
     }
 
     override fun onCleared() {
@@ -91,11 +99,13 @@ class MultiStreamingViewModel @Inject constructor(
     private suspend fun update(data: MultiStreamingData) = withContext(dispatcherProvider.main) {
         when {
             data.error != null -> {
-                networkStatusObserver.status.collect { networkStatus ->
-                    when (networkStatus) {
-                        NetworkStatusObserver.Status.Unavailable -> _uiState.update { it.copy(error = Error.NO_INTERNET_CONNECTION) }
-                        else -> _uiState.update { it.copy(error = Error.STREAM_NOT_ACTIVE) }
+                _uiState.update {
+                    val error = if (it.hasNetwork) {
+                        Error.STREAM_NOT_ACTIVE
+                    } else {
+                        Error.NO_INTERNET_CONNECTION
                     }
+                    it.copy(error = error)
                 }
             }
 
@@ -106,7 +116,8 @@ class MultiStreamingViewModel @Inject constructor(
                     audioTracks = data.audioTracks,
                     selectedVideoTrackId = data.selectedVideoTrackId,
                     streamName = data.streamingData?.streamName,
-                    layerData = data.trackLayerData
+                    layerData = data.trackLayerData,
+                    error = null
                 )
             }
         }
