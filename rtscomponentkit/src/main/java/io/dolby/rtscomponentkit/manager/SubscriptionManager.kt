@@ -88,32 +88,33 @@ class SubscriptionManager(
         // Subscribe to Millicast
         var success = true
         try {
-            streamingData?.let { sd ->
-                val path = Environment.getExternalStoragePublicDirectory(
-                    Environment.DIRECTORY_DOWNLOADS
-                ).absolutePath + "/Ultra"
-                createDirectoryIfNotExists(path)
-                val formatter = DateTimeFormatter.ISO_LOCAL_DATE_TIME.withZone(
-                    ZoneId.from(
-                        ZoneOffset.UTC
-                    )
+            val path = Environment.getExternalStoragePublicDirectory(
+                Environment.DIRECTORY_DOWNLOADS
+            ).absolutePath + "/Ultra"
+            createDirectoryIfNotExists(path)
+            val formatter = DateTimeFormatter.ISO_LOCAL_DATE_TIME.withZone(
+                ZoneId.from(
+                    ZoneOffset.UTC
                 )
-                val timeStamp = formatter.format(Instant.now().truncatedTo(ChronoUnit.SECONDS))
-                    .replace(':', '-')
-                // Set Subscriber Options
-                val currentOptionSub = Subscriber.Option().apply {
-                    autoReconnect = true
+            )
+            val timeStamp = formatter.format(Instant.now().truncatedTo(ChronoUnit.SECONDS))
+                .replace(':', '-')
+            // Set Subscriber Options
+            val currentOptionSub = Subscriber.Option().apply {
+                autoReconnect = true
+                streamingData?.let { sd ->
                     disableAudio = sd.disableAudio
                     forcePlayoutDelay = sd.useDevEnv
                     videoJitterMinimumDelayMs = Optional.of(sd.videoJitterMinimumDelayMs)
                     if (sd.rtcLogs) {
-                        rtcEventLogOutputPath = Optional.of(path + "/${timeStamp}_rtclogs.proto")
+                        rtcEventLogOutputPath =
+                            Optional.of(path + "/${timeStamp}_rtclogs.proto")
                         logger = MCLogger(path = path, timeStamp = timeStamp.toString())
                     }
                 }
-
-                subscriber?.setOptions(currentOptionSub)
             }
+
+            subscriber?.setOptions(currentOptionSub)
 
             subscriber?.subscribe()
         } catch (e: Exception) {
