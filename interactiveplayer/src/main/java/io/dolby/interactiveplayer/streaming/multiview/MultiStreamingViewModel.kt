@@ -97,8 +97,9 @@ class MultiStreamingViewModel @Inject constructor(
     }
 
     private suspend fun update(data: MultiStreamingData) = withContext(dispatcherProvider.main) {
+        val videoTracks = data.videoTracks.filter { it.active }
         when {
-            data.error != null -> {
+            data.error != null || videoTracks.isEmpty() -> {
                 _uiState.update {
                     val error = if (it.hasNetwork) {
                         Error.STREAM_NOT_ACTIVE
@@ -109,10 +110,10 @@ class MultiStreamingViewModel @Inject constructor(
                 }
             }
 
-            data.videoTracks.isNotEmpty() -> _uiState.update {
+            else -> _uiState.update {
                 it.copy(
                     inProgress = false,
-                    videoTracks = data.videoTracks,
+                    videoTracks = videoTracks,
                     audioTracks = data.audioTracks,
                     selectedVideoTrackId = data.selectedVideoTrackId,
                     streamName = data.streamingData?.streamName,
