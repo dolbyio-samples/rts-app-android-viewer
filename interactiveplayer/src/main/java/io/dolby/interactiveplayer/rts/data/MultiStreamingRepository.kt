@@ -41,10 +41,16 @@ data class MultiStreamingData(
         val videoTrack: VideoTrack,
         val sourceId: String?,
         val mediaType: String?,
-        val trackId: String?
+        val trackId: String?,
+        val active: Boolean = true
     )
 
-    data class Audio(val id: String?, val audioTrack: AudioTrack, val sourceId: String?)
+    data class Audio(
+        val id: String?,
+        val audioTrack: AudioTrack,
+        val sourceId: String?,
+        val active: Boolean = true
+    )
 
     data class PendingTrack(
         val mediaType: String,
@@ -118,14 +124,17 @@ data class MultiStreamingData(
         val pendingAudioTracks = pendingAudioTracks.map { it.copy(added = true) }
         return copy(
             pendingVideoTracks = pendingVideoTracks,
-            pendingAudioTracks = pendingAudioTracks
+            pendingAudioTracks = pendingAudioTracks,
+            error = null,
+            isSubscribed = true
         )
     }
 
     fun populateError(error: String): MultiStreamingData = copy(
         videoTracks = emptyList(),
         audioTracks = emptyList(),
-        error = error
+        error = error,
+        isSubscribed = false
     )
 
     companion object {
@@ -260,6 +269,7 @@ class MultiStreamingRepository {
         }
 
         override fun onConnected() {
+            Log.d(TAG, "onConnected, this: $this, thread: ${Thread.currentThread().id}")
             val subscriber = subscriber ?: return
 
             val options = Subscriber.Option().apply {
@@ -358,35 +368,52 @@ class MultiStreamingRepository {
             optionalSourceId: Optional<String>
         ) {
             Log.d(TAG, "onActive: $stream, $tracksInfo, ${optionalSourceId.getOrNull()}")
-            val sourceId = optionalSourceId.getOrNull() ?: return
-            val pendingTracks = MultiStreamingData.parseTracksInfo(tracksInfo, sourceId)
-            val newData = data.updateAndGet { data -> data.addPendingTracks(pendingTracks) }
-            processPendingTracks(newData)
+            val sourceId = optionalSourceId.getOrNull()
+            sourceId?.let {
+                val pendingTracks = MultiStreamingData.parseTracksInfo(tracksInfo, sourceId)
+                val newData = data.updateAndGet { data -> data.addPendingTracks(pendingTracks) }
+                processPendingTracks(newData)
+            }
+            data.update { data ->
+                val videoToActive = data.videoTracks.firstOrNull { it.sourceId == sourceId }
+                videoToActive?.let {
+                    val activeVideo = MultiStreamingData.Video(
+                        id = videoToActive.id,
+                        videoTrack = videoToActive.videoTrack,
+                        mediaType = videoToActive.mediaType,
+                        sourceId = videoToActive.sourceId,
+                        trackId = videoToActive.trackId,
+                        active = true
+                    )
+                    val tempVideos = data.videoTracks.replace(activeVideo) { it.sourceId == sourceId }
+                    data.copy(videoTracks = tempVideos)
+                } ?: data
+            }
         }
 
         override fun onInactive(p0: String, p1: Optional<String>) {
+            Log.d(TAG, "onInactive")
             data.update { data ->
                 data.videoTracks.filter { it.sourceId == p1.getOrNull() }
                     .forEach { it.videoTrack.removeRenderer() }
-                val tempVideo = data.videoTracks.toMutableList()
-                tempVideo.removeAll { it.sourceId == p1.getOrNull() }
-                val tempAudio = data.audioTracks.toMutableList()
-                tempAudio.removeAll { it.sourceId == p1.getOrNull() }
-                return@update if (data.selectedVideoTrackId == p1.getOrNull()) {
-                    data.copy(
+                val videoToInactive = data.videoTracks.firstOrNull { it.sourceId == p1.getOrNull() }
+                videoToInactive?.let {
+                    val inactiveVideo = MultiStreamingData.Video(
+                        id = videoToInactive.id,
+                        videoTrack = videoToInactive.videoTrack,
+                        mediaType = videoToInactive.mediaType,
+                        sourceId = videoToInactive.sourceId,
+                        trackId = videoToInactive.trackId,
+                        active = false
+                    )
+                    val tempVideos =
+                        data.videoTracks.replace(inactiveVideo) { it.sourceId == p1.getOrNull() }
+                    return@update data.copy(
                         selectedVideoTrackId = null,
-                        videoTracks = tempVideo,
-                        audioTracks = tempAudio
+                        videoTracks = tempVideos
                     )
-                } else if (data.selectedAudioTrackId == p1.getOrNull()) {
-                    data.copy(
-                        selectedAudioTrackId = null,
-                        videoTracks = tempVideo,
-                        audioTracks = tempAudio
-                    )
-                } else {
-                    data.copy(videoTracks = tempVideo, audioTracks = tempAudio)
                 }
+                return@update data
             }
         }
 
@@ -572,4 +599,8 @@ class MultiStreamingRepository {
             }
         }
     }
+}
+
+fun <T> List<T>.replace(newValue: T, block: (T) -> Boolean): List<T> {
+    return map { if (block(it)) newValue else it }
 }
