@@ -35,10 +35,13 @@ class DetailInputViewModel @Inject constructor(
 
     private var isDemo = false
 
-    private val _useDevEnv = MutableStateFlow(true)
+    private val _useDevEnv = MutableStateFlow(false)
     val useDevEnv = _useDevEnv.asStateFlow()
 
-    private val _disableAudio = MutableStateFlow(true)
+    private val _forcePlayOutDelay = MutableStateFlow(false)
+    val forcePlayOutDelay = _forcePlayOutDelay.asStateFlow()
+
+    private val _disableAudio = MutableStateFlow(false)
     val disableAudio = _disableAudio.asStateFlow()
 
     private val _rtcLogs = MutableStateFlow(false)
@@ -66,6 +69,7 @@ class DetailInputViewModel @Inject constructor(
             streamName = streamName.value,
             accountId = accountId.value,
             useDevEnv = useDevEnv.value,
+            forcePlayOutDelay = forcePlayOutDelay.value,
             disableAudio = disableAudio.value,
             rtcLogs = rtcLogs.value,
             videoJitterMinimumDelayMs = jb
@@ -85,7 +89,8 @@ class DetailInputViewModel @Inject constructor(
             isDemo = false
             _streamName.value = ""
             _accountId.value = ""
-            _useDevEnv.value = true
+            _useDevEnv.value = false
+            _forcePlayOutDelay.value = false
             _disableAudio.value = true
             _rtcLogs.value = false
             _videoJitterMinimumDelayMs.value = 0f
@@ -107,6 +112,7 @@ class DetailInputViewModel @Inject constructor(
                 updateStreamName(it.streamName)
                 updateAccountId(it.accountID)
                 updateUseDevEnv(it.useDevEnv)
+                updateForcePlayOutDelay(it.forcePlayOutDelay)
                 updateDisableAudio(it.disableAudio)
                 updateRtcLogs(it.rtcLogs)
                 updateJitterBufferMinimumDelay(it.videoJitterMinimumDelayMs.toFloat())
@@ -126,6 +132,10 @@ class DetailInputViewModel @Inject constructor(
         _useDevEnv.value = state
     }
 
+    fun updateForcePlayOutDelay(state: Boolean) {
+        _forcePlayOutDelay.value = state
+    }
+
     fun updateDisableAudio(state: Boolean) {
         _disableAudio.value = state
     }
@@ -143,6 +153,7 @@ class DetailInputViewModel @Inject constructor(
         _streamName.value = "simulcastmultiview"
         _accountId.value = "k9Mwad"
         _useDevEnv.value = false
+        _forcePlayOutDelay.value = false
         _disableAudio.value = false
         _rtcLogs.value = false
         _videoJitterMinimumDelayMs.value = 0f

@@ -9,10 +9,11 @@ message StreamDetail {
   string accountID = 1;
   string streamName = 2;
   bool useDevEnv = 3;
-  bool disableAudio = 4;
-  bool rtcLogs = 5;
-  int32 videoJitterMinimumDelayMs = 6;
-  google.protobuf.Timestamp lastUsedDate = 7;
+  bool forcePlayOutDelay = 4;
+  bool disableAudio = 5;
+  bool rtcLogs = 6;
+  int32 videoJitterMinimumDelayMs = 7;
+  google.protobuf.Timestamp lastUsedDate = 8;
 }
 
 message RecentStreams {

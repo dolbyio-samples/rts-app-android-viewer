@@ -104,7 +104,7 @@ class SubscriptionManager(
                 val currentOptionSub = Subscriber.Option().apply {
                     autoReconnect = true
                     disableAudio = sd.disableAudio
-                    forcePlayoutDelay = sd.useDevEnv
+                    forcePlayoutDelay = sd.forcePlayOutDelay
                     videoJitterMinimumDelayMs = Optional.of(sd.videoJitterMinimumDelayMs)
                     if (sd.rtcLogs) {
                         rtcEventLogOutputPath = Optional.of(path + "/${timeStamp}_rtclogs.proto")

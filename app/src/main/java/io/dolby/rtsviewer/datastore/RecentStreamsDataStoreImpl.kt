@@ -54,6 +54,7 @@ class RecentStreamsDataStoreImpl @Inject constructor(
                     .setStreamName(streamingData.streamName)
                     .setAccountID(streamingData.accountId)
                     .setUseDevEnv(streamingData.useDevEnv)
+                    .setForcePlayOutDelay(streamingData.forcePlayOutDelay)
                     .setDisableAudio(streamingData.disableAudio)
                     .setRtcLogs(streamingData.rtcLogs)
                     .setVideoJitterMinimumDelayMs(streamingData.videoJitterMinimumDelayMs)

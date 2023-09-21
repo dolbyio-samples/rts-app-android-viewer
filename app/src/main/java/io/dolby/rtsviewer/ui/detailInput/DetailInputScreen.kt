@@ -85,6 +85,7 @@ fun DetailInputScreen(
     val coroutineScope = rememberCoroutineScope()
 
     val useDevEnv = viewModel.useDevEnv.collectAsState()
+    val forcePlayOutDelay = viewModel.forcePlayOutDelay.collectAsState()
     val disableAudio = viewModel.disableAudio.collectAsState()
     val rtcLogs = viewModel.rtcLogs.collectAsState()
     val videoJitterMinimumDelayMs = viewModel.videoJitterMinimumDelayMs.collectAsState()
@@ -297,9 +298,8 @@ fun DetailInputScreen(
                         Column {
                             Text("No Playout Delay")
                             Switch(
-                                checked = useDevEnv.value,
-                                enabled = false,
-                                onCheckedChange = { }
+                                checked = forcePlayOutDelay.value,
+                                onCheckedChange = { viewModel.updateForcePlayOutDelay(it)}
                             )
                         }
                     }

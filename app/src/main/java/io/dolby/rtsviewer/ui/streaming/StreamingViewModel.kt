@@ -247,6 +247,7 @@ class StreamingViewModel @Inject constructor(
                 streamName = streamName,
                 accountId = sd.accountID,
                 useDevEnv = sd.useDevEnv,
+                forcePlayOutDelay = sd.forcePlayOutDelay,
                 disableAudio = sd.disableAudio,
                 rtcLogs = sd.rtcLogs,
                 videoJitterMinimumDelayMs = sd.videoJitterMinimumDelayMs
@@ -256,6 +257,7 @@ class StreamingViewModel @Inject constructor(
                 streamName = streamName,
                 accountId = getAccountId(savedStateHandle),
                 useDevEnv = false,
+                forcePlayOutDelay = false,
                 disableAudio = false,
                 rtcLogs = false,
                 videoJitterMinimumDelayMs = 0
