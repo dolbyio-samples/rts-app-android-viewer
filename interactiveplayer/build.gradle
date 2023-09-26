@@ -66,7 +66,7 @@ android {
             proguardFiles getDefaultProguardFile('proguard-android-optimize.txt'), 'proguard-rules.pro'
 
             play {
-                track.set("internal")
+                track.set("alpha")
             }
         }
     }
