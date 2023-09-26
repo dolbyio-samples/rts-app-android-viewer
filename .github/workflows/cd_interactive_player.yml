@@ -36,7 +36,7 @@ jobs:
           
       - name: calculate Interactive Player App version
         run: |
-          versionName='0.0.'$GITHUB_RUN_NUMBER
+          versionName='1.0.'$GITHUB_RUN_NUMBER
           versionCode=$GITHUB_RUN_NUMBER; echo "versionName: $versionName; versionCode: $versionCode"
           echo "export VERSION_NAME=$versionName; export VERSION_CODE=$versionCode" > ~/.env_interactive_player_version
 
@@ -97,7 +97,7 @@ jobs:
           ANDROID_PUBLISHER_CREDENTIALS: ${{ secrets.ANDROID_PUBLISHER_CREDENTIALS }}
           GIT_PAT: ${{ secrets.GITHUB_TOKEN }}
         run: |
-          versionName='0.0.'$GITHUB_RUN_NUMBER
+          versionName='1.0.'$GITHUB_RUN_NUMBER
           versionCode=$GITHUB_RUN_NUMBER; echo "versionName: $versionName; versionCode: $versionCode"
           export ANDROID_PUBLISHER_CREDENTIALS=$ANDROID_PUBLISHER_CREDENTIALS
-          chmod +x ./gradlew && ./gradlew interactiveplayer:publishReleaseBundle --artifact-dir ./interactiveplayer/build/outputs/bundle/release/ --release-name "$versionCode ($versionName)" --release-status draft --stacktrace
+          chmod +x ./gradlew && ./gradlew interactiveplayer:publishReleaseBundle --artifact-dir ./interactiveplayer/build/outputs/bundle/release/ --release-name "$versionCode ($versionName)" --stacktrace
