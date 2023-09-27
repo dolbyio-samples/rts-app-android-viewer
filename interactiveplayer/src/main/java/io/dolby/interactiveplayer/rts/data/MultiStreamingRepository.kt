@@ -40,8 +40,8 @@ data class MultiStreamingData(
         val id: String?,
         val videoTrack: VideoTrack,
         val sourceId: String?,
-        val mediaType: String?,
-        val trackId: String?,
+        val mediaType: String,
+        val trackId: String,
         val active: Boolean = true
     )
 
@@ -55,7 +55,7 @@ data class MultiStreamingData(
     data class PendingTrack(
         val mediaType: String,
         val trackId: String,
-        val sourceId: String,
+        val sourceId: String?,
         val added: Boolean
     )
 
@@ -69,13 +69,6 @@ data class MultiStreamingData(
         val sourceId: String?,
         val videoQuality: MultiStreamingRepository.VideoQuality
     )
-
-    internal fun appendMainVideoTrack(videoTrack: VideoTrack, mid: String?): MultiStreamingData {
-        val videoTracks = videoTracks.toMutableList().apply {
-            add(Video(mid, videoTrack, null, null, null))
-        }
-        return copy(videoTracks = videoTracks)
-    }
 
     internal fun appendAudioTrack(
         audioTrack: AudioTrack,
@@ -95,7 +88,7 @@ data class MultiStreamingData(
         pendingTrack: PendingTrack,
         videoTrack: VideoTrack,
         mid: String?,
-        sourceId: String
+        sourceId: String?
     ): MultiStreamingData {
         val pendingVideoTracks = pendingVideoTracks.toMutableList().apply { remove(pendingTrack) }
 
@@ -143,7 +136,7 @@ data class MultiStreamingData(
 
         internal fun parseTracksInfo(
             tracksInfo: Array<out String>,
-            sourceId: String
+            sourceId: String?
         ): PendingTracks {
             val videoTracks = mutableListOf<PendingTrack>()
             val audioTracks = mutableListOf<PendingTrack>()
@@ -247,7 +240,8 @@ class MultiStreamingRepository {
         preferredVideoQuality: VideoQuality,
         preferredVideoQualities: Map<String, VideoQuality>
     ) {
-        val priorityVideoPreference = if (preferredVideoQuality != VideoQuality.AUTO) preferredVideoQualities[video.id] else null
+        val priorityVideoPreference =
+            if (preferredVideoQuality != VideoQuality.AUTO) preferredVideoQualities[video.id] else null
         listener?.playVideo(video, priorityVideoPreference ?: preferredVideoQuality)
     }
 
@@ -335,26 +329,19 @@ class MultiStreamingRepository {
             val mid = p1.getOrNull()
             Log.d(TAG, "onVideoTrack: $mid, $p0")
             data.update { data ->
-                if (data.videoTracks.isEmpty()) {
-                    data.appendMainVideoTrack(p0, mid)
-                } else {
-                    data.getPendingVideoTrackInfoOrNull()?.let { trackInfo ->
-                        data.appendOtherVideoTrack(trackInfo, p0, mid, trackInfo.sourceId)
-                    } ?: data
-                }
+                data.getPendingVideoTrackInfoOrNull()?.let { trackInfo ->
+                    Log.d(TAG, "videoTrack added")
+                    data.appendOtherVideoTrack(trackInfo, p0, mid, trackInfo.sourceId)
+                } ?: data
             }
         }
 
         override fun onTrack(p0: AudioTrack, p1: Optional<String>) {
             Log.d(TAG, "onAudioTrack: ${p1.getOrNull()}, $p0")
             data.update { data ->
-                if (data.videoTracks.isEmpty()) {
-                    data.appendAudioTrack(p0, p1.getOrNull(), null)
-                } else {
-                    data.getPendingAudioTrackInfoOrNull()?.let { trackInfo ->
-                        data.appendAudioTrack(p0, p1.getOrNull(), trackInfo.sourceId)
-                    } ?: data
-                }
+                data.getPendingAudioTrackInfoOrNull()?.let { trackInfo ->
+                    data.appendAudioTrack(p0, p1.getOrNull(), trackInfo.sourceId)
+                } ?: data
             }
         }
 
@@ -369,11 +356,9 @@ class MultiStreamingRepository {
         ) {
             Log.d(TAG, "onActive: $stream, $tracksInfo, ${optionalSourceId.getOrNull()}")
             val sourceId = optionalSourceId.getOrNull()
-            sourceId?.let {
-                val pendingTracks = MultiStreamingData.parseTracksInfo(tracksInfo, sourceId)
-                val newData = data.updateAndGet { data -> data.addPendingTracks(pendingTracks) }
-                processPendingTracks(newData)
-            }
+            val pendingTracks = MultiStreamingData.parseTracksInfo(tracksInfo, sourceId)
+            val newData = data.updateAndGet { data -> data.addPendingTracks(pendingTracks) }
+            processPendingTracks(newData)
             data.update { data ->
                 val videoToActive = data.videoTracks.firstOrNull { it.sourceId == sourceId }
                 videoToActive?.let {
@@ -385,7 +370,8 @@ class MultiStreamingRepository {
                         trackId = videoToActive.trackId,
                         active = true
                     )
-                    val tempVideos = data.videoTracks.replace(activeVideo) { it.sourceId == sourceId }
+                    val tempVideos =
+                        data.videoTracks.replace(activeVideo) { it.sourceId == sourceId }
                     data.copy(videoTracks = tempVideos)
                 } ?: data
             }
@@ -467,7 +453,8 @@ class MultiStreamingRepository {
             video: MultiStreamingData.Video,
             preferredVideoQuality: VideoQuality
         ) {
-            val availablePreferredVideoQuality = availablePreferredVideoQuality(video, preferredVideoQuality)
+            val availablePreferredVideoQuality =
+                availablePreferredVideoQuality(video, preferredVideoQuality)
             val projected = data.value.trackProjectedData[video.id]
             if (projected == null || projected.videoQuality != availablePreferredVideoQuality?.videoQuality()) {
                 Log.d(
@@ -552,8 +539,8 @@ class MultiStreamingRepository {
             availablePreferredVideoQuality: LowLevelVideoQuality?
         ): ProjectionData = ProjectionData().also {
             it.mid = video.id
-            it.trackId = video.trackId ?: "video"
-            it.media = video.mediaType ?: "video"
+            it.trackId = video.trackId
+            it.media = video.mediaType
             it.layer = availablePreferredVideoQuality?.layerData?.let { layerData ->
                 Optional.of(layerData)
             }
