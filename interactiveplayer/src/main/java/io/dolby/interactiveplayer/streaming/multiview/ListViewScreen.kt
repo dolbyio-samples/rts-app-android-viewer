@@ -165,6 +165,7 @@ fun HorizontalEndListView(
                         video?.let {
                             viewModel.stopVideo(video)
                         }
+                        it.release()
                     }
                 )
                 Text(
@@ -228,15 +229,15 @@ fun VerticalTopListView(
             (context.findActivity() as? MainActivity?)?.addVolumeObserver(uiState.audioTracks[0].audioTrack)
         }
         Column {
+            val mainVideo =
+                uiState.selectedVideoTrackId?.let { selectedVideoTrackId ->
+                    uiState.videoTracks.firstOrNull { it.sourceId == selectedVideoTrackId }
+                } ?: uiState.videoTracks.firstOrNull()
             Box(
                 modifier = Modifier.clickable {
                     onMainClick(uiState.videoTracks.find { it.sourceId == uiState.selectedVideoTrackId }?.id)
                 }
             ) {
-                val video =
-                    uiState.selectedVideoTrackId?.let { selectedVideoTrackId ->
-                        uiState.videoTracks.firstOrNull { it.sourceId == selectedVideoTrackId }
-                    } ?: uiState.videoTracks.firstOrNull()
                 AndroidView(
                     modifier = Modifier
                         .aspectRatio(16F / 9),
@@ -248,20 +249,20 @@ fun VerticalTopListView(
                     },
                     update = { view ->
                         view.setScalingType(RendererCommon.ScalingType.SCALE_ASPECT_FIT)
-                        video?.play(
+                        mainVideo?.play(
                             view = view,
                             viewModel = viewModel,
                             videoQuality = MultiStreamingRepository.VideoQuality.HIGH
                         )
                     },
                     onReset = {
-                        video?.let {
-                            viewModel.stopVideo(video)
+                        mainVideo?.let {
+                            viewModel.stopVideo(mainVideo)
                         }
                     }
                 )
                 Text(
-                    text = uiState.selectedVideoTrackId ?: "Main",
+                    text = mainVideo?.sourceId ?: "Main",
                     modifier = Modifier.align(Alignment.BottomStart)
                 )
 //                QualityLabel(
@@ -271,7 +272,7 @@ fun VerticalTopListView(
 //                )
             }
             val otherTracks =
-                uiState.videoTracks.filter { it.sourceId != uiState.selectedVideoTrackId }
+                uiState.videoTracks.filter { it.sourceId != mainVideo?.sourceId }
             val lazyVerticalGridState = rememberLazyGridState()
             LazyVerticalGrid(
                 state = lazyVerticalGridState,
@@ -321,13 +322,12 @@ fun VideoView(
             modifier = updatedModifier,
             factory = { context -> VideoRenderer(context) },
             update = { view ->
-                Log.d("TAG", "*****> update item ${video.sourceId}, $view")
                 view.setScalingType(RendererCommon.ScalingType.SCALE_ASPECT_FIT)
                 video.play(view, viewModel, videoQuality)
             },
             onRelease = {
-                Log.d("TAG", "*****> onReset item ${video.sourceId}, $it")
                 viewModel.stopVideo(video)
+                it.release()
             }
         )
         if (displayLabel) {
