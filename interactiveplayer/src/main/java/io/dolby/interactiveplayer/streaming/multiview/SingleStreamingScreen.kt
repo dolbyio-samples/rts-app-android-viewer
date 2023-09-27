@@ -1,6 +1,5 @@
 package io.dolby.interactiveplayer.streaming.multiview
 
-import android.util.Log
 import androidx.compose.foundation.ExperimentalFoundationApi
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.aspectRatio
@@ -133,22 +132,19 @@ private fun VideoView(
                 .align(Alignment.Center),
             factory = { context ->
                 val view = VideoRenderer(context)
-                Log.d("RTS******>", "SingleStreamingScreen: created for page: $page, $view")
                 view
             },
             update = { view ->
-                Log.d("RTS******>", "SingleStreamingScreen: update for page: $page, $view")
                 view.setScalingType(RendererCommon.ScalingType.SCALE_ASPECT_FIT)
                 uiState.videoTracks[page].videoTrack.setRenderer(view)
                 val isSelected =
                     uiState.selectedVideoTrackId == uiState.videoTracks[page].sourceId
                 viewModel.playVideo(
                     uiState.videoTracks[page],
-                    if (isSelected) MultiStreamingRepository.VideoQuality.HIGH else MultiStreamingRepository.VideoQuality.AUTO
+                    if (isSelected) MultiStreamingRepository.VideoQuality.AUTO else MultiStreamingRepository.VideoQuality.LOW
                 )
             },
             onRelease = { view ->
-                Log.d("RTS******>", "SingleStreamingScreen: release for page: $page, $view")
                 viewModel.stopVideo(uiState.videoTracks[page])
                 view.release()
             }
