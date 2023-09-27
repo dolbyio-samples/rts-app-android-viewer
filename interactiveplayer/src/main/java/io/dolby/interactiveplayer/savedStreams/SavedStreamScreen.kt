@@ -8,6 +8,7 @@ import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.lazy.LazyColumn
+import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.relocation.BringIntoViewRequester
 import androidx.compose.foundation.relocation.bringIntoViewRequester
 import androidx.compose.material.MaterialTheme
@@ -168,21 +169,21 @@ fun SavedStreamScreen(
                     Spacer(modifier = Modifier.height(8.dp))
                 }
 
-//                items(
-//                    items = uiState.recentStreams,
-//                    key = { it.streamName + it.accountID }
-//                ) { streamDetail ->
-//                    StyledButton(
-//                        buttonText = "${streamDetail.streamName} / ID ${streamDetail.accountID}",
-//                        onClickAction = {
-//                            onPlayStream(streamingDataFrom(streamDetail))
-//                        },
-//                        buttonType = ButtonType.BASIC,
-//                        capitalize = false
-//                    )
-//
-//                    Spacer(modifier = Modifier.height(8.dp))
-//                }
+                items(
+                    items = uiState.recentStreams,
+                    key = { it.streamName + it.accountID }
+                ) { streamDetail ->
+                    StyledButton(
+                        buttonText = "${streamDetail.streamName} / ID ${streamDetail.accountID}",
+                        onClickAction = {
+                            onPlayStream(streamingDataFrom(streamDetail))
+                        },
+                        buttonType = ButtonType.BASIC,
+                        capitalize = false
+                    )
+
+                    Spacer(modifier = Modifier.height(8.dp))
+                }
             }
         }
     }
