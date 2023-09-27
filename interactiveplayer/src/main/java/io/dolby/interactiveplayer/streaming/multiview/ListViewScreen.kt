@@ -1,7 +1,6 @@
 package io.dolby.interactiveplayer.streaming.multiview
 
 import android.content.res.Configuration
-import android.util.Log
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
@@ -154,7 +153,7 @@ fun HorizontalEndListView(
                         video?.play(
                             view = view,
                             viewModel = viewModel,
-                            videoQuality = MultiStreamingRepository.VideoQuality.HIGH
+                            videoQuality = MultiStreamingRepository.VideoQuality.AUTO
                         )
                     },
                     onRelease = {
@@ -199,7 +198,7 @@ fun HorizontalEndListView(
                         viewModel = viewModel,
                         video = video,
                         displayLabel = true,
-                        videoQuality = MultiStreamingRepository.VideoQuality.AUTO,
+                        videoQuality = MultiStreamingRepository.VideoQuality.LOW,
                         onClick = onOtherClick,
                         modifier = Modifier.aspectRatio(16F / 9)
                     )
@@ -252,7 +251,7 @@ fun VerticalTopListView(
                         mainVideo?.play(
                             view = view,
                             viewModel = viewModel,
-                            videoQuality = MultiStreamingRepository.VideoQuality.HIGH
+                            videoQuality = MultiStreamingRepository.VideoQuality.AUTO
                         )
                     },
                     onReset = {
@@ -267,7 +266,7 @@ fun VerticalTopListView(
                 )
 //                QualityLabel(
 //                    viewModel = viewModel,
-//                    video = video,
+//                    video = mainVideo,
 //                    modifier = Modifier.align(Alignment.BottomEnd)
 //                )
             }
@@ -288,7 +287,7 @@ fun VerticalTopListView(
                         viewModel = viewModel,
                         video = video,
                         displayLabel = true,
-                        videoQuality = MultiStreamingRepository.VideoQuality.AUTO,
+                        videoQuality = MultiStreamingRepository.VideoQuality.LOW,
                         onClick = onOtherClick,
                         modifier = Modifier.aspectRatio(16F / 9)
                     )
@@ -424,5 +423,4 @@ private fun MultiStreamingData.Video.play(
         this,
         videoQuality
     )
-    Log.d("TAG", "*****> playVideo: ${this.sourceId}")
 }
