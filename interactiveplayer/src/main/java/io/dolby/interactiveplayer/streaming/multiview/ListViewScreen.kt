@@ -41,6 +41,7 @@ import com.millicast.VideoRenderer
 import io.dolby.interactiveplayer.MainActivity
 import io.dolby.interactiveplayer.R
 import io.dolby.interactiveplayer.rts.data.MultiStreamingData
+import io.dolby.interactiveplayer.rts.data.MultiStreamingData.Companion.video
 import io.dolby.interactiveplayer.rts.data.MultiStreamingRepository
 import io.dolby.interactiveplayer.rts.ui.DolbyBackgroundBox
 import io.dolby.interactiveplayer.rts.ui.LiveIndicator
@@ -131,6 +132,9 @@ fun HorizontalEndListView(
         modifier = modifier
     ) {
         Row {
+            val mainVideo: MultiStreamingData.Video? =
+                uiState.videoTracks.firstOrNull { it.sourceId == uiState.selectedVideoTrackId }
+                    ?: uiState.videoTracks.firstOrNull()
             Box(
                 modifier = Modifier.clickable {
                     onMainClick(uiState.videoTracks.find { it.sourceId == uiState.selectedVideoTrackId }?.id)
@@ -146,11 +150,7 @@ fun HorizontalEndListView(
                     },
                     update = { view ->
                         view.setScalingType(RendererCommon.ScalingType.SCALE_ASPECT_FIT)
-                        val video =
-                            uiState.selectedVideoTrackId?.let { selectedVideoTrackId ->
-                                uiState.videoTracks.firstOrNull { it.sourceId == selectedVideoTrackId }
-                            } ?: uiState.videoTracks.firstOrNull()
-                        video?.play(
+                        mainVideo?.play(
                             view = view,
                             viewModel = viewModel,
                             videoQuality = MultiStreamingRepository.VideoQuality.AUTO
@@ -228,10 +228,8 @@ fun VerticalTopListView(
             (context.findActivity() as? MainActivity?)?.addVolumeObserver(uiState.audioTracks[0].audioTrack)
         }
         Column {
-            val mainVideo =
-                uiState.selectedVideoTrackId?.let { selectedVideoTrackId ->
-                    uiState.videoTracks.firstOrNull { it.sourceId == selectedVideoTrackId }
-                } ?: uiState.videoTracks.firstOrNull()
+            val selectedVideo = uiState.videoTracks.firstOrNull { it.sourceId == uiState.selectedVideoTrackId }
+            val mainVideo: MultiStreamingData.Video? = selectedVideo ?: uiState.videoTracks.firstOrNull()
             Box(
                 modifier = Modifier.clickable {
                     onMainClick(uiState.videoTracks.find { it.sourceId == uiState.selectedVideoTrackId }?.id)
