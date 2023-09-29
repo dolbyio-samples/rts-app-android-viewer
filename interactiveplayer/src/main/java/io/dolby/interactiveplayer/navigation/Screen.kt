@@ -26,4 +26,8 @@ sealed class Screen(val route: String) {
     object SingleStreamingScreen : Screen(route = "single")
 
     object SavedStreams : Screen(route = "savedStreams")
+
+    object RecentStreams : Screen(route = "recentStreams")
+    object GlobalSettings : Screen(route = "globalSettings")
+    object StreamSettings : Screen(route = "streamSettings")
 }

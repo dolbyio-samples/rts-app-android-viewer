@@ -55,6 +55,7 @@ private const val MAXIMUM_CHARACTERS1: Int = 64
 fun DetailInputScreen(
     onPlayClick: (StreamingData) -> Unit,
     onSavedStreamsClick: () -> Unit,
+    onSettingsClick: () -> Unit,
     modifier: Modifier = Modifier,
     streamingData: StreamingData? = null,
     viewModel: DetailInputViewModel = hiltViewModel()
@@ -123,7 +124,7 @@ fun DetailInputScreen(
 
     Scaffold(
         topBar = {
-            TopActionBar()
+            TopActionBar(onActionClick = onSettingsClick)
         },
         bottomBar = {
             DolbyCopyrightFooterView()
@@ -194,41 +195,30 @@ fun DetailInputScreen(
 
                 Spacer(modifier = modifier.height(8.dp))
 
-                if (uiState.recentStreams.isNotEmpty()) {
-                    StyledButton(
-                        buttonText = stringResource(id = R.string.saved_streams_button),
-                        onClickAction = {
-                            onSavedStreamsClick()
-                        },
-                        buttonType = ButtonType.SECONDARY
-                    )
-                }
+                Text(
+                    stringResource(id = R.string.demo_stream_title),
+                    style = MaterialTheme.typography.h3,
+                    color = fontColor(background),
+                    textAlign = TextAlign.Center
+                )
 
-                if (uiState.recentStreams.isNotEmpty()) {
-                    Row(
-                        modifier = modifier
-                            .fillMaxWidth()
-                    ) {
-                        TextButton(
-                            onClick = { showClearStreamsConfirmationDialog = true }
-                        ) {
-                            Text(
-                                stringResource(id = R.string.clear_stream_history_button),
-                                color = MaterialTheme.colors.onSurface
-                            )
-                        }
-                    }
-                }
+                Text(
+                    stringResource(id = R.string.demo_stream_subtitle),
+                    style = MaterialTheme.typography.body2,
+                    color = fontColor(background),
+                    textAlign = TextAlign.Center
+                )
 
                 Spacer(modifier = modifier.height(8.dp))
 
                 StyledButton(
-                    buttonText = stringResource(id = R.string.demo_streams_button),
+                    buttonText = "$DEMO_STREAM_NAME / ID $DEMO_ACCOUNT_ID",
                     onClickAction = {
                         viewModel.useDemoStream()
                         playStream()
                     },
-                    buttonType = ButtonType.SECONDARY
+                    buttonType = ButtonType.BASIC,
+                    capitalize = false
                 )
             }
         }

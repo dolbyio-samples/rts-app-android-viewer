@@ -36,6 +36,7 @@ import androidx.compose.ui.unit.dp
 import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import io.dolby.interactiveplayer.R
+import io.dolby.interactiveplayer.alert.ClearStreamConfirmationAlert
 import io.dolby.interactiveplayer.rts.domain.StreamingData
 import io.dolby.interactiveplayer.rts.ui.DolbyBackgroundBox
 import io.dolby.interactiveplayer.rts.ui.TopAppBar
@@ -61,6 +62,7 @@ fun SavedStreamScreen(
     var lastPlayedStreamCoordinates by remember {
         mutableStateOf(Rect.Zero)
     }
+    var showClearStreamsConfirmationDialog by remember { mutableStateOf(false) }
 
     LaunchedEffect(Unit) {
         delay(500)
@@ -69,9 +71,11 @@ fun SavedStreamScreen(
 
     Scaffold(
         topBar = {
-            TopAppBar(title = "Saved Streams") {
-                onBack()
-            }
+            TopAppBar(
+                title = "Saved Streams",
+                onBack = { onBack() },
+                actionIcon = io.dolby.uikit.R.drawable.ic_delete,
+                onAction = { showClearStreamsConfirmationDialog = true })
         },
         modifier = modifier
     ) { paddingValues ->
@@ -185,6 +189,19 @@ fun SavedStreamScreen(
                     Spacer(modifier = Modifier.height(8.dp))
                 }
             }
+        }
+
+        if (showClearStreamsConfirmationDialog) {
+            ClearStreamConfirmationAlert(
+                onClear = {
+                    viewModel.clearAll()
+                    showClearStreamsConfirmationDialog = false
+                },
+                onDismiss = {
+                    showClearStreamsConfirmationDialog = false
+                },
+                modifier = modifier
+            )
         }
     }
 }

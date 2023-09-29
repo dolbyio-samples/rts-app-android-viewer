@@ -13,10 +13,17 @@
     <string name="stream_detail_screen_name">Stream Detail Input Screen</string>
     <string name="stream_detail_header">Interactive Player</string>
     <string name="stream_detail_title">Start a stream</string>
+    <string name="demo_stream_title">Demo a stream</string>
+    <string name="demo_stream_subtitle">Try a Dolby.io demo stream.</string>
+    <string name="recently_viewed_subtitle">Open one of your saved streams or join new.</string>
     <string name="stream_detail_subtitle">Enter the stream name and publisher\naccount ID to view a stream.</string>
+    <string name="or_label">or</string>
     <string name="stream_name_placeholder">Stream name</string>
     <string name="account_id_placeholder">Account ID</string>
     <string name="play_button">Play</string>
+    <string name="play_new_button">Play New</string>
+    <string name="recent_streams_view_all">View all</string>
+    <string name="recent_streams">Recently viewed</string>
     <string name="saved_streams_button">Saved Streams</string>
     <string name="demo_streams_button">Demo Stream</string>
     <string name="clear_stream_history_button">Clear stream history</string>
@@ -81,4 +88,5 @@
     <string name="gradient_background_image">Background Image</string>
     <string name="live_indicator_on">Live</string>
     <string name="live_indicator_off">Offline</string>
+    <string name="recent_streams_screen_name">Recently Viewed Streams</string>
 </resources>

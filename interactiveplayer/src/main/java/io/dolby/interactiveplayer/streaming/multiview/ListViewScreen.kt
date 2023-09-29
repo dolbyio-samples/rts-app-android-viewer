@@ -65,10 +65,10 @@ fun ListViewScreen(
 
     Scaffold(
         topBar = {
-            TopAppBar(title = uiState.streamName ?: screenContentDescription) {
+            TopAppBar(title = uiState.streamName ?: screenContentDescription, onBack = {
                 onBack()
                 viewModel.disconnect()
-            }
+            })
         }
     ) { paddingValues ->
         DolbyBackgroundBox(

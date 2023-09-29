@@ -47,7 +47,7 @@ fun SingleStreamingScreen(
     val (title, setTitle) = remember { mutableStateOf(selectedItem?.sourceId ?: mainSourceName) }
 
     Scaffold(
-        topBar = { TopAppBar(title = title) { onBack() } }
+        topBar = { TopAppBar(title = title, onBack = { onBack() }) }
     ) { paddingValues ->
         DolbyBackgroundBox(
             modifier = Modifier
