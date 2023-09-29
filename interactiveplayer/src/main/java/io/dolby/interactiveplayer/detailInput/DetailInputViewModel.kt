@@ -75,7 +75,10 @@ class DetailInputViewModel @Inject constructor(
 
     fun useDemoStream() {
         isDemo = true
-        _streamName.value = "simulcastmultiview"
-        _accountId.value = "k9Mwad"
+        _streamName.value = DEMO_STREAM_NAME
+        _accountId.value = DEMO_ACCOUNT_ID
     }
 }
+
+const val DEMO_STREAM_NAME = "simulcastmultiview"
+const val DEMO_ACCOUNT_ID = "k9Mwad"

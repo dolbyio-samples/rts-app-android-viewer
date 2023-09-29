@@ -36,4 +36,9 @@ class SavedStreamViewModel @Inject constructor(
                 }
         }
     }
+    fun clearAll() {
+        defaultCoroutineScope.launch {
+            recentStreamsDataStore.clearAll()
+        }
+    }
 }
