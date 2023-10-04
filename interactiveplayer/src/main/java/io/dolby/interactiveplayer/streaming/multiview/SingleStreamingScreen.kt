@@ -48,6 +48,7 @@ fun SingleStreamingScreen(
     val mainSourceName = stringResource(id = R.string.main_source_name)
     val (title, setTitle) = remember { mutableStateOf(selectedItem?.sourceId ?: mainSourceName) }
     val defaultLayout = viewModel.multiviewLayout.collectAsState()
+    val showSourceLabels = viewModel.showSourceLabels.collectAsState()
 
     Scaffold(
         topBar = {
@@ -76,7 +77,7 @@ fun SingleStreamingScreen(
             }
 
             HorizontalPager(state = pagerState) { page ->
-                VideoView(page, uiState, viewModel)
+                VideoView(page, uiState, viewModel, showSourceLabels.value)
             }
 
             LiveIndicator(
@@ -135,7 +136,8 @@ private fun Statistics(
 private fun VideoView(
     page: Int,
     uiState: MultiStreamingUiState,
-    viewModel: MultiStreamingViewModel
+    viewModel: MultiStreamingViewModel,
+    displayLabels: Boolean
 ) {
     Box(modifier = Modifier.fillMaxSize()) {
         AndroidView(

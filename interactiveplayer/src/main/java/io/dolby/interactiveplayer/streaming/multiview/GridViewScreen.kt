@@ -15,6 +15,7 @@ import androidx.compose.material.CircularProgressIndicator
 import androidx.compose.material.Scaffold
 import androidx.compose.material.Text
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
@@ -51,6 +52,7 @@ fun GridViewScreen(
 
     val focusManager = LocalFocusManager.current
     focusManager.clearFocus()
+    val showSourceLabels = viewModel.showSourceLabels.collectAsState()
 
     Scaffold(
         topBar = {
@@ -86,6 +88,7 @@ fun GridViewScreen(
                     Grid(
                         modifier = Modifier.align(Alignment.Center),
                         columnCount = columnCount,
+                        showSourceLabels = showSourceLabels.value,
                         viewModel,
                         uiState,
                         onMainClick
@@ -100,6 +103,7 @@ fun GridViewScreen(
 private fun Grid(
     modifier: Modifier,
     columnCount: Int = 2,
+    showSourceLabels: Boolean,
     viewModel: MultiStreamingViewModel,
     uiState: MultiStreamingUiState,
     onMainClick: (String?) -> Unit
@@ -126,7 +130,7 @@ private fun Grid(
                 VideoView(
                     viewModel = viewModel,
                     video = video,
-                    displayLabel = true,
+                    displayLabel = showSourceLabels,
                     videoQuality = MultiStreamingRepository.VideoQuality.LOW,
                     onClick = onMainClick,
                     modifier = Modifier.aspectRatio(16F / 9)

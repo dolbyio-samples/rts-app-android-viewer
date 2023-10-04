@@ -23,6 +23,7 @@ import androidx.compose.material.CircularProgressIndicator
 import androidx.compose.material.Scaffold
 import androidx.compose.material.Text
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
@@ -63,6 +64,8 @@ fun ListViewScreen(
     val focusManager = LocalFocusManager.current
     focusManager.clearFocus()
 
+    val showSourceLabels = viewModel.showSourceLabels.collectAsState()
+
     Scaffold(
         topBar = {
             TopAppBar(title = uiState.streamName ?: screenContentDescription, onBack = {
@@ -102,6 +105,7 @@ fun ListViewScreen(
                             modifier = Modifier,
                             viewModel,
                             uiState,
+                            showSourceLabels.value,
                             onMainClick,
                             onOtherClick
                         )
@@ -110,6 +114,7 @@ fun ListViewScreen(
                             modifier = Modifier.align(Alignment.Center),
                             viewModel,
                             uiState,
+                            showSourceLabels.value,
                             onMainClick,
                             onOtherClick
                         )
@@ -125,6 +130,7 @@ fun HorizontalEndListView(
     modifier: Modifier,
     viewModel: MultiStreamingViewModel,
     uiState: MultiStreamingUiState,
+    displayLabel: Boolean,
     onMainClick: (String?) -> Unit,
     onOtherClick: (MultiStreamingData.Video) -> Unit
 ) {
@@ -167,12 +173,14 @@ fun HorizontalEndListView(
                         it.release()
                     }
                 )
-                Text(
-                    text = uiState.selectedVideoTrackId ?: "Main",
-                    modifier = Modifier.align(
-                        Alignment.BottomStart
+                if (displayLabel) {
+                    Text(
+                        text = uiState.selectedVideoTrackId ?: "Main",
+                        modifier = Modifier.align(
+                            Alignment.BottomStart
+                        )
                     )
-                )
+                }
                 val video =
                     uiState.selectedVideoTrackId?.let { selectedVideoTrackId ->
                         uiState.videoTracks.firstOrNull { it.sourceId == selectedVideoTrackId }
@@ -197,7 +205,7 @@ fun HorizontalEndListView(
                     VideoView(
                         viewModel = viewModel,
                         video = video,
-                        displayLabel = true,
+                        displayLabel = displayLabel,
                         videoQuality = MultiStreamingRepository.VideoQuality.LOW,
                         onClick = onOtherClick,
                         modifier = Modifier.aspectRatio(16F / 9)
@@ -217,6 +225,7 @@ fun VerticalTopListView(
     modifier: Modifier,
     viewModel: MultiStreamingViewModel,
     uiState: MultiStreamingUiState,
+    displayLabel: Boolean,
     onMainClick: (String?) -> Unit,
     onOtherClick: (MultiStreamingData.Video) -> Unit
 ) {
@@ -258,10 +267,12 @@ fun VerticalTopListView(
                         }
                     }
                 )
-                Text(
-                    text = mainVideo?.sourceId ?: "Main",
-                    modifier = Modifier.align(Alignment.BottomStart)
-                )
+                if (displayLabel) {
+                    Text(
+                        text = mainVideo?.sourceId ?: "Main",
+                        modifier = Modifier.align(Alignment.BottomStart)
+                    )
+                }
 //                QualityLabel(
 //                    viewModel = viewModel,
 //                    video = mainVideo,
@@ -284,7 +295,7 @@ fun VerticalTopListView(
                     VideoView(
                         viewModel = viewModel,
                         video = video,
-                        displayLabel = true,
+                        displayLabel = displayLabel,
                         videoQuality = MultiStreamingRepository.VideoQuality.LOW,
                         onClick = onOtherClick,
                         modifier = Modifier.aspectRatio(16F / 9)

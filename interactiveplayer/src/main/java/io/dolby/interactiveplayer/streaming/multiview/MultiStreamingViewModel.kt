@@ -36,12 +36,14 @@ class MultiStreamingViewModel @Inject constructor(
     private val _statisticsState = MutableStateFlow(MultiStreamingStatisticsState())
     private val _videoQualityState = MutableStateFlow(MultiStreamingVideoQualityState())
     private val _multiviewLayout = MutableStateFlow(MultiviewLayout.default)
+    private val _showSourceLabels = MutableStateFlow(true)
 
     val uiState: StateFlow<MultiStreamingUiState> = _uiState.asStateFlow()
     val statisticsState: StateFlow<MultiStreamingStatisticsState> = _statisticsState.asStateFlow()
     val videoQualityState: StateFlow<MultiStreamingVideoQualityState> =
         _videoQualityState.asStateFlow()
     val multiviewLayout = _multiviewLayout.asStateFlow()
+    val showSourceLabels = _showSourceLabels.asStateFlow()
 
     init {
         viewModelScope.launch {
@@ -63,6 +65,11 @@ class MultiStreamingViewModel @Inject constructor(
         viewModelScope.launch {
             prefsStore.multiviewLayout.collect { layout ->
                 _multiviewLayout.update { layout }
+            }
+        }
+        viewModelScope.launch {
+            prefsStore.showSourceLabels.collect { show ->
+                _showSourceLabels.update { show }
             }
         }
     }
