@@ -7,6 +7,7 @@ import androidx.navigation.compose.composable
 import io.dolby.interactiveplayer.detailInput.DetailInputScreen
 import io.dolby.interactiveplayer.savedStreams.RecentStreamsScreen
 import io.dolby.interactiveplayer.savedStreams.SavedStreamScreen
+import io.dolby.interactiveplayer.settings.SettingsScreen
 import io.dolby.interactiveplayer.streaming.multiview.ListViewScreen
 import io.dolby.interactiveplayer.streaming.multiview.SingleStreamingScreen
 
@@ -26,13 +27,14 @@ fun AppNavigation(navController: NavHostController) {
                 onSettingsClick = { navController.navigate(Screen.GlobalSettings.route) }
             )
         }
+
         composable(
             route = Screen.DetailInputScreen.route
         ) {
             DetailInputScreen(
                 onPlayClick = { navController.navigate(Screen.MultiStreamingScreen.route(it)) },
-                onSavedStreamsClick = { navController.navigate(Screen.SavedStreams.route) },
-                onSettingsClick = { navController.navigate(Screen.GlobalSettings.route)}
+                onSettingsClick = { navController.navigate(Screen.GlobalSettings.route) },
+                onBack = { navController.popBackStack() }
             )
         }
 
@@ -74,12 +76,9 @@ fun AppNavigation(navController: NavHostController) {
         }
 
         composable(
-            route = Screen.SavedStreams.route
+            route = Screen.GlobalSettings.route
         ) {
-            SavedStreamScreen(
-                onPlayStream = { streamDetail ->
-                    navController.navigate(Screen.MultiStreamingScreen.route(streamDetail))
-                },
+            SettingsScreen(
                 onBack = {
                     navController.popBackStack()
                 }

@@ -83,6 +83,27 @@
     <string name="statisticsScreen_jitter_bufffer_min_delay">Jitter buffer min delay</string>
     <string name="main_source_name">Main</string>
 
+    <!-- Settings -->
+    <string name="global_settings_screen_name">Global Settings</string>
+    <string name="settings_show_source_labels">Show source labels</string>
+    <string name="settings_multiview_layout">Default multi-view layout</string>
+    <string name="settings_stream_sort_order">Stream sort order</string>
+    <string name="settings_audio_selection">Audio selection</string>
+
+    <string name="settings_multiview_layout_list_view">List view</string>
+    <string name="settings_multiview_layout_single_view">Single stream view</string>
+    <string name="settings_multiview_layout_grid_view">Grid view</string>
+    <string name="settings_multiview_layout_footer">List view: Display one large source as the main view with smaller titles for additional feeds.</string>
+
+    <string name="settings_stream_sort_order_connection">Connection order</string>
+    <string name="settings_stream_sort_order_alphanumeric">AlphaNumeric</string>
+    <string name="settings_stream_sort_order_footer">Connection order: Display the streams in the order that they connected to the source.\n\nAlphaNumeric: Sort the streams alphanumerically by their sourceId.</string>
+
+    <string name="settings_audio_selection_first_source">First source</string>
+    <string name="settings_audio_selection_follow_video">Follow video</string>
+    <string name="settings_audio_selection_main_source">Main source</string>
+    <string name="settings_audio_selection_footer">First source: Use the audio from the first audio source that is streamed to the service.\n\nFollow video: Switch audio source when a video is selected. If the selected video does not contain an audio source, use the last selected audio source.</string>
+
     <!--  -->
     <string name="footer_text">Copyright © 2023 Dolby.io — All Rights Reserved</string>
     <string name="gradient_background_image">Background Image</string>

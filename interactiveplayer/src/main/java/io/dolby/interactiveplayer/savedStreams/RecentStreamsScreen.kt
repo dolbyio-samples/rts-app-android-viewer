@@ -67,15 +67,20 @@ fun RecentStreamsScreen(
         loading = false
     }
 
-    Scaffold(topBar = {
-        TopActionBar(onActionClick = onSettingsClick)
-    }, bottomBar = {
-        DolbyCopyrightFooterView()
-    }, modifier = modifier
+    Scaffold(
+        topBar = {
+            TopActionBar(onActionClick = onSettingsClick)
+        },
+        bottomBar = {
+            DolbyCopyrightFooterView()
+        },
+        modifier = modifier
     ) { paddingValues ->
-        Box(modifier = modifier
-            .padding(paddingValues)
-            .semantics { contentDescription = screenName }) {
+        Box(
+            modifier = modifier
+                .padding(paddingValues)
+                .semantics { contentDescription = screenName }
+        ) {
             if (loading) {
                 Box(modifier = Modifier.fillMaxSize()) {
                     CircularProgressIndicator(modifier = Modifier.align(Alignment.Center))

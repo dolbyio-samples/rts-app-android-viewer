@@ -75,7 +75,8 @@ fun SavedStreamScreen(
                 title = "Saved Streams",
                 onBack = { onBack() },
                 actionIcon = io.dolby.uikit.R.drawable.ic_delete,
-                onAction = { showClearStreamsConfirmationDialog = true })
+                onAction = { showClearStreamsConfirmationDialog = true }
+            )
         },
         modifier = modifier
     ) { paddingValues ->
