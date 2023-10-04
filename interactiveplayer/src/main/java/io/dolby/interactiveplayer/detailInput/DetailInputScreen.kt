@@ -3,9 +3,7 @@ package io.dolby.interactiveplayer.detailInput
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
-import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
-import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.width
@@ -15,7 +13,6 @@ import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.MaterialTheme
 import androidx.compose.material.Scaffold
 import androidx.compose.material.Text
-import androidx.compose.material.TextButton
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.collectAsState
@@ -36,26 +33,23 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import androidx.hilt.navigation.compose.hiltViewModel
-import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import io.dolby.interactiveplayer.R
 import io.dolby.interactiveplayer.alert.ClearStreamConfirmationAlert
 import io.dolby.interactiveplayer.alert.DetailInputValidationAlert
 import io.dolby.interactiveplayer.rts.domain.StreamingData
 import io.dolby.interactiveplayer.rts.ui.DolbyCopyrightFooterView
-import io.dolby.interactiveplayer.rts.ui.TopActionBar
+import io.dolby.interactiveplayer.rts.ui.TopAppBar
 import io.dolby.rtsviewer.uikit.button.ButtonType
 import io.dolby.rtsviewer.uikit.button.StyledButton
 import io.dolby.rtsviewer.uikit.theme.fontColor
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
 
-private const val MAXIMUM_CHARACTERS1: Int = 64
-
 @Composable
 fun DetailInputScreen(
     onPlayClick: (StreamingData) -> Unit,
-    onSavedStreamsClick: () -> Unit,
     onSettingsClick: () -> Unit,
+    onBack: () -> Unit,
     modifier: Modifier = Modifier,
     streamingData: StreamingData? = null,
     viewModel: DetailInputViewModel = hiltViewModel()
@@ -67,7 +61,6 @@ fun DetailInputScreen(
     val accountId = viewModel.accountId.collectAsState()
 
     val screenName = stringResource(id = R.string.stream_detail_screen_name)
-    val uiState by viewModel.uiState.collectAsStateWithLifecycle()
 
     val localFocusManager = LocalFocusManager.current
     val focusRequester = remember { FocusRequester() }
@@ -124,7 +117,7 @@ fun DetailInputScreen(
 
     Scaffold(
         topBar = {
-            TopActionBar(onActionClick = onSettingsClick)
+            TopAppBar(title = "", onBack = onBack, onAction = onSettingsClick)
         },
         bottomBar = {
             DolbyCopyrightFooterView()

@@ -56,7 +56,7 @@ object DataModule {
 
     @Provides
     @Singleton
-    fun providePreferencesDataStore(@ApplicationContext context: Context): PrefsStore {
+    fun provideGlobalPreferencesDataStore(@ApplicationContext context: Context): PrefsStore {
         return PrefsStoreImpl(context)
     }
 

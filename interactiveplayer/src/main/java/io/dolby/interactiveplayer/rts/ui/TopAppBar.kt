@@ -20,10 +20,10 @@ fun TopAppBar(
             Icon(Icons.Filled.ArrowBack, null)
         }
     }, actions = {
-        onAction?.let {
-            IconButton(onClick = onAction) {
-                Icon(painterResource(id = actionIcon ?: io.dolby.uikit.R.drawable.ic_settings), null)
+            onAction?.let {
+                IconButton(onClick = onAction) {
+                    Icon(painterResource(id = actionIcon ?: io.dolby.uikit.R.drawable.ic_settings), null)
+                }
             }
-        }
-    })
+        })
 }
