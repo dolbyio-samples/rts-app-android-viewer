@@ -411,7 +411,7 @@ fun LiveIndicatorComponent(modifier: Modifier, on: Boolean) {
     )
 }
 
-private fun MultiStreamingData.Video.play(
+fun MultiStreamingData.Video.play(
     view: VideoRenderer,
     viewModel: MultiStreamingViewModel,
     videoQuality: MultiStreamingRepository.VideoQuality = MultiStreamingRepository.VideoQuality.AUTO

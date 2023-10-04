@@ -9,6 +9,7 @@ import androidx.compose.foundation.pager.HorizontalPager
 import androidx.compose.foundation.pager.rememberPagerState
 import androidx.compose.material.Scaffold
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
@@ -24,6 +25,7 @@ import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import com.millicast.VideoRenderer
 import io.dolby.interactiveplayer.R
+import io.dolby.interactiveplayer.preferenceStore.MultiviewLayout
 import io.dolby.interactiveplayer.rts.data.MultiStreamingRepository
 import io.dolby.interactiveplayer.rts.ui.DolbyBackgroundBox
 import io.dolby.interactiveplayer.rts.ui.LiveIndicator
@@ -45,9 +47,17 @@ fun SingleStreamingScreen(
         uiState.videoTracks.firstOrNull { it.sourceId == uiState.selectedVideoTrackId }
     val mainSourceName = stringResource(id = R.string.main_source_name)
     val (title, setTitle) = remember { mutableStateOf(selectedItem?.sourceId ?: mainSourceName) }
+    val defaultLayout = viewModel.multiviewLayout.collectAsState()
 
     Scaffold(
-        topBar = { TopAppBar(title = title, onBack = { onBack() }) }
+        topBar = {
+            TopAppBar(title = title, onBack = {
+                onBack()
+                if (defaultLayout.value == MultiviewLayout.SingleStreamView) {
+                    viewModel.disconnect()
+                }
+            })
+        }
     ) { paddingValues ->
         DolbyBackgroundBox(
             modifier = Modifier
@@ -61,7 +71,9 @@ fun SingleStreamingScreen(
                 initialPage = initialPage,
                 pageCount = { uiState.videoTracks.size }
             )
-            setTitle(uiState.videoTracks[pagerState.currentPage].sourceId ?: mainSourceName)
+            if (uiState.videoTracks.size > pagerState.currentPage) {
+                setTitle(uiState.videoTracks[pagerState.currentPage].sourceId ?: mainSourceName)
+            }
 
             HorizontalPager(state = pagerState) { page ->
                 VideoView(page, uiState, viewModel)

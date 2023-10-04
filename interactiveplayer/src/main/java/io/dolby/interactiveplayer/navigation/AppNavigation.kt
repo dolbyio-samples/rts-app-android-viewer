@@ -8,7 +8,7 @@ import io.dolby.interactiveplayer.detailInput.DetailInputScreen
 import io.dolby.interactiveplayer.savedStreams.RecentStreamsScreen
 import io.dolby.interactiveplayer.savedStreams.SavedStreamScreen
 import io.dolby.interactiveplayer.settings.SettingsScreen
-import io.dolby.interactiveplayer.streaming.multiview.ListViewScreen
+import io.dolby.interactiveplayer.streaming.multiview.MultiStreamingScreen
 import io.dolby.interactiveplayer.streaming.multiview.SingleStreamingScreen
 
 @Composable
@@ -46,7 +46,7 @@ fun AppNavigation(navController: NavHostController) {
             if (streamName.isNullOrEmpty() || accountId.isNullOrEmpty()) {
                 throw IllegalArgumentException()
             }
-            ListViewScreen(
+            MultiStreamingScreen(
                 onBack = { navController.popBackStack() },
                 onMainClick = { navController.navigate(Screen.SingleStreamingScreen.route) }
             )

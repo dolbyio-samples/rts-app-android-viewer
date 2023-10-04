@@ -6,6 +6,8 @@ import androidx.lifecycle.viewModelScope
 import dagger.hilt.android.lifecycle.HiltViewModel
 import io.dolby.interactiveplayer.datastore.RecentStreamsDataStore
 import io.dolby.interactiveplayer.navigation.Screen
+import io.dolby.interactiveplayer.preferenceStore.MultiviewLayout
+import io.dolby.interactiveplayer.preferenceStore.PrefsStore
 import io.dolby.interactiveplayer.rts.data.MultiStreamingData
 import io.dolby.interactiveplayer.rts.data.MultiStreamingRepository
 import io.dolby.interactiveplayer.rts.domain.StatsInboundRtp.Companion.inboundRtpAudioVideoDataToList
@@ -26,17 +28,20 @@ class MultiStreamingViewModel @Inject constructor(
     private val repository: MultiStreamingRepository,
     private val recentStreamsDataStore: RecentStreamsDataStore,
     private val dispatcherProvider: DispatcherProvider,
-    private val networkStatusObserver: NetworkStatusObserver
+    private val networkStatusObserver: NetworkStatusObserver,
+    private val prefsStore: PrefsStore
 ) : ViewModel() {
 
     private val _uiState = MutableStateFlow(MultiStreamingUiState())
     private val _statisticsState = MutableStateFlow(MultiStreamingStatisticsState())
     private val _videoQualityState = MutableStateFlow(MultiStreamingVideoQualityState())
+    private val _multiviewLayout = MutableStateFlow(MultiviewLayout.default)
 
     val uiState: StateFlow<MultiStreamingUiState> = _uiState.asStateFlow()
     val statisticsState: StateFlow<MultiStreamingStatisticsState> = _statisticsState.asStateFlow()
     val videoQualityState: StateFlow<MultiStreamingVideoQualityState> =
         _videoQualityState.asStateFlow()
+    val multiviewLayout = _multiviewLayout.asStateFlow()
 
     init {
         viewModelScope.launch {
@@ -53,6 +58,11 @@ class MultiStreamingViewModel @Inject constructor(
                     NetworkStatusObserver.Status.Unavailable -> _uiState.update { it.copy(hasNetwork = false) }
                     else -> _uiState.update { it.copy(hasNetwork = true) }
                 }
+            }
+        }
+        viewModelScope.launch {
+            prefsStore.multiviewLayout.collect { layout ->
+                _multiviewLayout.update { layout }
             }
         }
     }
