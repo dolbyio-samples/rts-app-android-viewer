@@ -99,7 +99,7 @@ fun SettingsScreen(
                     showAudioSelectionScreen = showAudioSelectionScreen
                 )
 
-                items(items = items) { selection: Selection<*> ->
+                items(items = items) { selection: Selection ->
                     val onClick: (() -> Unit)? = selection.onClick ?: when (selection.name) {
                         R.string.settings_multiview_layout -> {
                             {
@@ -143,11 +143,11 @@ fun SettingsScreen(
                                 .fillMaxHeight()
                         )
 
-                        if (selection.currentValue is Boolean) {
-                            Switch(checked = selection.currentValue, onCheckedChange = { onClick?.invoke() })
-                        } else if (selection.currentValue != null && selection.onClick == null) {
+                        if (selection.currentValueRes == R.string.settings_value_true || selection.currentValueRes == R.string.settings_value_false) {
+                            Switch(checked = selection.currentValueRes == R.string.settings_value_true, onCheckedChange = { onClick?.invoke() })
+                        } else if (selection.currentValueRes != null && selection.onClick == null) {
                             Text(
-                                text = selection.currentValue.toString(),
+                                text = stringResource(id = selection.currentValueRes),
                                 style = MaterialTheme.typography.body1,
                                 fontWeight = FontWeight.Medium,
                                 color = fontColor(background),
@@ -194,25 +194,25 @@ fun selectionItems(
     showMultiviewScreen: Boolean,
     showStreamSortOrderScreen: Boolean,
     showAudioSelectionScreen: Boolean
-): List<Selection<*>> = when {
+): List<Selection> = when {
     showMultiviewScreen -> {
         listOf(
             Selection(
-                R.string.settings_multiview_layout_list_view,
+                MultiviewLayout.ListView.stringResource(),
                 null,
                 multiviewLayout == MultiviewLayout.ListView
             ) {
                 viewModel.updateMultiviewLayout(MultiviewLayout.ListView)
             },
             Selection(
-                R.string.settings_multiview_layout_single_view,
+                MultiviewLayout.SingleStreamView.stringResource(),
                 null,
                 multiviewLayout == MultiviewLayout.SingleStreamView
             ) {
                 viewModel.updateMultiviewLayout(MultiviewLayout.SingleStreamView)
             },
             Selection(
-                R.string.settings_multiview_layout_grid_view,
+                MultiviewLayout.GridView.stringResource(),
                 null,
                 multiviewLayout == MultiviewLayout.GridView
             ) {
@@ -224,14 +224,14 @@ fun selectionItems(
     showStreamSortOrderScreen -> {
         listOf(
             Selection(
-                R.string.settings_stream_sort_order_connection,
+                StreamSortOrder.ConnectionOrder.stringResource(),
                 null,
                 streamSortOrder == StreamSortOrder.ConnectionOrder
             ) {
                 viewModel.updateSortOrder(StreamSortOrder.ConnectionOrder)
             },
             Selection(
-                R.string.settings_stream_sort_order_alphanumeric,
+                StreamSortOrder.AlphaNumeric.stringResource(),
                 null,
                 streamSortOrder == StreamSortOrder.AlphaNumeric
             ) {
@@ -243,21 +243,21 @@ fun selectionItems(
     showAudioSelectionScreen -> {
         listOf(
             Selection(
-                R.string.settings_audio_selection_first_source,
+                AudioSelection.FirstSource.stringResource(),
                 null,
                 audioSelection == AudioSelection.FirstSource
             ) {
                 viewModel.updateAudioSelection(AudioSelection.FirstSource)
             },
             Selection(
-                R.string.settings_audio_selection_follow_video,
+                AudioSelection.FollowVideo.stringResource(),
                 null,
                 audioSelection == AudioSelection.FollowVideo
             ) {
                 viewModel.updateAudioSelection(AudioSelection.FollowVideo)
             },
             Selection(
-                R.string.settings_audio_selection_main_source,
+                AudioSelection.MainSource.stringResource(),
                 null,
                 audioSelection == AudioSelection.MainSource
             ) {
@@ -270,26 +270,26 @@ fun selectionItems(
         listOf(
             Selection(
                 R.string.settings_show_source_labels,
-                showSourceLabels,
+                if (showSourceLabels) R.string.settings_value_true else R.string.settings_value_false,
                 false
             ) {
                 viewModel.updateShowSourceLabels(!showSourceLabels)
             },
             Selection(
                 R.string.settings_multiview_layout,
-                multiviewLayout,
+                multiviewLayout.stringResource(),
                 false,
                 null
             ),
             Selection(
                 R.string.settings_stream_sort_order,
-                streamSortOrder,
+                streamSortOrder.stringResource(),
                 false,
                 null
             ),
             Selection(
                 R.string.settings_audio_selection,
-                audioSelection,
+                audioSelection.stringResource(),
                 false,
                 null
             )
@@ -297,9 +297,9 @@ fun selectionItems(
     }
 }
 
-class Selection<T>(
+class Selection(
     @StringRes val name: Int,
-    val currentValue: T?,
+    val currentValueRes: Int?,
     val selected: Boolean,
     val onClick: (() -> Unit)?
 )
