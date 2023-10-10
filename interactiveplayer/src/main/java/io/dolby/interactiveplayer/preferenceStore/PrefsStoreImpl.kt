@@ -10,6 +10,7 @@ import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.catch
+import kotlinx.coroutines.flow.last
 import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.launch
 import java.io.IOException
@@ -18,6 +19,7 @@ private const val USER_PREFERENCES_STORE_NAME = "user_preferences"
 
 class PrefsStoreImpl constructor(
     private val context: Context,
+    basePrefs: PrefsStore? = null,
     preferencesName: String = USER_PREFERENCES_STORE_NAME
 ) : PrefsStore {
     private val coroutineScope = CoroutineScope(Dispatchers.IO)
@@ -33,23 +35,37 @@ class PrefsStoreImpl constructor(
     }
 
     init {
+        var isLiveIndicatorEnabledDefault = true
+        var showSourceLabelsDefault = true
+        var multiviewLayoutDefault = MultiviewLayout.default.name
+        var sortOrderDefault = StreamSortOrder.default.name
+        var audioSelectionDefault = AudioSelection.default.name
+        basePrefs?.let {
+            coroutineScope.launch {
+                isLiveIndicatorEnabledDefault = it.isLiveIndicatorEnabled.last()
+                showSourceLabelsDefault = it.showSourceLabels.last()
+                multiviewLayoutDefault = it.multiviewLayout.last().name
+                sortOrderDefault = it.streamSourceOrder.last().name
+                audioSelectionDefault = it.audioSelection.last().name
+            }
+        }
         // Register default preference values, if it does not exist
         coroutineScope.launch {
             context.dataStore.edit { userPreferences ->
                 if (userPreferences[PreferencesKeys.SHOW_LIVE_INDICATOR] == null) {
-                    userPreferences[PreferencesKeys.SHOW_LIVE_INDICATOR] = true
+                    userPreferences[PreferencesKeys.SHOW_LIVE_INDICATOR] = isLiveIndicatorEnabledDefault
                 }
                 if (userPreferences[PreferencesKeys.SHOW_SOURCE_LABELS] == null) {
-                    userPreferences[PreferencesKeys.SHOW_SOURCE_LABELS] = true
+                    userPreferences[PreferencesKeys.SHOW_SOURCE_LABELS] = showSourceLabelsDefault
                 }
                 if (userPreferences[PreferencesKeys.MULTIVIEW_LAYOUT] == null) {
-                    userPreferences[PreferencesKeys.MULTIVIEW_LAYOUT] = MultiviewLayout.default.name
+                    userPreferences[PreferencesKeys.MULTIVIEW_LAYOUT] = multiviewLayoutDefault
                 }
                 if (userPreferences[PreferencesKeys.SORT_ORDER] == null) {
-                    userPreferences[PreferencesKeys.SORT_ORDER] = StreamSortOrder.default.name
+                    userPreferences[PreferencesKeys.SORT_ORDER] = sortOrderDefault
                 }
                 if (userPreferences[PreferencesKeys.AUDIO_SELECTION] == null) {
-                    userPreferences[PreferencesKeys.AUDIO_SELECTION] = AudioSelection.default.name
+                    userPreferences[PreferencesKeys.AUDIO_SELECTION] = audioSelectionDefault
                 }
             }
         }

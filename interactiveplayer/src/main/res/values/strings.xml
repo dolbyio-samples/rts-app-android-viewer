@@ -110,4 +110,6 @@
     <string name="live_indicator_on">Live</string>
     <string name="live_indicator_off">Offline</string>
     <string name="recent_streams_screen_name">Recently Viewed Streams</string>
+    <string name="settings_value_true">true</string>
+    <string name="settings_value_false">false</string>
 </resources>
