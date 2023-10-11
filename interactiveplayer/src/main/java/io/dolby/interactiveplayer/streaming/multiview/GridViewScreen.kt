@@ -30,21 +30,20 @@ import androidx.compose.ui.viewinterop.AndroidView
 import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import com.millicast.VideoRenderer
-import io.dolby.interactiveplayer.MainActivity
 import io.dolby.interactiveplayer.R
 import io.dolby.interactiveplayer.rts.data.MultiStreamingData
 import io.dolby.interactiveplayer.rts.data.MultiStreamingRepository
 import io.dolby.interactiveplayer.rts.ui.DolbyBackgroundBox
 import io.dolby.interactiveplayer.rts.ui.TopAppBar
 import io.dolby.interactiveplayer.streaming.ErrorView
-import io.dolby.interactiveplayer.utils.findActivity
 import org.webrtc.RendererCommon
 
 @Composable
 fun GridViewScreen(
     viewModel: MultiStreamingViewModel = hiltViewModel(),
     onBack: () -> Unit,
-    onMainClick: (String?) -> Unit
+    onMainClick: (String?) -> Unit,
+    onSettingsClick: () -> Unit
 ) {
     val uiState by viewModel.uiState.collectAsStateWithLifecycle()
 
@@ -56,10 +55,14 @@ fun GridViewScreen(
 
     Scaffold(
         topBar = {
-            TopAppBar(title = uiState.streamName ?: screenContentDescription, onBack = {
-                onBack()
-                viewModel.disconnect()
-            })
+            TopAppBar(
+                title = uiState.streamName ?: screenContentDescription,
+                onBack = {
+                    onBack()
+                    viewModel.disconnect()
+                },
+                onAction = onSettingsClick
+            )
         }
     ) { paddingValues ->
         DolbyBackgroundBox(
@@ -70,9 +73,6 @@ fun GridViewScreen(
                 .padding(paddingValues)
         ) {
             val context = LocalContext.current
-            uiState.audioTracks.firstOrNull()?.let {
-                (context.findActivity() as? MainActivity?)?.addVolumeObserver(it.audioTrack)
-            }
             when {
                 uiState.error != null -> {
                     ErrorView(error = uiState.error!!)
@@ -111,10 +111,6 @@ private fun Grid(
     Box(
         modifier = modifier
     ) {
-        val context = LocalContext.current
-        if (uiState.audioTracks.isNotEmpty()) {
-            (context.findActivity() as? MainActivity?)?.addVolumeObserver(uiState.audioTracks[0].audioTrack)
-        }
         val otherTracks = uiState.videoTracks
         val lazyVerticalGridState = rememberLazyGridState()
         LazyVerticalGrid(
