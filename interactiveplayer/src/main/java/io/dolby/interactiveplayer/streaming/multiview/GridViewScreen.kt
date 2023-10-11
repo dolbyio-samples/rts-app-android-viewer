@@ -72,7 +72,6 @@ fun GridViewScreen(
                 }
                 .padding(paddingValues)
         ) {
-            val context = LocalContext.current
             when {
                 uiState.error != null -> {
                     ErrorView(error = uiState.error!!)
@@ -84,7 +83,7 @@ fun GridViewScreen(
 
                 uiState.videoTracks.isNotEmpty() -> {
                     val columnCount =
-                        if (LocalConfiguration.current.orientation == Configuration.ORIENTATION_LANDSCAPE) 4 else 2
+                        if (LocalConfiguration.current.orientation == Configuration.ORIENTATION_LANDSCAPE) 2 else 1
                     Grid(
                         modifier = Modifier.align(Alignment.Center),
                         columnCount = columnCount,
