@@ -6,15 +6,21 @@ import com.millicast.LayerData
 import com.millicast.Subscriber
 import com.millicast.Subscriber.ProjectionData
 import com.millicast.VideoTrack
+import io.dolby.interactiveplayer.preferenceStore.AudioSelection
+import io.dolby.interactiveplayer.preferenceStore.PrefsStore
 import io.dolby.interactiveplayer.rts.data.MultiStreamingData.Companion.audio
 import io.dolby.interactiveplayer.rts.data.MultiStreamingData.Companion.video
 import io.dolby.interactiveplayer.rts.domain.MultiStreamStatisticsData
 import io.dolby.interactiveplayer.rts.domain.StreamingData
+import io.dolby.interactiveplayer.rts.utils.DispatcherProvider
+import kotlinx.coroutines.CoroutineScope
+import kotlinx.coroutines.Job
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.flow.updateAndGet
+import kotlinx.coroutines.launch
 import org.webrtc.RTCStatsReport
 import java.lang.Exception
 import java.util.Arrays
@@ -171,10 +177,26 @@ data class MultiStreamingData(
     }
 }
 
-class MultiStreamingRepository {
+class MultiStreamingRepository(private val prefsStore: PrefsStore, private val dispatcherProvider: DispatcherProvider) {
     private val _data = MutableStateFlow(MultiStreamingData())
     val data: StateFlow<MultiStreamingData> = _data.asStateFlow()
     private var listener: Listener? = null
+
+    private val _audioSelection = MutableStateFlow(AudioSelection.default)
+    private var audioSelectionListenerJob: Job? = null
+
+    init {
+        listenForAudioSelection()
+    }
+
+    private fun listenForAudioSelection() {
+        audioSelectionListenerJob?.cancel()
+        audioSelectionListenerJob = CoroutineScope(dispatcherProvider.main).launch {
+            prefsStore.audioSelection(_data.value.streamingData).collect { audioSelection ->
+                _audioSelection.update { audioSelection }
+            }
+        }
+    }
 
     fun connect(streamingData: StreamingData) {
         if (listener?.connected() == true) {
@@ -202,11 +224,13 @@ class MultiStreamingRepository {
             e.printStackTrace()
         }
         _data.update { data -> data.copy(streamingData = streamingData) }
+        listenForAudioSelection()
     }
 
     fun disconnect() {
         _data.update { MultiStreamingData() }
         listener?.disconnect()
+        listenForAudioSelection()
     }
 
     private fun credential(
@@ -227,7 +251,7 @@ class MultiStreamingRepository {
             oldSelectedVideoTrack?.videoTrack?.removeRenderer()
             val newSelectedVideoTrack = data.videoTracks.find { it.sourceId == sourceId }
             val index = data.videoTracks.indexOf(newSelectedVideoTrack)
-            if (index < data.audioTracks.size) {
+            if (_audioSelection.value == AudioSelection.FollowVideo && index < data.audioTracks.size) {
                 val newSelectedAudioTrack = data.audioTracks[index]
                 listener?.playAudio(newSelectedAudioTrack)
             }

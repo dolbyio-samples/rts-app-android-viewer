@@ -6,6 +6,7 @@ import androidx.datastore.preferences.core.edit
 import androidx.datastore.preferences.core.emptyPreferences
 import androidx.datastore.preferences.core.stringPreferencesKey
 import androidx.datastore.preferences.preferencesDataStore
+import io.dolby.interactiveplayer.rts.domain.StreamingData
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.flow.Flow
@@ -17,59 +18,86 @@ import java.io.IOException
 
 private const val USER_PREFERENCES_STORE_NAME = "user_preferences"
 
-class PrefsStoreImpl constructor(
-    private val context: Context,
-    basePrefs: PrefsStore? = null,
-    preferencesName: String = USER_PREFERENCES_STORE_NAME
-) : PrefsStore {
+class PrefsStoreImpl constructor(private val context: Context) : PrefsStore {
     private val coroutineScope = CoroutineScope(Dispatchers.IO)
 
-    private val Context.dataStore by preferencesDataStore(name = preferencesName)
+    private val preferences = mutableMapOf<String, PrefsImpl>()
 
-    private object PreferencesKeys {
-        val SHOW_LIVE_INDICATOR = booleanPreferencesKey("show_live_indicator")
-        val SHOW_SOURCE_LABELS = booleanPreferencesKey("show_source_labels")
-        val MULTIVIEW_LAYOUT = stringPreferencesKey("multiview_layout")
-        val SORT_ORDER = stringPreferencesKey("sort_order")
-        val AUDIO_SELECTION = stringPreferencesKey("audio_selection")
+    private fun key(streamingData: StreamingData?): String =
+        streamingData?.let { "${streamingData.streamName}/${streamingData.accountId}" }
+            ?: USER_PREFERENCES_STORE_NAME
+
+    private fun streamPreferences(key: String): PrefsImpl {
+        return preferences.getOrElse(key) {
+            val createdStreamPreference = createPreferences(key)
+            preferences[key] = createdStreamPreference
+            createdStreamPreference
+        }
     }
 
-    init {
-        var isLiveIndicatorEnabledDefault = true
-        var showSourceLabelsDefault = true
-        var multiviewLayoutDefault = MultiviewLayout.default.name
-        var sortOrderDefault = StreamSortOrder.default.name
-        var audioSelectionDefault = AudioSelection.default.name
-        basePrefs?.let {
+    private fun createPreferences(key: String): PrefsImpl {
+        val result = PrefsImpl(context, key)
+        preferences[USER_PREFERENCES_STORE_NAME]?.let {
             coroutineScope.launch {
-                isLiveIndicatorEnabledDefault = it.isLiveIndicatorEnabled.last()
-                showSourceLabelsDefault = it.showSourceLabels.last()
-                multiviewLayoutDefault = it.multiviewLayout.last().name
-                sortOrderDefault = it.streamSourceOrder.last().name
-                audioSelectionDefault = it.audioSelection.last().name
+                result.registerDefaultPreferenceValuesIfNeeded(
+                    it.isLiveIndicatorEnabled.last(),
+                    it.showSourceLabels.last(),
+                    it.multiviewLayout.last().name,
+                    it.streamSourceOrder.last().name,
+                    it.audioSelection.last().name
+                )
             }
+        } ?: coroutineScope.launch {
+            result.registerDefaultPreferenceValuesIfNeeded(
+                isLiveIndicatorEnabledDefault = true,
+                showSourceLabelsDefault = true,
+                multiviewLayoutDefault = MultiviewLayout.default.name,
+                sortOrderDefault = StreamSortOrder.default.name,
+                audioSelectionDefault = AudioSelection.default.name
+            )
         }
-        // Register default preference values, if it does not exist
-        coroutineScope.launch {
-            context.dataStore.edit { userPreferences ->
-                if (userPreferences[PreferencesKeys.SHOW_LIVE_INDICATOR] == null) {
-                    userPreferences[PreferencesKeys.SHOW_LIVE_INDICATOR] = isLiveIndicatorEnabledDefault
-                }
-                if (userPreferences[PreferencesKeys.SHOW_SOURCE_LABELS] == null) {
-                    userPreferences[PreferencesKeys.SHOW_SOURCE_LABELS] = showSourceLabelsDefault
-                }
-                if (userPreferences[PreferencesKeys.MULTIVIEW_LAYOUT] == null) {
-                    userPreferences[PreferencesKeys.MULTIVIEW_LAYOUT] = multiviewLayoutDefault
-                }
-                if (userPreferences[PreferencesKeys.SORT_ORDER] == null) {
-                    userPreferences[PreferencesKeys.SORT_ORDER] = sortOrderDefault
-                }
-                if (userPreferences[PreferencesKeys.AUDIO_SELECTION] == null) {
-                    userPreferences[PreferencesKeys.AUDIO_SELECTION] = audioSelectionDefault
-                }
-            }
-        }
+        return result
     }
+
+    override fun isLiveIndicatorEnabled(streamingData: StreamingData?): Flow<Boolean> =
+        streamPreferences(key(streamingData)).isLiveIndicatorEnabled
+
+    override fun showSourceLabels(streamingData: StreamingData?): Flow<Boolean> =
+        streamPreferences(key(streamingData)).showSourceLabels
+
+    override fun multiviewLayout(streamingData: StreamingData?): Flow<MultiviewLayout> =
+        streamPreferences(key(streamingData)).multiviewLayout
+
+    override fun streamSourceOrder(streamingData: StreamingData?): Flow<StreamSortOrder> =
+        streamPreferences(key(streamingData)).streamSourceOrder
+
+    override fun audioSelection(streamingData: StreamingData?): Flow<AudioSelection> =
+        streamPreferences(key(streamingData)).audioSelection
+
+    override suspend fun updateLiveIndicator(checked: Boolean, streamingData: StreamingData?) {
+        streamPreferences(key(streamingData)).updateLiveIndicator(checked)
+    }
+
+    override suspend fun updateShowSourceLabels(show: Boolean, streamingData: StreamingData?) {
+        streamPreferences(key(streamingData)).updateShowSourceLabels(show)
+    }
+
+    override suspend fun updateMultiviewLayout(layout: MultiviewLayout, streamingData: StreamingData?) {
+        streamPreferences(key(streamingData)).updateMultiviewLayout(layout)
+    }
+
+    override suspend fun updateStreamSourceOrder(order: StreamSortOrder, streamingData: StreamingData?) {
+        streamPreferences(key(streamingData)).updateStreamSourceOrder(order)
+    }
+
+    override suspend fun updateAudioSelection(selection: AudioSelection, streamingData: StreamingData?) {
+        streamPreferences(key(streamingData)).updateAudioSelection(selection)
+    }
+}
+
+class PrefsImpl constructor(private val context: Context, prefsKey: String) : Prefs {
+
+    private val Context.dataStore by preferencesDataStore(prefsKey)
 
     override val isLiveIndicatorEnabled: Flow<Boolean> = context.dataStore.data
         .catch { exception ->
@@ -162,4 +190,39 @@ class PrefsStoreImpl constructor(
             userPreferences[PreferencesKeys.AUDIO_SELECTION] = selection.name
         }
     }
+
+    suspend fun registerDefaultPreferenceValuesIfNeeded(
+        isLiveIndicatorEnabledDefault: Boolean,
+        showSourceLabelsDefault: Boolean,
+        multiviewLayoutDefault: String,
+        sortOrderDefault: String,
+        audioSelectionDefault: String
+    ) {
+        context.dataStore.edit { userPreferences ->
+            if (userPreferences[PreferencesKeys.SHOW_LIVE_INDICATOR] == null) {
+                userPreferences[PreferencesKeys.SHOW_LIVE_INDICATOR] =
+                    isLiveIndicatorEnabledDefault
+            }
+            if (userPreferences[PreferencesKeys.SHOW_SOURCE_LABELS] == null) {
+                userPreferences[PreferencesKeys.SHOW_SOURCE_LABELS] = showSourceLabelsDefault
+            }
+            if (userPreferences[PreferencesKeys.MULTIVIEW_LAYOUT] == null) {
+                userPreferences[PreferencesKeys.MULTIVIEW_LAYOUT] = multiviewLayoutDefault
+            }
+            if (userPreferences[PreferencesKeys.SORT_ORDER] == null) {
+                userPreferences[PreferencesKeys.SORT_ORDER] = sortOrderDefault
+            }
+            if (userPreferences[PreferencesKeys.AUDIO_SELECTION] == null) {
+                userPreferences[PreferencesKeys.AUDIO_SELECTION] = audioSelectionDefault
+            }
+        }
+    }
+}
+
+private object PreferencesKeys {
+    val SHOW_LIVE_INDICATOR = booleanPreferencesKey("show_live_indicator")
+    val SHOW_SOURCE_LABELS = booleanPreferencesKey("show_source_labels")
+    val MULTIVIEW_LAYOUT = stringPreferencesKey("multiview_layout")
+    val SORT_ORDER = stringPreferencesKey("sort_order")
+    val AUDIO_SELECTION = stringPreferencesKey("audio_selection")
 }
