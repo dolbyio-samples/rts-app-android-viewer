@@ -27,6 +27,7 @@ import com.millicast.VideoRenderer
 import io.dolby.interactiveplayer.R
 import io.dolby.interactiveplayer.preferenceStore.MultiviewLayout
 import io.dolby.interactiveplayer.rts.data.MultiStreamingRepository
+import io.dolby.interactiveplayer.rts.domain.StreamingData
 import io.dolby.interactiveplayer.rts.ui.DolbyBackgroundBox
 import io.dolby.interactiveplayer.rts.ui.LiveIndicator
 import io.dolby.interactiveplayer.rts.ui.TopAppBar
@@ -38,7 +39,8 @@ import org.webrtc.RendererCommon
 @Composable
 fun SingleStreamingScreen(
     viewModel: MultiStreamingViewModel = hiltViewModel(),
-    onBack: () -> Unit
+    onBack: () -> Unit,
+    onSettingsClick: (StreamingData?) -> Unit
 ) {
     val uiState by viewModel.uiState.collectAsStateWithLifecycle()
 
@@ -50,14 +52,23 @@ fun SingleStreamingScreen(
     val defaultLayout = viewModel.multiviewLayout.collectAsState()
     val showSourceLabels = viewModel.showSourceLabels.collectAsState()
 
+    val streamingData = uiState.accountId?.let { accountId ->
+        uiState.streamName?.let { streamName ->
+            StreamingData(accountId, streamName)
+        }
+    }
     Scaffold(
         topBar = {
-            TopAppBar(title = title, onBack = {
-                onBack()
-                if (defaultLayout.value == MultiviewLayout.SingleStreamView) {
-                    viewModel.disconnect()
-                }
-            })
+            TopAppBar(
+                title = title,
+                onBack = {
+                    onBack()
+                    if (defaultLayout.value == MultiviewLayout.SingleStreamView) {
+                        viewModel.disconnect()
+                    }
+                },
+                onAction = { onSettingsClick(streamingData) }
+            )
         }
     ) { paddingValues ->
         DolbyBackgroundBox(
@@ -67,13 +78,16 @@ fun SingleStreamingScreen(
                 }
                 .padding(paddingValues)
         ) {
-            val initialPage = selectedItem?.let { uiState.videoTracks.indexOf(selectedItem) } ?: 0
+            val initialPage =
+                selectedItem?.let { uiState.videoTracks.indexOf(selectedItem) } ?: 0
             val pagerState = rememberPagerState(
                 initialPage = initialPage,
                 pageCount = { uiState.videoTracks.size }
             )
             if (uiState.videoTracks.size > pagerState.currentPage) {
-                setTitle(uiState.videoTracks[pagerState.currentPage].sourceId ?: mainSourceName)
+                setTitle(
+                    uiState.videoTracks[pagerState.currentPage].sourceId ?: mainSourceName
+                )
             }
 
             HorizontalPager(state = pagerState) { page ->

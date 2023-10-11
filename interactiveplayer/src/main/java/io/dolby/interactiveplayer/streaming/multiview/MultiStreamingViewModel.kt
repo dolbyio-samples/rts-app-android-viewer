@@ -6,7 +6,6 @@ import androidx.lifecycle.viewModelScope
 import dagger.hilt.android.lifecycle.HiltViewModel
 import io.dolby.interactiveplayer.datastore.RecentStreamsDataStore
 import io.dolby.interactiveplayer.navigation.Screen
-import io.dolby.interactiveplayer.preferenceStore.AudioSelection
 import io.dolby.interactiveplayer.preferenceStore.MultiviewLayout
 import io.dolby.interactiveplayer.preferenceStore.PrefsStore
 import io.dolby.interactiveplayer.preferenceStore.StreamSortOrder
@@ -39,7 +38,7 @@ class MultiStreamingViewModel @Inject constructor(
     private val _videoQualityState = MutableStateFlow(MultiStreamingVideoQualityState())
     private val _multiviewLayout = MutableStateFlow(MultiviewLayout.default)
     private val _showSourceLabels = MutableStateFlow(true)
-    private val _streamSortOrcer = MutableStateFlow(StreamSortOrder.default)
+    private val _streamSortOrder = MutableStateFlow(StreamSortOrder.default)
 
     val uiState: StateFlow<MultiStreamingUiState> = _uiState.asStateFlow()
     val statisticsState: StateFlow<MultiStreamingStatisticsState> = _statisticsState.asStateFlow()
@@ -77,7 +76,7 @@ class MultiStreamingViewModel @Inject constructor(
         }
         viewModelScope.launch {
             prefsStore.streamSourceOrder().collect { sortOrder ->
-                _streamSortOrcer.update { sortOrder }
+                _streamSortOrder.update { sortOrder }
             }
         }
     }
@@ -98,11 +97,13 @@ class MultiStreamingViewModel @Inject constructor(
             val streamDetail = recentStreamsDataStore.recentStream(streamName)
             val streamingData = if (streamDetail != null) {
                 StreamingData(
-                    streamName = streamName.trim(), accountId = streamDetail.accountID.trim()
+                    streamName = streamName.trim(),
+                    accountId = streamDetail.accountID.trim()
                 )
             } else {
                 StreamingData(
-                    streamName = streamName.trim(), accountId = getAccountId(savedStateHandle)
+                    streamName = streamName.trim(),
+                    accountId = getAccountId(savedStateHandle)
                 )
             }
 
@@ -143,12 +144,12 @@ class MultiStreamingViewModel @Inject constructor(
             else -> _uiState.update {
                 it.copy(
                     inProgress = false,
-                    videoTracks = if (_streamSortOrcer.value == StreamSortOrder.AlphaNumeric) {
+                    videoTracks = if (_streamSortOrder.value == StreamSortOrder.AlphaNumeric) {
                         videoTracks.sortedWith(alphaNumericComparator)
                     } else videoTracks,
                     audioTracks = data.audioTracks,
                     selectedVideoTrackId = data.selectedVideoTrackId,
-                    streamName = getStreamName(savedStateHandle),
+                    streamName = data.streamingData?.streamName,
                     layerData = data.trackLayerData,
                     error = null
                 )

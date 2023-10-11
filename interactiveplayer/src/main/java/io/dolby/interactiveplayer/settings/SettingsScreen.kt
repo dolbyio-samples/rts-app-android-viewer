@@ -53,7 +53,11 @@ fun SettingsScreen(
     var showAudioSelectionScreen by remember { mutableStateOf(false) }
 
     val background = MaterialTheme.colors.background
-    val screenName = stringResource(id = R.string.global_settings_screen_name)
+    val screenName =
+        stringResource(
+            id = viewModel.streamingData()?.let { R.string.stream_settings_screen_name }
+                ?: R.string.global_settings_screen_name
+        )
 
     val showSourceLabels = viewModel.showSourceLabels.collectAsState()
     val multiviewLayout = viewModel.multiviewLayout.collectAsState()
@@ -144,7 +148,10 @@ fun SettingsScreen(
                         )
 
                         if (selection.currentValueRes == R.string.settings_value_true || selection.currentValueRes == R.string.settings_value_false) {
-                            Switch(checked = selection.currentValueRes == R.string.settings_value_true, onCheckedChange = { onClick?.invoke() })
+                            Switch(
+                                checked = selection.currentValueRes == R.string.settings_value_true,
+                                onCheckedChange = { onClick?.invoke() }
+                            )
                         } else if (selection.currentValueRes != null && selection.onClick == null) {
                             Text(
                                 text = stringResource(id = selection.currentValueRes),

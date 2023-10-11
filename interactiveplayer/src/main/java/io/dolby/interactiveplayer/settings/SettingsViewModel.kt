@@ -6,10 +6,12 @@ import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import dagger.hilt.android.lifecycle.HiltViewModel
 import io.dolby.interactiveplayer.R
+import io.dolby.interactiveplayer.navigation.Screen
 import io.dolby.interactiveplayer.preferenceStore.AudioSelection
 import io.dolby.interactiveplayer.preferenceStore.MultiviewLayout
 import io.dolby.interactiveplayer.preferenceStore.PrefsStore
 import io.dolby.interactiveplayer.preferenceStore.StreamSortOrder
+import io.dolby.interactiveplayer.rts.domain.StreamingData
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.update
@@ -36,26 +38,39 @@ class SettingsViewModel @Inject constructor(
 
     init {
         viewModelScope.launch {
-            preferencesStore.showSourceLabels().collect { enabled ->
+            preferencesStore.showSourceLabels(streamingData()).collect { enabled ->
                 _showSourceLabels.update { enabled }
             }
         }
         viewModelScope.launch {
-            preferencesStore.multiviewLayout().collect { layout ->
+            preferencesStore.multiviewLayout(streamingData()).collect { layout ->
                 _multiviewLayout.update { layout }
             }
         }
         viewModelScope.launch {
-            preferencesStore.streamSourceOrder().collect { order ->
+            preferencesStore.streamSourceOrder(streamingData()).collect { order ->
                 _streamSortOrder.update { order }
             }
         }
         viewModelScope.launch {
-            preferencesStore.audioSelection().collect { audioSelection ->
+            preferencesStore.audioSelection(streamingData()).collect { audioSelection ->
                 _audioSelection.update { audioSelection }
             }
         }
     }
+
+    private fun getStreamName(handle: SavedStateHandle): String? =
+        handle[Screen.StreamSettings.ARG_STREAM_NAME]
+
+    private fun getAccountId(handle: SavedStateHandle): String? =
+        handle[Screen.StreamSettings.ARG_ACCOUNT_ID]
+
+    fun streamingData(): StreamingData? =
+        getStreamName(savedStateHandle)?.let { streamName ->
+            getAccountId(savedStateHandle)?.let { accountId ->
+                StreamingData(accountId, streamName)
+            }
+        }
 
     fun updateShowSourceLabels(show: Boolean) {
         viewModelScope.launch {

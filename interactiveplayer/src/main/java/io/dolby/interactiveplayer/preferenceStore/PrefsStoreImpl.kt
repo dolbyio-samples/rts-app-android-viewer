@@ -93,6 +93,11 @@ class PrefsStoreImpl constructor(private val context: Context) : PrefsStore {
     override suspend fun updateAudioSelection(selection: AudioSelection, streamingData: StreamingData?) {
         streamPreferences(key(streamingData)).updateAudioSelection(selection)
     }
+
+    override suspend fun clear(streamingData: StreamingData?) {
+        streamPreferences(key(streamingData)).clear()
+        preferences.remove(key(streamingData))
+    }
 }
 
 class PrefsImpl constructor(private val context: Context, prefsKey: String) : Prefs {
@@ -189,6 +194,10 @@ class PrefsImpl constructor(private val context: Context, prefsKey: String) : Pr
         context.dataStore.edit { userPreferences ->
             userPreferences[PreferencesKeys.AUDIO_SELECTION] = selection.name
         }
+    }
+
+    override suspend fun clear() {
+        context.dataStore.edit { clear() }
     }
 
     suspend fun registerDefaultPreferenceValuesIfNeeded(

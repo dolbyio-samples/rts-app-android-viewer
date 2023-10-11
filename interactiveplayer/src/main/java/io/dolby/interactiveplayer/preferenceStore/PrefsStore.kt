@@ -19,6 +19,8 @@ interface PrefsStore {
     suspend fun updateMultiviewLayout(layout: MultiviewLayout, streamingData: StreamingData? = null)
     suspend fun updateStreamSourceOrder(order: StreamSortOrder, streamingData: StreamingData? = null)
     suspend fun updateAudioSelection(selection: AudioSelection, streamingData: StreamingData? = null)
+
+    suspend fun clear(streamingData: StreamingData?)
 }
 interface Prefs {
     val isLiveIndicatorEnabled: Flow<Boolean>
@@ -32,13 +34,15 @@ interface Prefs {
     suspend fun updateMultiviewLayout(layout: MultiviewLayout)
     suspend fun updateStreamSourceOrder(order: StreamSortOrder)
     suspend fun updateAudioSelection(selection: AudioSelection)
+
+    suspend fun clear()
 }
 
 enum class MultiviewLayout {
     ListView, SingleStreamView, GridView;
 
     fun stringResource(): Int {
-        return when(this) {
+        return when (this) {
             ListView -> R.string.settings_multiview_layout_list_view
             SingleStreamView -> R.string.settings_multiview_layout_single_view
             GridView -> R.string.settings_multiview_layout_grid_view
@@ -60,7 +64,7 @@ enum class StreamSortOrder {
     ConnectionOrder, AlphaNumeric;
 
     fun stringResource(): Int {
-        return when(this) {
+        return when (this) {
             ConnectionOrder -> R.string.settings_stream_sort_order_connection
             AlphaNumeric -> R.string.settings_stream_sort_order_alphanumeric
         }
@@ -83,7 +87,7 @@ enum class AudioSelection {
     FirstSource, FollowVideo, MainSource;
 
     fun stringResource(): Int {
-        return when(this) {
+        return when (this) {
             FirstSource -> R.string.settings_audio_selection_first_source
             FollowVideo -> R.string.settings_audio_selection_follow_video
             MainSource -> R.string.settings_audio_selection_main_source

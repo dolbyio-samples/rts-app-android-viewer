@@ -85,6 +85,7 @@
 
     <!-- Settings -->
     <string name="global_settings_screen_name">Global Settings</string>
+    <string name="stream_settings_screen_name">Stream Settings</string>
     <string name="settings_show_source_labels">Show source labels</string>
     <string name="settings_multiview_layout">Default multi-view layout</string>
     <string name="settings_stream_sort_order">Stream sort order</string>

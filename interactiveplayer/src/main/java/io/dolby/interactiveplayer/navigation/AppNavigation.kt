@@ -40,15 +40,16 @@ fun AppNavigation(navController: NavHostController) {
 
         composable(
             route = Screen.MultiStreamingScreen.route
-        ) {
-            val accountId = it.arguments?.getString(Screen.MultiStreamingScreen.ARG_ACCOUNT_ID)
-            val streamName = it.arguments?.getString(Screen.MultiStreamingScreen.ARG_STREAM_NAME)
+        ) { entry ->
+            val accountId = entry.arguments?.getString(Screen.MultiStreamingScreen.ARG_ACCOUNT_ID)
+            val streamName = entry.arguments?.getString(Screen.MultiStreamingScreen.ARG_STREAM_NAME)
             if (streamName.isNullOrEmpty() || accountId.isNullOrEmpty()) {
                 throw IllegalArgumentException()
             }
             MultiStreamingScreen(
                 onBack = { navController.popBackStack() },
-                onMainClick = { navController.navigate(Screen.SingleStreamingScreen.route) }
+                onMainClick = { navController.navigate(Screen.SingleStreamingScreen.route) },
+                onSettingsClick = { navController.navigate(Screen.StreamSettings.route(null)) }
             )
         }
 
@@ -58,7 +59,8 @@ fun AppNavigation(navController: NavHostController) {
             SingleStreamingScreen(
                 onBack = {
                     navController.popBackStack()
-                }
+                },
+                onSettingsClick = { navController.navigate(Screen.StreamSettings.route(null)) }
             )
         }
 
@@ -78,6 +80,21 @@ fun AppNavigation(navController: NavHostController) {
         composable(
             route = Screen.GlobalSettings.route
         ) {
+            SettingsScreen(
+                onBack = {
+                    navController.popBackStack()
+                }
+            )
+        }
+
+        composable(
+            route = Screen.StreamSettings.route
+        ) {
+            val accountId = it.arguments?.getString(Screen.StreamSettings.ARG_ACCOUNT_ID)
+            val streamName = it.arguments?.getString(Screen.StreamSettings.ARG_STREAM_NAME)
+            if (streamName.isNullOrEmpty() || accountId.isNullOrEmpty()) {
+                throw IllegalArgumentException()
+            }
             SettingsScreen(
                 onBack = {
                     navController.popBackStack()

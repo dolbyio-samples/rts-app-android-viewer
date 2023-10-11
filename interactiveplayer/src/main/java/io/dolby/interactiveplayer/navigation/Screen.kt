@@ -29,5 +29,14 @@ sealed class Screen(val route: String) {
 
     object RecentStreams : Screen(route = "recentStreams")
     object GlobalSettings : Screen(route = "globalSettings")
-    object StreamSettings : Screen(route = "streamSettings")
+    object StreamSettings :
+        Screen(route = "streamSettings/streamName={streamName}&accountId={accountId}") {
+        const val ARG_STREAM_NAME = "streamName"
+        const val ARG_ACCOUNT_ID = "accountId"
+        fun route(model: StreamingData?): String {
+            model?.streamName?.let { streamName ->
+                return "streamSettings/streamName=$streamName&accountId=$model.accountId"
+            } ?: return "globalSettings"
+        }
+    }
 }

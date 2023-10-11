@@ -177,7 +177,10 @@ data class MultiStreamingData(
     }
 }
 
-class MultiStreamingRepository(private val prefsStore: PrefsStore, private val dispatcherProvider: DispatcherProvider) {
+class MultiStreamingRepository(
+    private val prefsStore: PrefsStore,
+    private val dispatcherProvider: DispatcherProvider
+) {
     private val _data = MutableStateFlow(MultiStreamingData())
     val data: StateFlow<MultiStreamingData> = _data.asStateFlow()
     private var listener: Listener? = null
@@ -192,8 +195,31 @@ class MultiStreamingRepository(private val prefsStore: PrefsStore, private val d
     private fun listenForAudioSelection() {
         audioSelectionListenerJob?.cancel()
         audioSelectionListenerJob = CoroutineScope(dispatcherProvider.main).launch {
-            prefsStore.audioSelection(_data.value.streamingData).collect { audioSelection ->
+            prefsStore.audioSelection().collect { audioSelection ->
                 _audioSelection.update { audioSelection }
+                when (audioSelection) {
+                    AudioSelection.MainSource -> {
+                        data.value.audioTracks.firstOrNull { it.sourceId == null }
+                            ?.let { mainTrack ->
+                                playAudio(mainTrack)
+                            }
+                    }
+
+                    AudioSelection.FirstSource -> {
+                        data.value.audioTracks.firstOrNull()?.let { firstTrack ->
+                            playAudio(firstTrack)
+                        }
+                    }
+
+                    AudioSelection.FollowVideo -> {
+                        val selectedVideoTrack =
+                            data.value.videoTracks.find { it.sourceId == data.value.selectedVideoTrackId }
+                        val index = data.value.videoTracks.indexOf(selectedVideoTrack)
+                        if (data.value.audioTracks.size > index) {
+                            playAudio(data.value.audioTracks[index])
+                        }
+                    }
+                }
             }
         }
     }
@@ -202,7 +228,7 @@ class MultiStreamingRepository(private val prefsStore: PrefsStore, private val d
         if (listener?.connected() == true) {
             return
         }
-        val listener = Listener(_data)
+        val listener = Listener(_data, _audioSelection.asStateFlow())
         this.listener = listener
         val subscriber = Subscriber.createSubscriber(listener)
 
@@ -273,8 +299,13 @@ class MultiStreamingRepository(private val prefsStore: PrefsStore, private val d
         listener?.stopVideo(video)
     }
 
+    fun playAudio(audio: MultiStreamingData.Audio) {
+        listener?.playAudio(audio)
+    }
+
     private class Listener(
-        private val data: MutableStateFlow<MultiStreamingData>
+        private val data: MutableStateFlow<MultiStreamingData>,
+        private val audioSelectionData: StateFlow<AudioSelection>
     ) : Subscriber.Listener {
 
         var subscriber: Subscriber? = null
@@ -338,7 +369,8 @@ class MultiStreamingRepository(private val prefsStore: PrefsStore, private val d
 
         override fun onSubscribed() {
             Log.d(TAG, "onSubscribed")
-            val newData = data.updateAndGet { data -> data.copy(isSubscribed = true, error = null) }
+            val newData =
+                data.updateAndGet { data -> data.copy(isSubscribed = true, error = null) }
             processPendingTracks(newData)
         }
 
@@ -365,6 +397,9 @@ class MultiStreamingRepository(private val prefsStore: PrefsStore, private val d
                 data.getPendingAudioTrackInfoOrNull()?.let { trackInfo ->
                     data.appendAudioTrack(p0, p1.getOrNull(), trackInfo.sourceId)
                 } ?: data
+            }
+            if (data.value.audioTracks.size == 1 && audioSelectionData.value == AudioSelection.FirstSource) {
+                playAudio(data.value.audioTracks[0])
             }
         }
 
@@ -405,7 +440,8 @@ class MultiStreamingRepository(private val prefsStore: PrefsStore, private val d
             data.update { data ->
                 data.videoTracks.filter { it.sourceId == p1.getOrNull() }
                     .forEach { it.videoTrack.removeRenderer() }
-                val videoToInactive = data.videoTracks.firstOrNull { it.sourceId == p1.getOrNull() }
+                val videoToInactive =
+                    data.videoTracks.firstOrNull { it.sourceId == p1.getOrNull() }
                 videoToInactive?.let {
                     val inactiveVideo = MultiStreamingData.Video(
                         id = videoToInactive.id,
@@ -441,7 +477,11 @@ class MultiStreamingRepository(private val prefsStore: PrefsStore, private val d
         ) {
             Log.d(
                 TAG,
-                "onLayers: $mid, ${Arrays.toString(activeLayers)}, ${Arrays.toString(inactiveLayers)}"
+                "onLayers: $mid, ${Arrays.toString(activeLayers)}, ${
+                Arrays.toString(
+                    inactiveLayers
+                )
+                }"
             )
             mid?.let {
                 val filteredActiveLayers =
@@ -480,7 +520,10 @@ class MultiStreamingRepository(private val prefsStore: PrefsStore, private val d
                 availablePreferredVideoQuality(video, preferredVideoQuality)
             val projected = data.value.trackProjectedData[video.id]
             if (projected == null || projected.videoQuality != availablePreferredVideoQuality?.videoQuality()) {
-                Log.d(TAG, "project video ${video.id}, quality = $availablePreferredVideoQuality")
+                Log.d(
+                    TAG,
+                    "project video ${video.id}, quality = $availablePreferredVideoQuality"
+                )
                 val projectionData = createProjectionData(video, availablePreferredVideoQuality)
                 subscriber?.project(video.sourceId ?: "", arrayListOf(projectionData))
                 data.update {
@@ -519,9 +562,8 @@ class MultiStreamingRepository(private val prefsStore: PrefsStore, private val d
         }
 
         fun playAudio(audioTrack: MultiStreamingData.Audio) {
-            data.value.audioTracks.forEach {
-                subscriber?.unproject(arrayListOf(it.id))
-            }
+            val audioTrackIds = ArrayList(data.value.audioTracks.map { it.id })
+            subscriber?.unproject(audioTrackIds)
 
             val projectionData = ProjectionData().also {
                 it.mid = audioTrack.id
