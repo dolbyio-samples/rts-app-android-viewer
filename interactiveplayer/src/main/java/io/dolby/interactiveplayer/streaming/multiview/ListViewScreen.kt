@@ -42,7 +42,6 @@ import com.millicast.VideoRenderer
 import io.dolby.interactiveplayer.MainActivity
 import io.dolby.interactiveplayer.R
 import io.dolby.interactiveplayer.rts.data.MultiStreamingData
-import io.dolby.interactiveplayer.rts.data.MultiStreamingData.Companion.video
 import io.dolby.interactiveplayer.rts.data.MultiStreamingRepository
 import io.dolby.interactiveplayer.rts.ui.DolbyBackgroundBox
 import io.dolby.interactiveplayer.rts.ui.LiveIndicator

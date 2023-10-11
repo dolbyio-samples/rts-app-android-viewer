@@ -40,7 +40,6 @@ class MultiStreamingViewModel @Inject constructor(
     private val _multiviewLayout = MutableStateFlow(MultiviewLayout.default)
     private val _showSourceLabels = MutableStateFlow(true)
     private val _streamSortOrcer = MutableStateFlow(StreamSortOrder.default)
-    private val _audioSelection = MutableStateFlow(AudioSelection.default)
 
     val uiState: StateFlow<MultiStreamingUiState> = _uiState.asStateFlow()
     val statisticsState: StateFlow<MultiStreamingStatisticsState> = _statisticsState.asStateFlow()
@@ -48,8 +47,6 @@ class MultiStreamingViewModel @Inject constructor(
         _videoQualityState.asStateFlow()
     val multiviewLayout = _multiviewLayout.asStateFlow()
     val showSourceLabels = _showSourceLabels.asStateFlow()
-    val streamSortOrder = _streamSortOrcer.asStateFlow()
-    val audioSelection = _audioSelection.asStateFlow()
 
     init {
         viewModelScope.launch {
@@ -69,17 +66,17 @@ class MultiStreamingViewModel @Inject constructor(
             }
         }
         viewModelScope.launch {
-            prefsStore.multiviewLayout.collect { layout ->
+            prefsStore.multiviewLayout().collect { layout ->
                 _multiviewLayout.update { layout }
             }
         }
         viewModelScope.launch {
-            prefsStore.showSourceLabels.collect { show ->
+            prefsStore.showSourceLabels().collect { show ->
                 _showSourceLabels.update { show }
             }
         }
         viewModelScope.launch {
-            prefsStore.streamSourceOrder.collect { sortOrder ->
+            prefsStore.streamSourceOrder().collect { sortOrder ->
                 _streamSortOrcer.update { sortOrder }
             }
         }
@@ -101,13 +98,11 @@ class MultiStreamingViewModel @Inject constructor(
             val streamDetail = recentStreamsDataStore.recentStream(streamName)
             val streamingData = if (streamDetail != null) {
                 StreamingData(
-                    streamName = streamName.trim(),
-                    accountId = streamDetail.accountID.trim()
+                    streamName = streamName.trim(), accountId = streamDetail.accountID.trim()
                 )
             } else {
                 StreamingData(
-                    streamName = streamName.trim(),
-                    accountId = getAccountId(savedStateHandle)
+                    streamName = streamName.trim(), accountId = getAccountId(savedStateHandle)
                 )
             }
 
@@ -126,16 +121,13 @@ class MultiStreamingViewModel @Inject constructor(
 
     private suspend fun update(data: MultiStreamingData) = withContext(dispatcherProvider.main) {
         val videoTracks = data.videoTracks.filter { it.active }
-        val comparator: Comparator<MultiStreamingData.Video> =
-            if (_streamSortOrcer.value == StreamSortOrder.AlphaNumeric) {
-                Comparator { source1, source2 ->
-                    when {
-                        source1.sourceId == null -> 1
-                        source2.sourceId == null -> -1
-                        else -> source1.sourceId.compareTo(source2.sourceId)
-                    }
-                }
-            } else Comparator { _, _ -> 0 }
+        val alphaNumericComparator = Comparator<MultiStreamingData.Video> { source1, source2 ->
+            when {
+                source1.sourceId == null -> 1
+                source2.sourceId == null -> -1
+                else -> source1.sourceId.compareTo(source2.sourceId)
+            }
+        }
         when {
             data.error != null || videoTracks.isEmpty() -> {
                 _uiState.update {
@@ -151,10 +143,12 @@ class MultiStreamingViewModel @Inject constructor(
             else -> _uiState.update {
                 it.copy(
                     inProgress = false,
-                    videoTracks = videoTracks.sortedWith(comparator),
+                    videoTracks = if (_streamSortOrcer.value == StreamSortOrder.AlphaNumeric) {
+                        videoTracks.sortedWith(alphaNumericComparator)
+                    } else videoTracks,
                     audioTracks = data.audioTracks,
                     selectedVideoTrackId = data.selectedVideoTrackId,
-                    streamName = data.streamingData?.streamName,
+                    streamName = getStreamName(savedStateHandle),
                     layerData = data.trackLayerData,
                     error = null
                 )

@@ -51,12 +51,16 @@ object DataModule {
 
     @Provides
     @Singleton
-    fun provideMultiStreamingDataStore(millicastSdk: MillicastSdk): MultiStreamingRepository =
-        MultiStreamingRepository()
+    fun provideMultiStreamingDataStore(
+        millicastSdk: MillicastSdk,
+        prefsStore: PrefsStore,
+        dispatcherProvider: DispatcherProvider
+    ): MultiStreamingRepository =
+        MultiStreamingRepository(prefsStore, dispatcherProvider)
 
     @Provides
     @Singleton
-    fun provideGlobalPreferencesDataStore(@ApplicationContext context: Context): PrefsStore {
+    fun providePreferencesDataStore(@ApplicationContext context: Context): PrefsStore {
         return PrefsStoreImpl(context)
     }
 

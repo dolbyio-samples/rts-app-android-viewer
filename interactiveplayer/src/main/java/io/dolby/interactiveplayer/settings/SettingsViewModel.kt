@@ -19,7 +19,7 @@ import javax.inject.Inject
 @HiltViewModel
 class SettingsViewModel @Inject constructor(
     private val savedStateHandle: SavedStateHandle,
-    private val globalPreferencesStore: PrefsStore
+    private val preferencesStore: PrefsStore
 ) : ViewModel() {
 
     private val _showSourceLabels = MutableStateFlow(false)
@@ -36,22 +36,22 @@ class SettingsViewModel @Inject constructor(
 
     init {
         viewModelScope.launch {
-            globalPreferencesStore.showSourceLabels.collect { enabled ->
+            preferencesStore.showSourceLabels().collect { enabled ->
                 _showSourceLabels.update { enabled }
             }
         }
         viewModelScope.launch {
-            globalPreferencesStore.multiviewLayout.collect { layout ->
+            preferencesStore.multiviewLayout().collect { layout ->
                 _multiviewLayout.update { layout }
             }
         }
         viewModelScope.launch {
-            globalPreferencesStore.streamSourceOrder.collect { order ->
+            preferencesStore.streamSourceOrder().collect { order ->
                 _streamSortOrder.update { order }
             }
         }
         viewModelScope.launch {
-            globalPreferencesStore.audioSelection.collect { audioSelection ->
+            preferencesStore.audioSelection().collect { audioSelection ->
                 _audioSelection.update { audioSelection }
             }
         }
@@ -59,25 +59,25 @@ class SettingsViewModel @Inject constructor(
 
     fun updateShowSourceLabels(show: Boolean) {
         viewModelScope.launch {
-            globalPreferencesStore.updateShowSourceLabels(show)
+            preferencesStore.updateShowSourceLabels(show)
         }
     }
 
     fun updateMultiviewLayout(layout: MultiviewLayout) {
         viewModelScope.launch {
-            globalPreferencesStore.updateMultiviewLayout(layout)
+            preferencesStore.updateMultiviewLayout(layout)
         }
     }
 
     fun updateSortOrder(sortOrder: StreamSortOrder) {
         viewModelScope.launch {
-            globalPreferencesStore.updateStreamSourceOrder(sortOrder)
+            preferencesStore.updateStreamSourceOrder(sortOrder)
         }
     }
 
     fun updateAudioSelection(audioSelection: AudioSelection) {
         viewModelScope.launch {
-            globalPreferencesStore.updateAudioSelection(audioSelection)
+            preferencesStore.updateAudioSelection(audioSelection)
         }
     }
 
