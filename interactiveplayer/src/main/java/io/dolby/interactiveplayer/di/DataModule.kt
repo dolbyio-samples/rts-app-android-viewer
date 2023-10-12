@@ -65,8 +65,12 @@ object DataModule {
     }
 
     @Provides
-    fun provideRecentStreamsDataStore(@ApplicationContext context: Context): RecentStreamsDataStore {
-        return RecentStreamsDataStoreImpl(context)
+    fun provideRecentStreamsDataStore(
+        @ApplicationContext context: Context,
+        prefsStore: PrefsStore,
+        dispatcherProvider: DispatcherProvider
+    ): RecentStreamsDataStore {
+        return RecentStreamsDataStoreImpl(context, prefsStore, dispatcherProvider)
     }
 
     @Provides

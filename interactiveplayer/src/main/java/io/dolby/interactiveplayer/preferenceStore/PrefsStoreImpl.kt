@@ -11,7 +11,7 @@ import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.catch
-import kotlinx.coroutines.flow.last
+import kotlinx.coroutines.flow.collectLatest
 import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.launch
 import java.io.IOException
@@ -23,44 +23,44 @@ class PrefsStoreImpl constructor(private val context: Context) : PrefsStore {
 
     private val preferences = mutableMapOf<String, PrefsImpl>()
 
+    init {
+        streamPreferences(key(null))
+    }
+
     private fun key(streamingData: StreamingData?): String =
-        streamingData?.let { "${streamingData.streamName}/${streamingData.accountId}" }
+        streamingData?.let { "${streamingData.streamName}_${streamingData.accountId}" }
             ?: USER_PREFERENCES_STORE_NAME
 
     private fun streamPreferences(key: String): PrefsImpl {
-        return preferences.getOrElse(key) {
-            val createdStreamPreference = createPreferences(key)
-            preferences[key] = createdStreamPreference
-            createdStreamPreference
+        val prefs = preferences.getOrElse(key) {
+            PrefsImpl(context, key)
         }
+        prefillPreferences(prefs)
+        preferences[key] = prefs
+        return prefs
     }
 
-    private fun createPreferences(key: String): PrefsImpl {
-        val result = PrefsImpl(context, key)
-        preferences[USER_PREFERENCES_STORE_NAME]?.let {
+    private fun prefillPreferences(prefs: PrefsImpl) {
+        preferences[USER_PREFERENCES_STORE_NAME]?.let { globalSettings ->
             coroutineScope.launch {
-                result.registerDefaultPreferenceValuesIfNeeded(
-                    it.isLiveIndicatorEnabled.last(),
-                    it.showSourceLabels.last(),
-                    it.multiviewLayout.last().name,
-                    it.streamSourceOrder.last().name,
-                    it.audioSelection.last().name
-                )
+                globalSettings.data.collectLatest {
+                    prefs.registerDefaultPreferenceValuesIfNeeded(
+                        it[PreferencesKeys.SHOW_SOURCE_LABELS] ?: true,
+                        it[PreferencesKeys.MULTIVIEW_LAYOUT] ?: MultiviewLayout.default.name,
+                        it[PreferencesKeys.SORT_ORDER] ?: StreamSortOrder.default.name,
+                        it[PreferencesKeys.AUDIO_SELECTION] ?: AudioSelection.default.name
+                    )
+                }
             }
         } ?: coroutineScope.launch {
-            result.registerDefaultPreferenceValuesIfNeeded(
-                isLiveIndicatorEnabledDefault = true,
+            prefs.registerDefaultPreferenceValuesIfNeeded(
                 showSourceLabelsDefault = true,
                 multiviewLayoutDefault = MultiviewLayout.default.name,
                 sortOrderDefault = StreamSortOrder.default.name,
                 audioSelectionDefault = AudioSelection.default.name
             )
         }
-        return result
     }
-
-    override fun isLiveIndicatorEnabled(streamingData: StreamingData?): Flow<Boolean> =
-        streamPreferences(key(streamingData)).isLiveIndicatorEnabled
 
     override fun showSourceLabels(streamingData: StreamingData?): Flow<Boolean> =
         streamPreferences(key(streamingData)).showSourceLabels
@@ -74,49 +74,51 @@ class PrefsStoreImpl constructor(private val context: Context) : PrefsStore {
     override fun audioSelection(streamingData: StreamingData?): Flow<AudioSelection> =
         streamPreferences(key(streamingData)).audioSelection
 
-    override suspend fun updateLiveIndicator(checked: Boolean, streamingData: StreamingData?) {
-        streamPreferences(key(streamingData)).updateLiveIndicator(checked)
-    }
-
     override suspend fun updateShowSourceLabels(show: Boolean, streamingData: StreamingData?) {
         streamPreferences(key(streamingData)).updateShowSourceLabels(show)
     }
 
-    override suspend fun updateMultiviewLayout(layout: MultiviewLayout, streamingData: StreamingData?) {
+    override suspend fun updateMultiviewLayout(
+        layout: MultiviewLayout,
+        streamingData: StreamingData?
+    ) {
         streamPreferences(key(streamingData)).updateMultiviewLayout(layout)
     }
 
-    override suspend fun updateStreamSourceOrder(order: StreamSortOrder, streamingData: StreamingData?) {
+    override suspend fun updateStreamSourceOrder(
+        order: StreamSortOrder,
+        streamingData: StreamingData?
+    ) {
         streamPreferences(key(streamingData)).updateStreamSourceOrder(order)
     }
 
-    override suspend fun updateAudioSelection(selection: AudioSelection, streamingData: StreamingData?) {
+    override suspend fun updateAudioSelection(
+        selection: AudioSelection,
+        streamingData: StreamingData?
+    ) {
         streamPreferences(key(streamingData)).updateAudioSelection(selection)
     }
 
-    override suspend fun clear(streamingData: StreamingData?) {
-        streamPreferences(key(streamingData)).clear()
-        preferences.remove(key(streamingData))
+    override suspend fun clear(streamingData: StreamingData) {
+        val key = key(streamingData)
+        streamPreferences(key).clearPreference()
+        preferences.remove(key)
+    }
+
+    override suspend fun clearAllStreamSettings() {
+        preferences.forEach {
+            if (it.key != USER_PREFERENCES_STORE_NAME) {
+                streamPreferences(it.key).clearPreference()
+            }
+        }
     }
 }
 
-class PrefsImpl constructor(private val context: Context, prefsKey: String) : Prefs {
+class PrefsImpl constructor(private val context: Context, private val prefsKey: String) : Prefs {
 
     private val Context.dataStore by preferencesDataStore(prefsKey)
 
-    override val isLiveIndicatorEnabled: Flow<Boolean> = context.dataStore.data
-        .catch { exception ->
-            // dataStore.data throws an IOException when an error is encountered when reading data
-            if (exception is IOException) {
-                emit(emptyPreferences())
-            } else {
-                throw exception
-            }
-        }.map { preferences ->
-            // Defaults to `true` if the setting does not exist yet - thus shows the live indicator by default on first use
-            val showLiveIndicator = preferences[PreferencesKeys.SHOW_LIVE_INDICATOR] ?: true
-            showLiveIndicator
-        }
+    override val data = context.dataStore.data
 
     override val showSourceLabels: Flow<Boolean> = context.dataStore.data
         .catch { exception ->
@@ -166,12 +168,6 @@ class PrefsImpl constructor(private val context: Context, prefsKey: String) : Pr
                 ?: AudioSelection.default
         }
 
-    override suspend fun updateLiveIndicator(checked: Boolean) {
-        context.dataStore.edit { userPreferences ->
-            userPreferences[PreferencesKeys.SHOW_LIVE_INDICATOR] = checked
-        }
-    }
-
     override suspend fun updateShowSourceLabels(show: Boolean) {
         context.dataStore.edit { userPreferences ->
             userPreferences[PreferencesKeys.SHOW_SOURCE_LABELS] = show
@@ -196,22 +192,17 @@ class PrefsImpl constructor(private val context: Context, prefsKey: String) : Pr
         }
     }
 
-    override suspend fun clear() {
-        context.dataStore.edit { clear() }
+    override suspend fun clearPreference() {
+        context.dataStore.edit { it.clear() }
     }
 
     suspend fun registerDefaultPreferenceValuesIfNeeded(
-        isLiveIndicatorEnabledDefault: Boolean,
         showSourceLabelsDefault: Boolean,
         multiviewLayoutDefault: String,
         sortOrderDefault: String,
         audioSelectionDefault: String
     ) {
         context.dataStore.edit { userPreferences ->
-            if (userPreferences[PreferencesKeys.SHOW_LIVE_INDICATOR] == null) {
-                userPreferences[PreferencesKeys.SHOW_LIVE_INDICATOR] =
-                    isLiveIndicatorEnabledDefault
-            }
             if (userPreferences[PreferencesKeys.SHOW_SOURCE_LABELS] == null) {
                 userPreferences[PreferencesKeys.SHOW_SOURCE_LABELS] = showSourceLabelsDefault
             }
@@ -229,7 +220,6 @@ class PrefsImpl constructor(private val context: Context, prefsKey: String) : Pr
 }
 
 private object PreferencesKeys {
-    val SHOW_LIVE_INDICATOR = booleanPreferencesKey("show_live_indicator")
     val SHOW_SOURCE_LABELS = booleanPreferencesKey("show_source_labels")
     val MULTIVIEW_LAYOUT = stringPreferencesKey("multiview_layout")
     val SORT_ORDER = stringPreferencesKey("sort_order")

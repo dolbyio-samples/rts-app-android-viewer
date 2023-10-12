@@ -1,10 +1,9 @@
 package io.dolby.interactiveplayer.savedStreams
 
 import androidx.lifecycle.ViewModel
+import androidx.lifecycle.viewModelScope
 import dagger.hilt.android.lifecycle.HiltViewModel
 import io.dolby.interactiveplayer.datastore.RecentStreamsDataStore
-import io.dolby.interactiveplayer.rts.utils.DispatcherProvider
-import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
@@ -15,17 +14,14 @@ import javax.inject.Inject
 
 @HiltViewModel
 class SavedStreamViewModel @Inject constructor(
-    private val dispatcherProvider: DispatcherProvider,
     private val recentStreamsDataStore: RecentStreamsDataStore
 ) : ViewModel() {
-
-    private val defaultCoroutineScope = CoroutineScope(dispatcherProvider.default)
 
     private val _uiState = MutableStateFlow(SavedStreamScreenUiState())
     val uiState: StateFlow<SavedStreamScreenUiState> = _uiState.asStateFlow()
 
     init {
-        defaultCoroutineScope.launch {
+        viewModelScope.launch {
             recentStreamsDataStore.recentStreams
                 .collectLatest {
                     _uiState.update { state ->
@@ -37,7 +33,7 @@ class SavedStreamViewModel @Inject constructor(
         }
     }
     fun clearAll() {
-        defaultCoroutineScope.launch {
+        viewModelScope.launch {
             recentStreamsDataStore.clearAll()
         }
     }

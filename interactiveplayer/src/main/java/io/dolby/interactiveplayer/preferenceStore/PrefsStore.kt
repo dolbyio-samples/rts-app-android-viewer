@@ -1,5 +1,6 @@
 package io.dolby.interactiveplayer.preferenceStore
 
+import androidx.datastore.preferences.core.Preferences
 import io.dolby.interactiveplayer.R
 import io.dolby.interactiveplayer.rts.domain.StreamingData
 import kotlinx.coroutines.flow.Flow
@@ -8,34 +9,33 @@ import kotlin.Exception
 import kotlin.String
 
 interface PrefsStore {
-    fun isLiveIndicatorEnabled(streamingData: StreamingData? = null): Flow<Boolean>
     fun showSourceLabels(streamingData: StreamingData? = null): Flow<Boolean>
     fun multiviewLayout(streamingData: StreamingData? = null): Flow<MultiviewLayout>
     fun streamSourceOrder(streamingData: StreamingData? = null): Flow<StreamSortOrder>
     fun audioSelection(streamingData: StreamingData? = null): Flow<AudioSelection>
 
-    suspend fun updateLiveIndicator(checked: Boolean, streamingData: StreamingData? = null)
     suspend fun updateShowSourceLabels(show: Boolean, streamingData: StreamingData? = null)
     suspend fun updateMultiviewLayout(layout: MultiviewLayout, streamingData: StreamingData? = null)
     suspend fun updateStreamSourceOrder(order: StreamSortOrder, streamingData: StreamingData? = null)
     suspend fun updateAudioSelection(selection: AudioSelection, streamingData: StreamingData? = null)
 
-    suspend fun clear(streamingData: StreamingData?)
+    suspend fun clear(streamingData: StreamingData)
+    suspend fun clearAllStreamSettings()
 }
 interface Prefs {
-    val isLiveIndicatorEnabled: Flow<Boolean>
+    val data: Flow<Preferences>
+
     val showSourceLabels: Flow<Boolean>
     val multiviewLayout: Flow<MultiviewLayout>
     val streamSourceOrder: Flow<StreamSortOrder>
     val audioSelection: Flow<AudioSelection>
 
-    suspend fun updateLiveIndicator(checked: Boolean)
     suspend fun updateShowSourceLabels(show: Boolean)
     suspend fun updateMultiviewLayout(layout: MultiviewLayout)
     suspend fun updateStreamSourceOrder(order: StreamSortOrder)
     suspend fun updateAudioSelection(selection: AudioSelection)
 
-    suspend fun clear()
+    suspend fun clearPreference()
 }
 
 enum class MultiviewLayout {

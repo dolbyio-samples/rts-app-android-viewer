@@ -1,11 +1,10 @@
 package io.dolby.interactiveplayer.detailInput
 
 import androidx.lifecycle.ViewModel
+import androidx.lifecycle.viewModelScope
 import dagger.hilt.android.lifecycle.HiltViewModel
 import io.dolby.interactiveplayer.datastore.RecentStreamsDataStore
 import io.dolby.interactiveplayer.rts.domain.StreamingData
-import io.dolby.interactiveplayer.rts.utils.DispatcherProvider
-import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
@@ -16,11 +15,8 @@ import javax.inject.Inject
 
 @HiltViewModel
 class DetailInputViewModel @Inject constructor(
-    private val dispatcherProvider: DispatcherProvider,
     private val recentStreamsDataStore: RecentStreamsDataStore
 ) : ViewModel() {
-    private val defaultCoroutineScope = CoroutineScope(dispatcherProvider.default)
-
     private val _uiState = MutableStateFlow(DetailInputScreenUiState())
     val uiState: StateFlow<DetailInputScreenUiState> = _uiState.asStateFlow()
 
@@ -33,7 +29,7 @@ class DetailInputViewModel @Inject constructor(
     private var isDemo = false
 
     init {
-        defaultCoroutineScope.launch {
+        viewModelScope.launch {
             recentStreamsDataStore.recentStreams
                 .collectLatest {
                     _uiState.update { state ->
@@ -48,7 +44,7 @@ class DetailInputViewModel @Inject constructor(
     fun connect() {
         val streamingData =
             StreamingData(streamName = streamName.value, accountId = accountId.value)
-        defaultCoroutineScope.launch {
+        viewModelScope.launch {
             if (!isDemo) {
                 // Save the stream detail
                 recentStreamsDataStore.addStreamDetail(streamingData)
@@ -57,7 +53,7 @@ class DetailInputViewModel @Inject constructor(
     }
 
     fun clearAllStreams() {
-        defaultCoroutineScope.launch {
+        viewModelScope.launch {
             recentStreamsDataStore.clearAll()
         }
     }

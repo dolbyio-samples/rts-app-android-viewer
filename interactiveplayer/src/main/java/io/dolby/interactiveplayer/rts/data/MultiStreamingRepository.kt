@@ -195,7 +195,7 @@ class MultiStreamingRepository(
     private fun listenForAudioSelection() {
         audioSelectionListenerJob?.cancel()
         audioSelectionListenerJob = CoroutineScope(dispatcherProvider.main).launch {
-            prefsStore.audioSelection().collect { audioSelection ->
+            prefsStore.audioSelection(data.value.streamingData).collect { audioSelection ->
                 _audioSelection.update { audioSelection }
                 when (audioSelection) {
                     AudioSelection.MainSource -> {
@@ -215,8 +215,9 @@ class MultiStreamingRepository(
                         val selectedVideoTrack =
                             data.value.videoTracks.find { it.sourceId == data.value.selectedVideoTrackId }
                         val index = data.value.videoTracks.indexOf(selectedVideoTrack)
-                        if (data.value.audioTracks.size > index) {
-                            playAudio(data.value.audioTracks[index])
+                        val audioTracks = data.value.audioTracks
+                        if (index >= 0 && audioTracks.size > index) {
+                            playAudio(audioTracks[index])
                         }
                     }
                 }
@@ -323,6 +324,7 @@ class MultiStreamingRepository(
 
             val options = Subscriber.Option().apply {
                 autoReconnect = true
+                disableAudio = true
             }
 
             subscriber.setOptions(options)
