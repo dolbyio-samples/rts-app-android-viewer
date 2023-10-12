@@ -65,17 +65,17 @@ class MultiStreamingViewModel @Inject constructor(
             }
         }
         viewModelScope.launch {
-            prefsStore.multiviewLayout().collect { layout ->
+            prefsStore.multiviewLayout(streamingData()).collect { layout ->
                 _multiviewLayout.update { layout }
             }
         }
         viewModelScope.launch {
-            prefsStore.showSourceLabels().collect { show ->
+            prefsStore.showSourceLabels(streamingData()).collect { show ->
                 _showSourceLabels.update { show }
             }
         }
         viewModelScope.launch {
-            prefsStore.streamSourceOrder().collect { sortOrder ->
+            prefsStore.streamSourceOrder(streamingData()).collect { sortOrder ->
                 _streamSortOrder.update { sortOrder }
             }
         }
@@ -89,6 +89,9 @@ class MultiStreamingViewModel @Inject constructor(
 
     private fun getAccountId(handle: SavedStateHandle): String =
         handle[Screen.MultiStreamingScreen.ARG_ACCOUNT_ID] ?: throw IllegalArgumentException()
+
+    private fun streamingData(): StreamingData =
+        StreamingData(getAccountId(savedStateHandle), getStreamName(savedStateHandle))
 
     private suspend fun connect() {
         if (!repository.data.value.isSubscribed) {

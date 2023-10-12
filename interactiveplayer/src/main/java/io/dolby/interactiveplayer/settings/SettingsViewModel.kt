@@ -74,25 +74,25 @@ class SettingsViewModel @Inject constructor(
 
     fun updateShowSourceLabels(show: Boolean) {
         viewModelScope.launch {
-            preferencesStore.updateShowSourceLabels(show)
+            preferencesStore.updateShowSourceLabels(show, streamingData())
         }
     }
 
     fun updateMultiviewLayout(layout: MultiviewLayout) {
         viewModelScope.launch {
-            preferencesStore.updateMultiviewLayout(layout)
+            preferencesStore.updateMultiviewLayout(layout, streamingData())
         }
     }
 
     fun updateSortOrder(sortOrder: StreamSortOrder) {
         viewModelScope.launch {
-            preferencesStore.updateStreamSourceOrder(sortOrder)
+            preferencesStore.updateStreamSourceOrder(sortOrder, streamingData())
         }
     }
 
     fun updateAudioSelection(audioSelection: AudioSelection) {
         viewModelScope.launch {
-            preferencesStore.updateAudioSelection(audioSelection)
+            preferencesStore.updateAudioSelection(audioSelection, streamingData())
         }
     }
 

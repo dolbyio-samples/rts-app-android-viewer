@@ -5,6 +5,7 @@ import androidx.navigation.NavHostController
 import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
 import io.dolby.interactiveplayer.detailInput.DetailInputScreen
+import io.dolby.interactiveplayer.rts.domain.StreamingData
 import io.dolby.interactiveplayer.savedStreams.RecentStreamsScreen
 import io.dolby.interactiveplayer.savedStreams.SavedStreamScreen
 import io.dolby.interactiveplayer.settings.SettingsScreen
@@ -49,7 +50,7 @@ fun AppNavigation(navController: NavHostController) {
             MultiStreamingScreen(
                 onBack = { navController.popBackStack() },
                 onMainClick = { navController.navigate(Screen.SingleStreamingScreen.route) },
-                onSettingsClick = { navController.navigate(Screen.StreamSettings.route(null)) }
+                onSettingsClick = { navController.navigate(Screen.StreamSettings.route(StreamingData(accountId, streamName))) }
             )
         }
 

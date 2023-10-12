@@ -17,10 +17,7 @@ fun MultiStreamingScreen(
     val uiState = viewModel.uiState.collectAsState()
     val streamingData = uiState.value.accountId?.let { accountId ->
         uiState.value.streamName?.let { streamName ->
-            StreamingData(
-                accountId,
-                streamName
-            )
+            StreamingData(accountId, streamName)
         }
     }
     when (multiviewLayout.value) {
