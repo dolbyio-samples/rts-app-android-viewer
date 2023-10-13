@@ -33,7 +33,7 @@ class RecentStreamsDataStoreImpl @Inject constructor(
         }
     }
 
-    override suspend fun addStreamDetail(streamingData: StreamingData) {
+    override fun addStreamDetail(streamingData: StreamingData) {
         val addStreamJob = appCoroutineScope.launch {
             dataStore.updateData {
                 // Remove existing stream matching the new stream details
@@ -88,11 +88,21 @@ class RecentStreamsDataStoreImpl @Inject constructor(
     }
 
     override suspend fun clearAll() {
-        appCoroutineScope.launch {
+        dataStore.updateData {
+            it.toBuilder().clear().build()
+        }
+        prefsStore.clearAllStreamSettings()
+    }
+
+    override suspend fun clear(streamDetail: StreamDetail) {
+        val index = dataStore.data.first().streamDetailList.indexOfFirst {
+            streamDetail == it
+        }
+        if (index > -1) {
             dataStore.updateData {
-                it.toBuilder().clear().build()
+                it.toBuilder().removeStreamDetail(index).build()
             }
-            prefsStore.clearAllStreamSettings()
+            prefsStore.clear(StreamingData(streamDetail.accountID, streamDetail.streamName))
         }
     }
 }

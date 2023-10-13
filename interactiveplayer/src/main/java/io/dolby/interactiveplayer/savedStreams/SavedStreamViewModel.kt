@@ -4,6 +4,8 @@ import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import dagger.hilt.android.lifecycle.HiltViewModel
 import io.dolby.interactiveplayer.datastore.RecentStreamsDataStore
+import io.dolby.interactiveplayer.datastore.StreamDetail
+import io.dolby.interactiveplayer.rts.domain.StreamingData
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
@@ -32,9 +34,27 @@ class SavedStreamViewModel @Inject constructor(
                 }
         }
     }
+
     fun clearAll() {
         viewModelScope.launch {
             recentStreamsDataStore.clearAll()
+        }
+    }
+
+    fun delete(streamDetail: StreamDetail) {
+        viewModelScope.launch {
+            recentStreamsDataStore.clear(streamDetail)
+        }
+    }
+
+    fun add(streamDetail: StreamDetail) {
+        viewModelScope.launch {
+            recentStreamsDataStore.addStreamDetail(
+                StreamingData(
+                    streamDetail.accountID,
+                    streamDetail.streamName
+                )
+            )
         }
     }
 }

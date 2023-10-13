@@ -144,6 +144,7 @@ fun RecentStreamsScreen(
                                 StyledButton(
                                     buttonText = "${streamDetail.streamName} / ID ${streamDetail.accountID}",
                                     onClickAction = {
+                                        viewModel.add(streamDetail)
                                         onPlayStream(streamingDataFrom(streamDetail))
                                     },
                                     buttonType = ButtonType.BASIC,
