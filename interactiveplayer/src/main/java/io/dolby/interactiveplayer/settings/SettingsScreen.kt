@@ -247,7 +247,7 @@ fun selectionItems(
     }
 
     showAudioSelectionScreen -> {
-        listOf(
+        val allAudioSelections = listOf(
             Selection(
                 AudioSelection.FirstSource.stringResource(),
                 null,
@@ -270,6 +270,9 @@ fun selectionItems(
                 viewModel.updateAudioSelection(AudioSelection.MainSource)
             }
         )
+        viewModel.streamingData()?.let {
+            allAudioSelections
+        } ?: allAudioSelections.subList(0, 2)
     }
 
     else -> {

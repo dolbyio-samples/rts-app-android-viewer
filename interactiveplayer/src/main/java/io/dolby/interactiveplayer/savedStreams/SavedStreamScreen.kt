@@ -261,10 +261,13 @@ fun DismissibleRecentStream(
         }
     ) {
         StyledButton(
-            buttonText = "${streamDetail.streamName} / ID ${streamDetail.accountID}",
+            buttonText = streamDetail.streamName,
+            subtextTitle = stringResource(id = R.string.id_title),
+            subtext = streamDetail.accountID,
             onClickAction = onClickAction,
             buttonType = ButtonType.BASIC,
             capitalize = false,
+            endIcon = painterResource(id = io.dolby.uikit.R.drawable.play),
             modifier = modifier
         )
     }
