@@ -9,7 +9,6 @@ import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
-import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.verticalScroll
@@ -39,6 +38,7 @@ import io.dolby.interactiveplayer.R
 import io.dolby.interactiveplayer.rts.domain.StreamingData
 import io.dolby.interactiveplayer.rts.ui.DolbyCopyrightFooterView
 import io.dolby.interactiveplayer.rts.ui.TopActionBar
+import io.dolby.interactiveplayer.utils.horizontalPaddingDp
 import io.dolby.interactiveplayer.utils.streamingDataFrom
 import io.dolby.rtsviewer.uikit.button.ButtonType
 import io.dolby.rtsviewer.uikit.button.StyledButton
@@ -90,11 +90,11 @@ fun RecentStreamsScreen(
                     horizontalAlignment = Alignment.CenterHorizontally,
                     modifier = modifier
                         .verticalScroll(rememberScrollState())
-                        .width(450.dp)
+                        .fillMaxWidth()
                         .align(Alignment.Center)
                         .background(background, shape = RoundedCornerShape(4.dp))
                         .clip(MaterialTheme.shapes.large)
-                        .padding(horizontal = 55.dp)
+                        .padding(horizontal = horizontalPaddingDp())
                         .padding(vertical = 16.dp)
                 ) {
                     Text(

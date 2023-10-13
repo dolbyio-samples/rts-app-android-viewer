@@ -4,9 +4,9 @@ import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Spacer
+import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
-import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.verticalScroll
@@ -39,6 +39,7 @@ import io.dolby.interactiveplayer.alert.DetailInputValidationAlert
 import io.dolby.interactiveplayer.rts.domain.StreamingData
 import io.dolby.interactiveplayer.rts.ui.DolbyCopyrightFooterView
 import io.dolby.interactiveplayer.rts.ui.TopAppBar
+import io.dolby.interactiveplayer.utils.horizontalPaddingDp
 import io.dolby.rtsviewer.uikit.button.ButtonType
 import io.dolby.rtsviewer.uikit.button.StyledButton
 import io.dolby.rtsviewer.uikit.theme.fontColor
@@ -133,12 +134,11 @@ fun DetailInputScreen(
                 horizontalAlignment = Alignment.CenterHorizontally,
                 modifier = modifier
                     .verticalScroll(rememberScrollState())
-                    .width(450.dp)
+                    .fillMaxWidth()
                     .align(Alignment.Center)
                     .background(background, shape = RoundedCornerShape(4.dp))
                     .clip(MaterialTheme.shapes.large)
-                    .padding(horizontal = 55.dp)
-                    .padding(vertical = 16.dp)
+                    .padding(horizontal = horizontalPaddingDp(), vertical = 16.dp)
             ) {
                 Text(
                     stringResource(id = R.string.stream_detail_header),

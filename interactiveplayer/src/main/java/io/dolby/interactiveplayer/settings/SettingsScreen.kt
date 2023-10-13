@@ -11,7 +11,6 @@ import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
-import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
 import androidx.compose.material.MaterialTheme
@@ -40,6 +39,7 @@ import io.dolby.interactiveplayer.preferenceStore.AudioSelection
 import io.dolby.interactiveplayer.preferenceStore.MultiviewLayout
 import io.dolby.interactiveplayer.preferenceStore.StreamSortOrder
 import io.dolby.interactiveplayer.rts.ui.TopAppBar
+import io.dolby.interactiveplayer.utils.horizontalPaddingDp
 import io.dolby.rtsviewer.uikit.theme.fontColor
 
 @Composable
@@ -86,11 +86,10 @@ fun SettingsScreen(
             LazyColumn(
                 horizontalAlignment = Alignment.Start,
                 modifier = modifier
-                    .width(450.dp)
+                    .fillMaxWidth()
                     .align(Alignment.Center)
                     .clip(MaterialTheme.shapes.large)
-                    .padding(horizontal = 15.dp)
-                    .padding(vertical = 16.dp)
+                    .padding(horizontal = horizontalPaddingDp(), vertical = 16.dp)
             ) {
                 val items = selectionItems(
                     viewModel = viewModel,
