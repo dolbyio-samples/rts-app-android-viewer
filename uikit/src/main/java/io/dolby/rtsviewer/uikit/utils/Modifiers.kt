@@ -17,9 +17,10 @@ import androidx.compose.foundation.layout.heightIn
 import androidx.compose.foundation.layout.width
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.unit.dp
+import io.dolby.rtsviewer.uikit.button.ButtonType
 
-fun Modifier.buttonHeight(): Modifier =
-    this.heightIn(min = 40.dp)
+fun Modifier.buttonHeight(buttonType: ButtonType): Modifier =
+    this.heightIn(min = if (buttonType == ButtonType.BASIC) 80.dp else 40.dp)
 
 fun Modifier.iconWidth(): Modifier =
     this.width(50.dp)

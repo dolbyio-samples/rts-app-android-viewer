@@ -26,6 +26,7 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.focus.FocusRequester
 import androidx.compose.ui.platform.LocalFocusManager
+import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.semantics.contentDescription
 import androidx.compose.ui.semantics.semantics
@@ -186,7 +187,7 @@ fun DetailInputScreen(
                     buttonType = ButtonType.PRIMARY
                 )
 
-                Spacer(modifier = modifier.height(8.dp))
+                Spacer(modifier = modifier.height(16.dp))
 
                 Text(
                     stringResource(id = R.string.demo_stream_title),
@@ -202,16 +203,19 @@ fun DetailInputScreen(
                     textAlign = TextAlign.Center
                 )
 
-                Spacer(modifier = modifier.height(8.dp))
+                Spacer(modifier = modifier.height(12.dp))
 
                 StyledButton(
-                    buttonText = "$DEMO_STREAM_NAME / ID $DEMO_ACCOUNT_ID",
+                    buttonText = DEMO_STREAM_NAME,
+                    subtextTitle = stringResource(id = R.string.id_title),
+                    subtext = DEMO_ACCOUNT_ID,
                     onClickAction = {
                         viewModel.useDemoStream()
                         playStream()
                     },
                     buttonType = ButtonType.BASIC,
-                    capitalize = false
+                    capitalize = false,
+                    endIcon = painterResource(id = io.dolby.uikit.R.drawable.play)
                 )
             }
         }

@@ -26,6 +26,7 @@ import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
+import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.semantics.contentDescription
 import androidx.compose.ui.semantics.semantics
@@ -142,13 +143,16 @@ fun RecentStreamsScreen(
                         uiState.recentStreams.subList(0, amountToDisplay)
                             .forEach { streamDetail ->
                                 StyledButton(
-                                    buttonText = "${streamDetail.streamName} / ID ${streamDetail.accountID}",
+                                    buttonText = streamDetail.streamName,
+                                    subtextTitle = stringResource(id = R.string.id_title),
+                                    subtext = streamDetail.accountID,
                                     onClickAction = {
                                         viewModel.add(streamDetail)
                                         onPlayStream(streamingDataFrom(streamDetail))
                                     },
                                     buttonType = ButtonType.BASIC,
-                                    capitalize = false
+                                    capitalize = false,
+                                    endIcon = painterResource(id = io.dolby.uikit.R.drawable.play)
                                 )
                             }
                     }

@@ -49,7 +49,7 @@ fun AppNavigation(navController: NavHostController) {
             }
             MultiStreamingScreen(
                 onBack = { navController.popBackStack() },
-                onMainClick = { navController.navigate(Screen.SingleStreamingScreen.route) },
+                onMainClick = { navController.navigate(Screen.SingleStreamingScreen.route(StreamingData(accountId, streamName))) },
                 onSettingsClick = { navController.navigate(Screen.StreamSettings.route(StreamingData(accountId, streamName))) }
             )
         }

@@ -102,6 +102,6 @@ enum class AudioSelection {
                 default
             }
         }
-        val default: AudioSelection = MainSource
+        val default: AudioSelection = FirstSource
     }
 }

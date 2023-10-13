@@ -23,7 +23,13 @@ sealed class Screen(val route: String) {
         }
     }
 
-    object SingleStreamingScreen : Screen(route = "single")
+    object SingleStreamingScreen : Screen(route = "single/streamName={streamName}&accountId={accountId}") {
+        fun route(model: StreamingData): String {
+            val streamName = model.streamName
+            val accountId = model.accountId
+            return "single/streamName=$streamName&accountId=$accountId"
+        }
+    }
 
     object SavedStreams : Screen(route = "savedStreams")
 
