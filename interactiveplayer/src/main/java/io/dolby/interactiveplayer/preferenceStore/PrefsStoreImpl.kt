@@ -100,9 +100,7 @@ class PrefsStoreImpl constructor(private val context: Context) : PrefsStore {
     }
 
     override suspend fun clear(streamingData: StreamingData) {
-        val key = key(streamingData)
-        streamPreferences(key).clearPreference()
-        preferences.remove(key)
+        streamPreferences(key(streamingData)).clearPreference()
     }
 
     override suspend fun clearAllStreamSettings() {

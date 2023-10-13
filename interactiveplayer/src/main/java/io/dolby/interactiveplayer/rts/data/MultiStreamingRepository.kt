@@ -324,7 +324,6 @@ class MultiStreamingRepository(
 
             val options = Subscriber.Option().apply {
                 autoReconnect = true
-                disableAudio = true
             }
 
             subscriber.setOptions(options)

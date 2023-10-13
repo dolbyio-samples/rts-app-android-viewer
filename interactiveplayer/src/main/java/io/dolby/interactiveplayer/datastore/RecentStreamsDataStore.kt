@@ -8,7 +8,9 @@ interface RecentStreamsDataStore {
 
     suspend fun recentStream(streamName: String): StreamDetail?
 
-    suspend fun addStreamDetail(streamingData: StreamingData)
+    fun addStreamDetail(streamingData: StreamingData)
 
     suspend fun clearAll()
+
+    suspend fun clear(streamDetail: StreamDetail)
 }
