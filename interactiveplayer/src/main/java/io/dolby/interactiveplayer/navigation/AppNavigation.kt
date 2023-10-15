@@ -56,12 +56,17 @@ fun AppNavigation(navController: NavHostController) {
 
         composable(
             route = Screen.SingleStreamingScreen.route
-        ) {
+        ) { entry ->
+            val accountId = entry.arguments?.getString(Screen.MultiStreamingScreen.ARG_ACCOUNT_ID)
+            val streamName = entry.arguments?.getString(Screen.MultiStreamingScreen.ARG_STREAM_NAME)
+            if (streamName.isNullOrEmpty() || accountId.isNullOrEmpty()) {
+                throw IllegalArgumentException()
+            }
             SingleStreamingScreen(
                 onBack = {
                     navController.popBackStack()
                 },
-                onSettingsClick = { navController.navigate(Screen.StreamSettings.route(null)) }
+                onSettingsClick = { navController.navigate(Screen.StreamSettings.route(StreamingData(accountId, streamName))) }
             )
         }
 
