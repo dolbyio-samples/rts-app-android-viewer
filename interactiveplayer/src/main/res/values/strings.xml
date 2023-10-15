@@ -114,4 +114,5 @@
     <string name="settings_value_true">true</string>
     <string name="settings_value_false">false</string>
     <string name="id_title">ID:</string>
+    <string name="empty" />
 </resources>

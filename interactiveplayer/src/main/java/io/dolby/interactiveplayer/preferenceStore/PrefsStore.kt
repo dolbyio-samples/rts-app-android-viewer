@@ -83,23 +83,29 @@ enum class StreamSortOrder {
     }
 }
 
-enum class AudioSelection {
-    FirstSource, FollowVideo, MainSource;
+sealed class AudioSelection(val name: String) {
+    object FirstSource : AudioSelection("FirstSource")
+    object FollowVideo : AudioSelection("FollowVideo")
+    object MainSource : AudioSelection("MainSource")
 
-    fun stringResource(): Int {
+    class CustomAudioSelection(val sourceId: String) : AudioSelection(sourceId)
+
+    fun stringResource(): Int? {
         return when (this) {
             FirstSource -> R.string.settings_audio_selection_first_source
             FollowVideo -> R.string.settings_audio_selection_follow_video
             MainSource -> R.string.settings_audio_selection_main_source
+            is CustomAudioSelection -> null
         }
     }
 
     companion object {
         fun valueToSelection(value: String): AudioSelection {
-            return try {
-                AudioSelection.valueOf(value)
-            } catch (ex: Exception) {
-                default
+            return when (value) {
+                "FirstSource" -> FirstSource
+                "FollowVideo" -> FollowVideo
+                "MainSource" -> MainSource
+                else -> CustomAudioSelection(sourceId = value)
             }
         }
         val default: AudioSelection = FirstSource
