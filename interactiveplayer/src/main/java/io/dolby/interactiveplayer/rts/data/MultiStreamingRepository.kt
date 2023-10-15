@@ -220,6 +220,15 @@ class MultiStreamingRepository(
                             playAudio(audioTracks[index])
                         }
                     }
+
+                    is AudioSelection.CustomAudioSelection -> {
+                        val index =
+                            data.value.videoTracks.indexOfFirst { it.sourceId == audioSelection.sourceId }
+                        val audioTracks = data.value.audioTracks
+                        if (index >= 0 && audioTracks.size > index) {
+                            playAudio(audioTracks[index])
+                        }
+                    }
                 }
             }
         }
@@ -399,8 +408,22 @@ class MultiStreamingRepository(
                     data.appendAudioTrack(p0, p1.getOrNull(), trackInfo.sourceId)
                 } ?: data
             }
-            if (data.value.audioTracks.size == 1 && audioSelectionData.value == AudioSelection.FirstSource) {
+            if (
+                (
+                    audioSelectionData.value == AudioSelection.FirstSource ||
+                        audioSelectionData.value == AudioSelection.FollowVideo
+                    ) &&
+                data.value.audioTracks.size == 1
+            ) {
                 playAudio(data.value.audioTracks[0])
+            }
+            if (audioSelectionData.value is AudioSelection.CustomAudioSelection) {
+                val selectionSourceId =
+                    (audioSelectionData.value as AudioSelection.CustomAudioSelection).sourceId
+                val index = data.value.videoTracks.indexOfFirst { it.sourceId == selectionSourceId }
+                if (index >= 0 && data.value.audioTracks.size > index) {
+                    playAudio(data.value.audioTracks[index])
+                }
             }
         }
 

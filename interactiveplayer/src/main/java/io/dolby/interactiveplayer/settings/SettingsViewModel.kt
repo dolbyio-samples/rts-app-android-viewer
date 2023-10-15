@@ -11,6 +11,8 @@ import io.dolby.interactiveplayer.preferenceStore.AudioSelection
 import io.dolby.interactiveplayer.preferenceStore.MultiviewLayout
 import io.dolby.interactiveplayer.preferenceStore.PrefsStore
 import io.dolby.interactiveplayer.preferenceStore.StreamSortOrder
+import io.dolby.interactiveplayer.rts.data.MultiStreamingData
+import io.dolby.interactiveplayer.rts.data.MultiStreamingRepository
 import io.dolby.interactiveplayer.rts.domain.StreamingData
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.asStateFlow
@@ -21,8 +23,12 @@ import javax.inject.Inject
 @HiltViewModel
 class SettingsViewModel @Inject constructor(
     private val savedStateHandle: SavedStateHandle,
+    private val multiStreamingRepository: MultiStreamingRepository,
     private val preferencesStore: PrefsStore
 ) : ViewModel() {
+
+    private val _videoTracks = MutableStateFlow<List<MultiStreamingData.Video>>(emptyList())
+    val videoTracks = _videoTracks.asStateFlow()
 
     private val _showSourceLabels = MutableStateFlow(false)
     val showSourceLabels = _showSourceLabels.asStateFlow()
@@ -37,6 +43,13 @@ class SettingsViewModel @Inject constructor(
     val audioSelection = _audioSelection.asStateFlow()
 
     init {
+        viewModelScope.launch {
+            multiStreamingRepository.data.collect { data ->
+                _videoTracks.update {
+                    data.videoTracks.filter { it.active }
+                }
+            }
+        }
         viewModelScope.launch {
             preferencesStore.showSourceLabels(streamingData()).collect { enabled ->
                 _showSourceLabels.update { enabled }
