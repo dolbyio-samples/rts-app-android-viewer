@@ -137,9 +137,9 @@ fun HorizontalEndListView(
         modifier = modifier
     ) {
         Row {
-            val mainVideo: MultiStreamingData.Video? =
+            val selectedVideo =
                 uiState.videoTracks.firstOrNull { it.sourceId == uiState.selectedVideoTrackId }
-                    ?: uiState.videoTracks.firstOrNull()
+            val mainVideo: MultiStreamingData.Video? = selectedVideo ?: uiState.videoTracks.firstOrNull()
             Box(
                 modifier = Modifier.clickable {
                     onMainClick(uiState.videoTracks.find { it.sourceId == uiState.selectedVideoTrackId }?.id)
@@ -162,12 +162,8 @@ fun HorizontalEndListView(
                         )
                     },
                     onRelease = {
-                        val video =
-                            uiState.selectedVideoTrackId?.let { selectedVideoTrackId ->
-                                uiState.videoTracks.firstOrNull { it.sourceId == selectedVideoTrackId }
-                            } ?: uiState.videoTracks.firstOrNull()
-                        video?.let {
-                            viewModel.stopVideo(video)
+                        mainVideo?.let {
+                            viewModel.stopVideo(it)
                         }
                         it.release()
                     }
@@ -180,20 +176,16 @@ fun HorizontalEndListView(
                         )
                     )
                 }
-                val video =
-                    uiState.selectedVideoTrackId?.let { selectedVideoTrackId ->
-                        uiState.videoTracks.firstOrNull { it.sourceId == selectedVideoTrackId }
-                    } ?: uiState.videoTracks.firstOrNull()
-                QualityLabel(
-                    viewModel = viewModel,
-                    video = video,
-                    modifier = Modifier.align(
-                        Alignment.BottomEnd
-                    )
-                )
+//                QualityLabel(
+//                    viewModel = viewModel,
+//                    video = mainVideo,
+//                    modifier = Modifier.align(
+//                        Alignment.BottomEnd
+//                    )
+//                )
             }
             val otherTracks =
-                uiState.videoTracks.filter { it.sourceId != uiState.selectedVideoTrackId }
+                uiState.videoTracks.filter { it.sourceId != mainVideo?.sourceId }
             LazyColumn(
                 modifier = Modifier
                     .fillMaxHeight()
@@ -242,8 +234,7 @@ fun VerticalTopListView(
                 }
             ) {
                 AndroidView(
-                    modifier = Modifier
-                        .aspectRatio(16F / 9),
+                    modifier = Modifier.aspectRatio(16F / 9),
                     factory = { context ->
                         val view = VideoRenderer(context)
                         view.setZOrderOnTop(true)
@@ -258,10 +249,11 @@ fun VerticalTopListView(
                             videoQuality = MultiStreamingRepository.VideoQuality.AUTO
                         )
                     },
-                    onReset = {
+                    onRelease = {
                         mainVideo?.let {
                             viewModel.stopVideo(mainVideo)
                         }
+                        it.release()
                     }
                 )
                 if (displayLabel) {
