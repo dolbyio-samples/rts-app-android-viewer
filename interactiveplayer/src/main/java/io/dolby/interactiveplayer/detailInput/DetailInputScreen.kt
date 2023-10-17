@@ -215,7 +215,7 @@ fun DetailInputScreen(
                     },
                     buttonType = ButtonType.BASIC,
                     capitalize = false,
-                    endIcon = painterResource(id = io.dolby.uikit.R.drawable.play)
+                    endIcon = painterResource(id = io.dolby.uikit.R.drawable.ic_play_outlined)
                 )
             }
         }
