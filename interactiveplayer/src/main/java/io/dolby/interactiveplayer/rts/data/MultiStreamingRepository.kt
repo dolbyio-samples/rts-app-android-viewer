@@ -75,14 +75,16 @@ data class MultiStreamingData(
     )
 
     internal fun appendAudioTrack(
+        pendingTrack: PendingTrack,
         audioTrack: AudioTrack,
         id: String?,
         sourceId: String?
     ): MultiStreamingData {
+        val pendingAudioTracks = pendingAudioTracks.toMutableList().apply { remove(pendingTrack) }
         val audioTracks = audioTracks.toMutableList().apply {
             add(Audio(id, audioTrack, sourceId))
         }
-        return copy(audioTracks = audioTracks)
+        return copy(audioTracks = audioTracks, pendingAudioTracks = pendingAudioTracks)
     }
 
     internal fun getPendingVideoTrackInfoOrNull(): PendingTrack? = pendingVideoTracks.firstOrNull()
@@ -307,7 +309,7 @@ class MultiStreamingRepository(
         listener?.stopVideo(video)
     }
 
-    fun playAudio(audio: MultiStreamingData.Audio) {
+    private fun playAudio(audio: MultiStreamingData.Audio) {
         listener?.playAudio(audio)
     }
 
@@ -403,7 +405,7 @@ class MultiStreamingRepository(
             Log.d(TAG, "onAudioTrack: ${p1.getOrNull()}, $p0")
             data.update { data ->
                 data.getPendingAudioTrackInfoOrNull()?.let { trackInfo ->
-                    data.appendAudioTrack(p0, p1.getOrNull(), trackInfo.sourceId)
+                    data.appendAudioTrack(trackInfo, p0, p1.getOrNull(), trackInfo.sourceId)
                 } ?: data
             }
             if (
