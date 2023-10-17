@@ -222,11 +222,9 @@ class MultiStreamingRepository(
                     }
 
                     is AudioSelection.CustomAudioSelection -> {
-                        val index =
-                            data.value.videoTracks.indexOfFirst { it.sourceId == audioSelection.sourceId }
-                        val audioTracks = data.value.audioTracks
-                        if (index >= 0 && audioTracks.size > index) {
-                            playAudio(audioTracks[index])
+                        val audioTrack = data.value.audioTracks.firstOrNull { it.sourceId == audioSelection.sourceId }
+                        audioTrack?.let {
+                            playAudio(audioTrack)
                         }
                     }
                 }
@@ -285,11 +283,11 @@ class MultiStreamingRepository(
             val oldSelectedVideoTrack =
                 data.videoTracks.find { it.sourceId == oldSelectedVideoTrackId }
             oldSelectedVideoTrack?.videoTrack?.removeRenderer()
-            val newSelectedVideoTrack = data.videoTracks.find { it.sourceId == sourceId }
-            val index = data.videoTracks.indexOf(newSelectedVideoTrack)
-            if (_audioSelection.value == AudioSelection.FollowVideo && index < data.audioTracks.size) {
-                val newSelectedAudioTrack = data.audioTracks[index]
-                listener?.playAudio(newSelectedAudioTrack)
+            if (_audioSelection.value == AudioSelection.FollowVideo) {
+                val newSelectedAudioTrack = data.audioTracks.firstOrNull { it.sourceId == sourceId }
+                newSelectedAudioTrack?.let {
+                    listener?.playAudio(newSelectedAudioTrack)
+                }
             }
             data.copy(selectedVideoTrackId = sourceId)
         }
@@ -408,21 +406,19 @@ class MultiStreamingRepository(
                     data.appendAudioTrack(trackInfo, p0, p1.getOrNull(), trackInfo.sourceId)
                 } ?: data
             }
-            if (
+            if (data.value.audioTracks.size == 1 &&
                 (
                     audioSelectionData.value == AudioSelection.FirstSource ||
                         audioSelectionData.value == AudioSelection.FollowVideo
-                    ) &&
-                data.value.audioTracks.size == 1
+                    )
             ) {
                 playAudio(data.value.audioTracks[0])
             }
             if (audioSelectionData.value is AudioSelection.CustomAudioSelection) {
                 val selectionSourceId =
                     (audioSelectionData.value as AudioSelection.CustomAudioSelection).sourceId
-                val index = data.value.videoTracks.indexOfFirst { it.sourceId == selectionSourceId }
-                if (index >= 0 && data.value.audioTracks.size > index) {
-                    playAudio(data.value.audioTracks[index])
+                data.value.audioTracks.firstOrNull { it.sourceId == selectionSourceId }?.let {
+                    playAudio(it)
                 }
             }
         }
