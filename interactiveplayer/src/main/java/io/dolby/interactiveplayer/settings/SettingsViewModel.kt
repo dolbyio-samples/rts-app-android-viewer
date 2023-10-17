@@ -45,9 +45,7 @@ class SettingsViewModel @Inject constructor(
     init {
         viewModelScope.launch {
             multiStreamingRepository.data.collect { data ->
-                _videoTracks.update {
-                    data.videoTracks.filter { it.active }
-                }
+                _videoTracks.update { data.videoTracks }
             }
         }
         viewModelScope.launch {
