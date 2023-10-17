@@ -124,7 +124,7 @@ class MultiStreamingViewModel @Inject constructor(
     }
 
     private suspend fun update(data: MultiStreamingData) = withContext(dispatcherProvider.main) {
-        val videoTracks = data.videoTracks.filter { it.active }
+        val videoTracks = data.videoTracks
         val alphaNumericComparator = Comparator<MultiStreamingData.Video> { source1, source2 ->
             when {
                 source1.sourceId == null -> 1

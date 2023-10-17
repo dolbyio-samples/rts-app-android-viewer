@@ -47,15 +47,13 @@ data class MultiStreamingData(
         val videoTrack: VideoTrack,
         val sourceId: String?,
         val mediaType: String,
-        val trackId: String,
-        val active: Boolean = true
+        val trackId: String
     )
 
     data class Audio(
         val id: String?,
         val audioTrack: AudioTrack,
-        val sourceId: String?,
-        val active: Boolean = true
+        val sourceId: String?
     )
 
     data class PendingTrack(
@@ -441,44 +439,22 @@ class MultiStreamingRepository(
             val pendingTracks = MultiStreamingData.parseTracksInfo(tracksInfo, sourceId)
             val newData = data.updateAndGet { data -> data.addPendingTracks(pendingTracks) }
             processPendingTracks(newData)
-            data.update { data ->
-                val videoToActive = data.videoTracks.firstOrNull { it.sourceId == sourceId }
-                videoToActive?.let {
-                    val activeVideo = MultiStreamingData.Video(
-                        id = videoToActive.id,
-                        videoTrack = videoToActive.videoTrack,
-                        mediaType = videoToActive.mediaType,
-                        sourceId = videoToActive.sourceId,
-                        trackId = videoToActive.trackId,
-                        active = true
-                    )
-                    val tempVideos =
-                        data.videoTracks.replace(activeVideo) { it.sourceId == sourceId }
-                    data.copy(videoTracks = tempVideos)
-                } ?: data
-            }
         }
 
         override fun onInactive(p0: String, p1: Optional<String>) {
             Log.d(TAG, "onInactive")
+            val sourceId = p1.getOrNull()
             data.update { data ->
-                data.videoTracks.filter { it.sourceId == p1.getOrNull() }
+                data.videoTracks.filter { it.sourceId == sourceId }
                     .forEach { it.videoTrack.removeRenderer() }
-                val videoToInactive =
-                    data.videoTracks.firstOrNull { it.sourceId == p1.getOrNull() }
-                videoToInactive?.let {
-                    val inactiveVideo = MultiStreamingData.Video(
-                        id = videoToInactive.id,
-                        videoTrack = videoToInactive.videoTrack,
-                        mediaType = videoToInactive.mediaType,
-                        sourceId = videoToInactive.sourceId,
-                        trackId = videoToInactive.trackId,
-                        active = false
-                    )
-                    val tempVideos =
-                        data.videoTracks.replace(inactiveVideo) { it.sourceId == p1.getOrNull() }
+                val inactiveVideo = data.videoTracks.firstOrNull { it.sourceId == sourceId }
+                inactiveVideo?.let {
+                    val tempVideos = data.videoTracks.toMutableList()
+                    tempVideos.remove(inactiveVideo)
+                    val selectedVideoTrack =
+                        if (data.selectedVideoTrackId == sourceId) null else data.selectedVideoTrackId
                     return@update data.copy(
-                        selectedVideoTrackId = null,
+                        selectedVideoTrackId = selectedVideoTrack,
                         videoTracks = tempVideos
                     )
                 }
