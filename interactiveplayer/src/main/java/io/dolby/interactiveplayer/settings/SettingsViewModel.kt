@@ -27,8 +27,8 @@ class SettingsViewModel @Inject constructor(
     private val preferencesStore: PrefsStore
 ) : ViewModel() {
 
-    private val _videoTracks = MutableStateFlow<List<MultiStreamingData.Video>>(emptyList())
-    val videoTracks = _videoTracks.asStateFlow()
+    private val _audioTracks = MutableStateFlow<List<MultiStreamingData.Audio>>(emptyList())
+    val videoTracks = _audioTracks.asStateFlow()
 
     private val _showSourceLabels = MutableStateFlow(false)
     val showSourceLabels = _showSourceLabels.asStateFlow()
@@ -45,7 +45,7 @@ class SettingsViewModel @Inject constructor(
     init {
         viewModelScope.launch {
             multiStreamingRepository.data.collect { data ->
-                _videoTracks.update { data.videoTracks }
+                _audioTracks.update { data.audioTracks }
             }
         }
         viewModelScope.launch {
