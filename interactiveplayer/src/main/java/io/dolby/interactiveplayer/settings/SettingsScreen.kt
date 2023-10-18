@@ -59,6 +59,7 @@ fun SettingsScreen(
                 ?: R.string.global_settings_screen_name
         )
 
+    val showDebugOptions = viewModel.showDebugOptions.collectAsState()
     val showSourceLabels = viewModel.showSourceLabels.collectAsState()
     val multiviewLayout = viewModel.multiviewLayout.collectAsState()
     val streamSortOrder = viewModel.streamSortOrder.collectAsState()
@@ -93,6 +94,7 @@ fun SettingsScreen(
             ) {
                 val items = selectionItems(
                     viewModel = viewModel,
+                    showDebugOptions = showDebugOptions.value,
                     showSourceLabels = showSourceLabels.value,
                     multiviewLayout = multiviewLayout.value,
                     streamSortOrder = streamSortOrder.value,
@@ -202,6 +204,7 @@ fun SettingsScreen(
 
 fun selectionItems(
     viewModel: SettingsViewModel,
+    showDebugOptions: Boolean,
     showSourceLabels: Boolean,
     multiviewLayout: MultiviewLayout,
     streamSortOrder: StreamSortOrder,
@@ -319,7 +322,7 @@ fun selectionItems(
     }
 
     else -> {
-        listOf(
+        val commomSettings = mutableListOf(
             Selection(
                 R.string.settings_show_source_labels,
                 null,
@@ -354,6 +357,21 @@ fun selectionItems(
                 null
             )
         )
+        if (viewModel.streamingData() == null) {
+            commomSettings.add(
+                0,
+                Selection(
+                    R.string.settings_show_debug_options,
+                    null,
+                    if (showDebugOptions) R.string.settings_value_true else R.string.settings_value_false,
+                    null,
+                    false
+                ) {
+                    viewModel.updateShowDebugOptions(!showDebugOptions)
+                }
+            )
+        }
+        commomSettings.toList()
     }
 }
 

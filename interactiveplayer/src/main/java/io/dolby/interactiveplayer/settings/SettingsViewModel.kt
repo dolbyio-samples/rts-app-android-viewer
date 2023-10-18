@@ -30,6 +30,9 @@ class SettingsViewModel @Inject constructor(
     private val _audioTracks = MutableStateFlow<List<MultiStreamingData.Audio>>(emptyList())
     val videoTracks = _audioTracks.asStateFlow()
 
+    private val _showDebugOptioins = MutableStateFlow(false)
+    val showDebugOptions = _showDebugOptioins.asStateFlow()
+
     private val _showSourceLabels = MutableStateFlow(false)
     val showSourceLabels = _showSourceLabels.asStateFlow()
 
@@ -46,6 +49,11 @@ class SettingsViewModel @Inject constructor(
         viewModelScope.launch {
             multiStreamingRepository.data.collect { data ->
                 _audioTracks.update { data.audioTracks }
+            }
+        }
+        viewModelScope.launch {
+            preferencesStore.showDebugOptions().collect { enabled ->
+                _showDebugOptioins.update { enabled }
             }
         }
         viewModelScope.launch {
@@ -82,6 +90,12 @@ class SettingsViewModel @Inject constructor(
                 StreamingData(accountId, streamName)
             }
         }
+
+    fun updateShowDebugOptions(show: Boolean) {
+        viewModelScope.launch {
+            preferencesStore.updateShowDebugOptions(show)
+        }
+    }
 
     fun updateShowSourceLabels(show: Boolean) {
         viewModelScope.launch {

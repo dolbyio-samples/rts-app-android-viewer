@@ -1,23 +1,29 @@
 package io.dolby.interactiveplayer.preferenceStore
 
 import androidx.datastore.preferences.core.Preferences
-import io.dolby.interactiveplayer.R
 import io.dolby.interactiveplayer.rts.domain.StreamingData
 import kotlinx.coroutines.flow.Flow
-import kotlin.Boolean
-import kotlin.Exception
-import kotlin.String
 
 interface PrefsStore {
     fun showSourceLabels(streamingData: StreamingData? = null): Flow<Boolean>
     fun multiviewLayout(streamingData: StreamingData? = null): Flow<MultiviewLayout>
     fun streamSourceOrder(streamingData: StreamingData? = null): Flow<StreamSortOrder>
     fun audioSelection(streamingData: StreamingData? = null): Flow<AudioSelection>
+    fun showDebugOptions(): Flow<Boolean>
 
     suspend fun updateShowSourceLabels(show: Boolean, streamingData: StreamingData? = null)
     suspend fun updateMultiviewLayout(layout: MultiviewLayout, streamingData: StreamingData? = null)
-    suspend fun updateStreamSourceOrder(order: StreamSortOrder, streamingData: StreamingData? = null)
-    suspend fun updateAudioSelection(selection: AudioSelection, streamingData: StreamingData? = null)
+    suspend fun updateStreamSourceOrder(
+        order: StreamSortOrder,
+        streamingData: StreamingData? = null
+    )
+
+    suspend fun updateAudioSelection(
+        selection: AudioSelection,
+        streamingData: StreamingData? = null
+    )
+
+    suspend fun updateShowDebugOptions(show: Boolean)
 
     suspend fun clear(streamingData: StreamingData)
     suspend fun clearAllStreamSettings()
@@ -83,31 +89,3 @@ enum class StreamSortOrder {
     }
 }
 
-sealed class AudioSelection(val name: String) {
-    object FirstSource : AudioSelection("FirstSource")
-    object FollowVideo : AudioSelection("FollowVideo")
-    object MainSource : AudioSelection("MainSource")
-
-    class CustomAudioSelection(val sourceId: String) : AudioSelection(sourceId)
-
-    fun stringResource(): Int? {
-        return when (this) {
-            FirstSource -> R.string.settings_audio_selection_first_source
-            FollowVideo -> R.string.settings_audio_selection_follow_video
-            MainSource -> R.string.settings_audio_selection_main_source
-            is CustomAudioSelection -> null
-        }
-    }
-
-    companion object {
-        fun valueToSelection(value: String): AudioSelection {
-            return when (value) {
-                "FirstSource" -> FirstSource
-                "FollowVideo" -> FollowVideo
-                "MainSource" -> MainSource
-                else -> CustomAudioSelection(sourceId = value)
-            }
-        }
-        val default: AudioSelection = FirstSource
-    }
-}
