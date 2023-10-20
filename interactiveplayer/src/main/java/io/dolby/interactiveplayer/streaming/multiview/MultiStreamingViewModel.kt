@@ -10,6 +10,7 @@ import io.dolby.interactiveplayer.preferenceStore.MultiviewLayout
 import io.dolby.interactiveplayer.preferenceStore.PrefsStore
 import io.dolby.interactiveplayer.preferenceStore.StreamSortOrder
 import io.dolby.interactiveplayer.rts.data.MultiStreamingRepository
+import io.dolby.interactiveplayer.rts.domain.ConnectOptions
 import io.dolby.interactiveplayer.rts.domain.MultiStreamingData
 import io.dolby.interactiveplayer.rts.domain.StatsInboundRtp.Companion.inboundRtpAudioVideoDataToList
 import io.dolby.interactiveplayer.rts.domain.StreamingData
@@ -122,7 +123,8 @@ class MultiStreamingViewModel @Inject constructor(
                     )
                 }
             }
-            repository.connect(streamingData)
+            val connectOptions = streamDetail?.let { ConnectOptions.from(streamDetail) } ?: ConnectOptions()
+            repository.connect(streamingData, connectOptions)
         }
     }
 

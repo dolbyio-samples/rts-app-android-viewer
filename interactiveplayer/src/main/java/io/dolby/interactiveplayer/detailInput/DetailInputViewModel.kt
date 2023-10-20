@@ -53,20 +53,10 @@ class DetailInputViewModel @Inject constructor(
         viewModelScope.launch {
             preferencesStore.showDebugOptions().collect { enabled ->
                 _showDebugOptions.update { enabled }
+                if (!enabled) {
+                    _selectedConnectionOptions.update { ConnectOptions() }
+                }
             }
-        }
-    }
-
-    fun updateSelectedConnectionOptions(options: ConnectOptions) {
-        _selectedConnectionOptions.update {
-            it.copy(
-                useDevEnv = options.useDevEnv,
-                forcePlayOutDelay = options.forcePlayOutDelay,
-                disableAudio = options.disableAudio,
-                rtcLogs = options.rtcLogs,
-                primaryVideoQuality = options.primaryVideoQuality,
-                videoJitterMinimumDelayMs = options.videoJitterMinimumDelayMs
-            )
         }
     }
 
@@ -139,10 +129,6 @@ class DetailInputViewModel @Inject constructor(
 
     fun showPrimaryVideoQualitySelection(show: Boolean) {
         _showVideoQualityState.update { show }
-    }
-
-    fun togglePrimaryVideoQualitySelection() {
-        _showVideoQualityState.update { !it }
     }
 
     fun videoQualities(): Array<MultiStreamingRepository.VideoQuality> =
