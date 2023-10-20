@@ -169,7 +169,10 @@ private fun VideoView(
                     uiState.selectedVideoTrackId == uiState.videoTracks[page].sourceId
                 viewModel.playVideo(
                     uiState.videoTracks[page],
-                    if (isSelected) MultiStreamingRepository.VideoQuality.AUTO else MultiStreamingRepository.VideoQuality.LOW
+                    if (isSelected) {
+                        uiState.connectOptions?.primaryVideoQuality
+                            ?: MultiStreamingRepository.VideoQuality.AUTO
+                    } else MultiStreamingRepository.VideoQuality.LOW
                 )
             },
             onRelease = { view ->

@@ -119,11 +119,14 @@ class MultiStreamingViewModel @Inject constructor(
                     it.copy(
                         inProgress = true,
                         accountId = streamingData.accountId,
-                        streamName = streamingData.streamName
+                        streamName = streamingData.streamName,
+                        connectOptions = streamDetail?.let { ConnectOptions.from(streamDetail) }
+                            ?: ConnectOptions()
                     )
                 }
             }
-            val connectOptions = streamDetail?.let { ConnectOptions.from(streamDetail) } ?: ConnectOptions()
+            val connectOptions =
+                streamDetail?.let { ConnectOptions.from(streamDetail) } ?: ConnectOptions()
             repository.connect(streamingData, connectOptions)
         }
     }
