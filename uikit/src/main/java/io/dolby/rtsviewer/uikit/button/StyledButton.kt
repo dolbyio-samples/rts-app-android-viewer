@@ -27,7 +27,6 @@ import androidx.compose.foundation.layout.padding
 import androidx.compose.material.Button
 import androidx.compose.material.ButtonDefaults
 import androidx.compose.material.MaterialTheme
-import androidx.compose.material.MaterialTheme.colors
 import androidx.compose.material.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
@@ -62,6 +61,7 @@ fun StyledButton(
     buttonText: String = "",
     subtextTitle: String? = null,
     subtext: String? = null,
+    moreTexts: String? = null,
     onClickAction: ((Context) -> Unit)? = null,
     buttonType: ButtonType = ButtonType.PRIMARY,
     isSelected: Boolean = false,
@@ -118,6 +118,14 @@ fun StyledButton(
                                     color = fontColor
                                 )
                             }
+                        }
+                        moreTexts?.let {
+                            Text(
+                                text = moreTexts,
+                                style = MaterialTheme.typography.body1,
+                                textAlign = TextAlign.Start,
+                                color = fontColor
+                            )
                         }
                     }
                     endIcon?.let {

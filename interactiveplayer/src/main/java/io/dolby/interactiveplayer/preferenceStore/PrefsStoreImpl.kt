@@ -2,6 +2,7 @@ package io.dolby.interactiveplayer.preferenceStore
 
 import android.content.Context
 import androidx.datastore.preferences.core.booleanPreferencesKey
+import androidx.datastore.preferences.core.intPreferencesKey
 import androidx.datastore.preferences.core.stringPreferencesKey
 import io.dolby.interactiveplayer.rts.domain.StreamingData
 import kotlinx.coroutines.CoroutineScope
@@ -120,5 +121,12 @@ object PreferencesKeys {
     val MULTIVIEW_LAYOUT = stringPreferencesKey("multiview_layout")
     val SORT_ORDER = stringPreferencesKey("sort_order")
     val AUDIO_SELECTION = stringPreferencesKey("audio_selection")
+
     val SHOW_DEBUG_OPTIONS = booleanPreferencesKey("show_debug_options")
+    val USE_DEV_SERVER = booleanPreferencesKey("use_dev_server")
+    val VIDEO_JITTER_BUFFER_MS = intPreferencesKey("video_jitter_buffer_ms")
+    val FORCE_PLAYOUT_DELAY = booleanPreferencesKey("force_playout_delay")
+    val DISABLE_AUDIO = booleanPreferencesKey("disable_audio")
+    val PRIMARY_VIDEO_QUALITY = stringPreferencesKey("primary_video_quality")
+    val SAVE_LOGS = booleanPreferencesKey("save_logs")
 }

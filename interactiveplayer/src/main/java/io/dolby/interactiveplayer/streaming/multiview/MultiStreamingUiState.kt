@@ -1,8 +1,9 @@
 package io.dolby.interactiveplayer.streaming.multiview
 
-import io.dolby.interactiveplayer.rts.data.MultiStreamingData
 import io.dolby.interactiveplayer.rts.data.MultiStreamingRepository
 import io.dolby.interactiveplayer.rts.domain.MultiStreamStatisticsData
+import io.dolby.interactiveplayer.rts.domain.MultiStreamingData
+
 enum class Error {
     NO_INTERNET_CONNECTION, STREAM_NOT_ACTIVE
 }

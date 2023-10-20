@@ -9,8 +9,8 @@ import io.dolby.interactiveplayer.navigation.Screen
 import io.dolby.interactiveplayer.preferenceStore.MultiviewLayout
 import io.dolby.interactiveplayer.preferenceStore.PrefsStore
 import io.dolby.interactiveplayer.preferenceStore.StreamSortOrder
-import io.dolby.interactiveplayer.rts.data.MultiStreamingData
 import io.dolby.interactiveplayer.rts.data.MultiStreamingRepository
+import io.dolby.interactiveplayer.rts.domain.MultiStreamingData
 import io.dolby.interactiveplayer.rts.domain.StatsInboundRtp.Companion.inboundRtpAudioVideoDataToList
 import io.dolby.interactiveplayer.rts.domain.StreamingData
 import io.dolby.interactiveplayer.rts.utils.DispatcherProvider
@@ -97,7 +97,10 @@ class MultiStreamingViewModel @Inject constructor(
         if (!repository.data.value.isSubscribed) {
             val streamName = getStreamName(savedStateHandle)
 
-            val streamDetail = recentStreamsDataStore.recentStream(streamName)
+            val streamDetail = recentStreamsDataStore.recentStream(
+                accountId = getAccountId(savedStateHandle),
+                streamName = streamName
+            )
             val streamingData = if (streamDetail != null) {
                 StreamingData(
                     streamName = streamName.trim(),
