@@ -123,4 +123,7 @@
     <string name="stream_connection_options_disable_audio_title">Disable audio:</string>
     <string name="stream_connection_options_primary_video_quality_title">Primary video quality:</string>
     <string name="stream_connection_options_save_logs_title">Save logs:</string>
+    <string name="connection_options_jitter_buffer_delay_title">Jitter Buffer Delay</string>
+    <string name="stream_connection_options_select_primary_video_quality_title">Select primary video quality:</string>
+    <string name="connection_options_more_stream_config_title">More Stream configurations</string>
 </resources>
