@@ -59,6 +59,12 @@ class RecentStreamsDataStoreImpl @Inject constructor(
                     .setStreamName(streamingData.streamName)
                     .setAccountID(streamingData.accountId)
                     .setLastUsedDate(timeStamp)
+                    .setUseDevEnv(connectOptions.useDevEnv)
+                    .setForcePlayOutDelay(connectOptions.forcePlayOutDelay)
+                    .setDisableAudio(connectOptions.disableAudio)
+                    .setRtcLogs(connectOptions.rtcLogs)
+                    .setVideoJitterMinimumDelayMs(connectOptions.videoJitterMinimumDelayMs)
+                    .setPrimaryVideoQuality(connectOptions.primaryVideoQuality.name)
                     .build()
                 builder = builder.addStreamDetail(0, newStreamDetail)
 

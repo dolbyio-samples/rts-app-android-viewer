@@ -5,6 +5,7 @@ import android.content.Context
 import android.content.ContextWrapper
 import android.content.pm.PackageManager
 import android.media.AudioManager
+import android.util.Log
 import android.view.KeyEvent
 import android.view.WindowManager
 import androidx.compose.runtime.Composable
@@ -19,6 +20,7 @@ import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
 import io.dolby.interactiveplayer.datastore.StreamDetail
 import io.dolby.interactiveplayer.rts.domain.StreamingData
+import java.io.File
 
 @Composable
 fun KeepScreenOn(enabled: Boolean) {
@@ -82,4 +84,19 @@ fun horizontalPaddingDp(): Dp {
     val configuration = LocalConfiguration.current
     val screenWidth = configuration.screenWidthDp
     return if (screenWidth <= 600) 15.dp else ((screenWidth - 450) / 2).dp
+}
+
+fun createDirectoryIfNotExists(directoryPath: String) {
+    val directory = File(directoryPath)
+    val tag = "io.dolby.interactiveplayer"
+    if (!directory.exists()) {
+        val isDirectoryCreated = directory.mkdirs()
+        if (isDirectoryCreated) {
+            Log.d(tag, "Directory was successfully created")
+        } else {
+            Log.d(tag, "Directory creation failed")
+        }
+    } else {
+        Log.d(tag, "Directory already exists")
+    }
 }

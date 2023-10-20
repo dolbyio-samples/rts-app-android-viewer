@@ -1,5 +1,6 @@
 package io.dolby.interactiveplayer.rts.data
 
+import android.os.Environment
 import android.util.Log
 import com.millicast.AudioTrack
 import com.millicast.LayerData
@@ -8,12 +9,14 @@ import com.millicast.Subscriber.ProjectionData
 import com.millicast.VideoTrack
 import io.dolby.interactiveplayer.preferenceStore.AudioSelection
 import io.dolby.interactiveplayer.preferenceStore.PrefsStore
+import io.dolby.interactiveplayer.rts.domain.ConnectOptions
 import io.dolby.interactiveplayer.rts.domain.MultiStreamStatisticsData
 import io.dolby.interactiveplayer.rts.domain.MultiStreamingData
 import io.dolby.interactiveplayer.rts.domain.MultiStreamingData.Companion.audio
 import io.dolby.interactiveplayer.rts.domain.MultiStreamingData.Companion.video
 import io.dolby.interactiveplayer.rts.domain.StreamingData
 import io.dolby.interactiveplayer.rts.utils.DispatcherProvider
+import io.dolby.interactiveplayer.utils.createDirectoryIfNotExists
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Job
 import kotlinx.coroutines.flow.MutableStateFlow
@@ -23,6 +26,11 @@ import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.flow.updateAndGet
 import kotlinx.coroutines.launch
 import org.webrtc.RTCStatsReport
+import java.time.Instant
+import java.time.ZoneId
+import java.time.ZoneOffset
+import java.time.format.DateTimeFormatter
+import java.time.temporal.ChronoUnit
 import java.util.Arrays
 import java.util.Optional
 import kotlin.jvm.optionals.getOrNull
@@ -82,7 +90,7 @@ class MultiStreamingRepository(
         }
     }
 
-    fun connect(streamingData: StreamingData) {
+    fun connect(streamingData: StreamingData, connectOptions: ConnectOptions) {
         if (listener?.connected() == true) {
             return
         }
@@ -91,14 +99,31 @@ class MultiStreamingRepository(
         val subscriber = Subscriber.createSubscriber(listener)
 
         val options = Subscriber.Option()
+        options.autoReconnect = true
         options.statsDelayMs = 10_000
-        options.disableAudio = false
+        options.disableAudio = connectOptions.disableAudio
+        options.forcePlayoutDelay = connectOptions.forcePlayOutDelay
+        options.videoJitterMinimumDelayMs = Optional.of(connectOptions.videoJitterMinimumDelayMs)
+        if (connectOptions.rtcLogs) {
+            val path = Environment.getExternalStoragePublicDirectory(
+                Environment.DIRECTORY_DOWNLOADS
+            ).absolutePath + "/InteractivePlayer"
+            createDirectoryIfNotExists(path)
+            val formatter = DateTimeFormatter.ISO_LOCAL_DATE_TIME.withZone(
+                ZoneId.from(
+                    ZoneOffset.UTC
+                )
+            )
+            val timeStamp = formatter.format(Instant.now().truncatedTo(ChronoUnit.SECONDS))
+                .replace(':', '-')
+            options.rtcEventLogOutputPath = Optional.of(path + "/${timeStamp}_rtclogs.proto")
+        }
         subscriber?.setOptions(options)
         subscriber.getStats(1_000)
 
         listener.subscriber = subscriber
 
-        subscriber.credentials = credential(subscriber.credentials, streamingData)
+        subscriber.credentials = credential(subscriber.credentials, streamingData, connectOptions)
 
         Log.d(TAG, "Connecting ...")
 
@@ -119,11 +144,16 @@ class MultiStreamingRepository(
 
     private fun credential(
         credentials: Subscriber.Credential,
-        streamingData: StreamingData
+        streamingData: StreamingData,
+        connectOptions: ConnectOptions
     ): Subscriber.Credential {
         credentials.streamName = streamingData.streamName
         credentials.accountId = streamingData.accountId
-        credentials.apiUrl = "https://director.millicast.com/api/director/subscribe"
+        if (connectOptions.useDevEnv) {
+            credentials.apiUrl = "https://director-dev.millicast.com/api/director/subscribe"
+        } else {
+            credentials.apiUrl = "https://director.millicast.com/api/director/subscribe"
+        }
         return credentials
     }
 
@@ -179,11 +209,6 @@ class MultiStreamingRepository(
             Log.d(TAG, "onConnected, this: $this, thread: ${Thread.currentThread().id}")
             val subscriber = subscriber ?: return
 
-            val options = Subscriber.Option().apply {
-                autoReconnect = true
-            }
-
-            subscriber.setOptions(options)
             subscriber.subscribe()
         }
 
