@@ -5,6 +5,7 @@ import androidx.lifecycle.viewModelScope
 import dagger.hilt.android.lifecycle.HiltViewModel
 import io.dolby.interactiveplayer.datastore.RecentStreamsDataStore
 import io.dolby.interactiveplayer.preferenceStore.PrefsStore
+import io.dolby.interactiveplayer.rts.data.MultiStreamingRepository
 import io.dolby.interactiveplayer.rts.domain.ConnectOptions
 import io.dolby.interactiveplayer.rts.domain.StreamingData
 import kotlinx.coroutines.flow.MutableStateFlow
@@ -28,6 +29,9 @@ class DetailInputViewModel @Inject constructor(
 
     private val _selectedConnectionOptions = MutableStateFlow(ConnectOptions())
     val selectedConnectionOptions = _selectedConnectionOptions.asStateFlow()
+
+    private val _showVideoQualityState = MutableStateFlow(false)
+    val showVideoQualityState = _showVideoQualityState.asStateFlow()
 
     private val _streamName = MutableStateFlow("")
     var streamName = _streamName.asStateFlow()
@@ -101,6 +105,53 @@ class DetailInputViewModel @Inject constructor(
         isDemo = true
         _streamName.value = DEMO_STREAM_NAME
         _accountId.value = DEMO_ACCOUNT_ID
+    }
+
+    fun updateJitterBufferMinimumDelay(value: Int) {
+        _selectedConnectionOptions.update {
+            it.copy(videoJitterMinimumDelayMs = value)
+        }
+    }
+
+    fun updateUseDevEnv(value: Boolean) {
+        _selectedConnectionOptions.update {
+            it.copy(useDevEnv = value)
+        }
+    }
+
+    fun updateForcePlayOutDelay(value: Boolean) {
+        _selectedConnectionOptions.update {
+            it.copy(forcePlayOutDelay = value)
+        }
+    }
+
+    fun updateDisableAudio(value: Boolean) {
+        _selectedConnectionOptions.update {
+            it.copy(disableAudio = value)
+        }
+    }
+
+    fun updateRtcLogs(value: Boolean) {
+        _selectedConnectionOptions.update {
+            it.copy(rtcLogs = value)
+        }
+    }
+
+    fun showPrimaryVideoQualitySelection(show: Boolean) {
+        _showVideoQualityState.update { show }
+    }
+
+    fun togglePrimaryVideoQualitySelection() {
+        _showVideoQualityState.update { !it }
+    }
+
+    fun videoQualities(): Array<MultiStreamingRepository.VideoQuality> =
+        MultiStreamingRepository.VideoQuality.values()
+
+    fun updatePrimaryVideoQuality(videoQuality: MultiStreamingRepository.VideoQuality) {
+        _selectedConnectionOptions.update {
+            it.copy(primaryVideoQuality = videoQuality)
+        }
     }
 }
 
