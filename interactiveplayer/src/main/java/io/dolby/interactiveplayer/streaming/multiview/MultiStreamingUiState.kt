@@ -1,6 +1,7 @@
 package io.dolby.interactiveplayer.streaming.multiview
 
 import io.dolby.interactiveplayer.rts.data.MultiStreamingRepository
+import io.dolby.interactiveplayer.rts.domain.ConnectOptions
 import io.dolby.interactiveplayer.rts.domain.MultiStreamStatisticsData
 import io.dolby.interactiveplayer.rts.domain.MultiStreamingData
 
@@ -11,6 +12,7 @@ data class MultiStreamingUiState(
     val inProgress: Boolean = false,
     val accountId: String? = null,
     val streamName: String? = null,
+    val connectOptions: ConnectOptions? = null,
     val videoTracks: List<MultiStreamingData.Video> = emptyList(),
     val audioTracks: List<MultiStreamingData.Audio> = emptyList(),
     val selectedVideoTrackId: String? = null,

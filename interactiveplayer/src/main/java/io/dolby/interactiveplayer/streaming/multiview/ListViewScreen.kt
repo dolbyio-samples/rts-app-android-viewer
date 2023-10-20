@@ -158,7 +158,7 @@ fun HorizontalEndListView(
                         mainVideo?.play(
                             view = view,
                             viewModel = viewModel,
-                            videoQuality = MultiStreamingRepository.VideoQuality.AUTO
+                            videoQuality = uiState.connectOptions?.primaryVideoQuality ?: MultiStreamingRepository.VideoQuality.AUTO
                         )
                     },
                     onRelease = {
@@ -246,7 +246,7 @@ fun VerticalTopListView(
                         mainVideo?.play(
                             view = view,
                             viewModel = viewModel,
-                            videoQuality = MultiStreamingRepository.VideoQuality.AUTO
+                            videoQuality = uiState.connectOptions?.primaryVideoQuality ?: MultiStreamingRepository.VideoQuality.AUTO
                         )
                     },
                     onRelease = {
