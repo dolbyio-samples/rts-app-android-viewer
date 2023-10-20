@@ -5,6 +5,8 @@ import androidx.lifecycle.viewModelScope
 import dagger.hilt.android.lifecycle.HiltViewModel
 import io.dolby.interactiveplayer.datastore.RecentStreamsDataStore
 import io.dolby.interactiveplayer.datastore.StreamDetail
+import io.dolby.interactiveplayer.preferenceStore.PrefsStore
+import io.dolby.interactiveplayer.rts.domain.ConnectOptions
 import io.dolby.interactiveplayer.rts.domain.StreamingData
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
@@ -16,11 +18,18 @@ import javax.inject.Inject
 
 @HiltViewModel
 class SavedStreamViewModel @Inject constructor(
-    private val recentStreamsDataStore: RecentStreamsDataStore
+    private val recentStreamsDataStore: RecentStreamsDataStore,
+    private val preferencesStore: PrefsStore
 ) : ViewModel() {
 
     private val _uiState = MutableStateFlow(SavedStreamScreenUiState())
     val uiState: StateFlow<SavedStreamScreenUiState> = _uiState.asStateFlow()
+
+    private val _showDebugOptions = MutableStateFlow(false)
+    val showDebugOptions = _showDebugOptions.asStateFlow()
+
+    private val _connectionOptions = MutableStateFlow(ConnectOptions())
+    val connectionOptions = _connectionOptions.asStateFlow()
 
     init {
         viewModelScope.launch {
@@ -32,6 +41,13 @@ class SavedStreamViewModel @Inject constructor(
                         )
                     }
                 }
+        }
+        viewModelScope.launch {
+            preferencesStore.showDebugOptions().collectLatest { value ->
+                _showDebugOptions.update {
+                    value
+                }
+            }
         }
     }
 
@@ -53,7 +69,8 @@ class SavedStreamViewModel @Inject constructor(
                 StreamingData(
                     streamDetail.accountID,
                     streamDetail.streamName
-                )
+                ),
+                ConnectOptions.from(streamDetail)
             )
         }
     }

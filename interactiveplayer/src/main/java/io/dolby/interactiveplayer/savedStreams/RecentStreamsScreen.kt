@@ -36,6 +36,8 @@ import androidx.compose.ui.unit.dp
 import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import io.dolby.interactiveplayer.R
+import io.dolby.interactiveplayer.detailInput.connectionOptionsText
+import io.dolby.interactiveplayer.rts.domain.ConnectOptions
 import io.dolby.interactiveplayer.rts.domain.StreamingData
 import io.dolby.interactiveplayer.rts.ui.DolbyCopyrightFooterView
 import io.dolby.interactiveplayer.rts.ui.TopActionBar
@@ -60,6 +62,7 @@ fun RecentStreamsScreen(
     viewModel: SavedStreamViewModel = hiltViewModel()
 ) {
     val uiState by viewModel.uiState.collectAsStateWithLifecycle()
+    val showDebugOptions = viewModel.showDebugOptions.collectAsStateWithLifecycle()
     val screenName = stringResource(id = R.string.recent_streams_screen_name)
     val background = MaterialTheme.colors.background
     var loading by remember { mutableStateOf(true) }
@@ -142,10 +145,16 @@ fun RecentStreamsScreen(
                     if (amountToDisplay > 0) {
                         uiState.recentStreams.subList(0, amountToDisplay)
                             .forEach { streamDetail ->
+                                val connectionOptionsText = if (showDebugOptions.value) {
+                                    connectionOptionsText(
+                                        connectOptions = ConnectOptions.from(streamDetail)
+                                    )
+                                } else null
                                 StyledButton(
                                     buttonText = streamDetail.streamName,
                                     subtextTitle = stringResource(id = R.string.id_title),
                                     subtext = streamDetail.accountID,
+                                    moreTexts = connectionOptionsText,
                                     onClickAction = {
                                         viewModel.add(streamDetail)
                                         onPlayStream(streamingDataFrom(streamDetail))

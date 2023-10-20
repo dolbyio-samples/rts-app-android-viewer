@@ -116,4 +116,11 @@
     <string name="settings_value_false">false</string>
     <string name="id_title">ID:</string>
     <string name="empty" />
+
+    <string name="stream_connection_options_dev_server_title">Development server:</string>
+    <string name="stream_connection_options_video_jitter_buffer_ms_title">Video jitter buffer (in ms):</string>
+    <string name="stream_connection_options_force_playout_delay_title">Force playout delay:</string>
+    <string name="stream_connection_options_disable_audio_title">Disable audio:</string>
+    <string name="stream_connection_options_primary_video_quality_title">Primary video quality:</string>
+    <string name="stream_connection_options_save_logs_title">Save logs:</string>
 </resources>

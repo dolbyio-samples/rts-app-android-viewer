@@ -3,6 +3,7 @@ package io.dolby.interactiveplayer.datastore
 import android.content.Context
 import dagger.hilt.android.qualifiers.ApplicationContext
 import io.dolby.interactiveplayer.preferenceStore.PrefsStore
+import io.dolby.interactiveplayer.rts.domain.ConnectOptions
 import io.dolby.interactiveplayer.rts.domain.StreamingData
 import io.dolby.interactiveplayer.rts.utils.DispatcherProvider
 import kotlinx.coroutines.CoroutineScope
@@ -27,19 +28,20 @@ class RecentStreamsDataStoreImpl @Inject constructor(
             it.streamDetailList.sortedByDescending { streamDetail -> streamDetail.lastUsedDate.seconds }
         }
 
-    override suspend fun recentStream(streamName: String): StreamDetail? {
+    override suspend fun recentStream(accountId: String, streamName: String): StreamDetail? {
         return dataStore.data.first().streamDetailList.firstOrNull {
-            it.streamName == streamName
+            it.accountID == accountId && it.streamName == streamName
         }
     }
 
-    override fun addStreamDetail(streamingData: StreamingData) {
+    override fun addStreamDetail(streamingData: StreamingData, connectOptions: ConnectOptions) {
         val addStreamJob = appCoroutineScope.launch {
             dataStore.updateData {
                 // Remove existing stream matching the new stream details
                 val matchingIndex = it.streamDetailList
                     .indexOfFirst { streamDetail ->
-                        streamDetail.streamName == streamingData.streamName && streamDetail.accountID == streamingData.accountId
+                        streamDetail.streamName == streamingData.streamName &&
+                            streamDetail.accountID == streamingData.accountId
                     }
 
                 var builder = it.toBuilder()

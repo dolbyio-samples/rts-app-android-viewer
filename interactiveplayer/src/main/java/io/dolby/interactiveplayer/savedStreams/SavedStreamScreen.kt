@@ -50,6 +50,8 @@ import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import io.dolby.interactiveplayer.R
 import io.dolby.interactiveplayer.alert.ClearStreamConfirmationAlert
 import io.dolby.interactiveplayer.datastore.StreamDetail
+import io.dolby.interactiveplayer.detailInput.connectionOptionsText
+import io.dolby.interactiveplayer.rts.domain.ConnectOptions
 import io.dolby.interactiveplayer.rts.domain.StreamingData
 import io.dolby.interactiveplayer.rts.ui.DolbyBackgroundBox
 import io.dolby.interactiveplayer.rts.ui.TopAppBar
@@ -73,9 +75,7 @@ fun SavedStreamScreen(
     val focusRequester = remember { FocusRequester() }
     val bringIntoViewRequester = remember { BringIntoViewRequester() }
     val scope = rememberCoroutineScope()
-    var lastPlayedStreamCoordinates by remember {
-        mutableStateOf(Rect.Zero)
-    }
+    var lastPlayedStreamCoordinates by remember { mutableStateOf(Rect.Zero) }
     var showClearStreamsConfirmationDialog by remember { mutableStateOf(false) }
 
     LaunchedEffect(Unit) {
@@ -231,6 +231,7 @@ fun DismissibleRecentStream(
     modifier: Modifier = Modifier
 ) {
     val dismissState = rememberDismissState()
+    val showDebugOptions = viewModel.showDebugOptions.collectAsStateWithLifecycle()
     if (dismissState.isDismissed(DismissDirection.EndToStart) && dismissState.currentValue != DismissValue.Default) {
         LaunchedEffect(Unit) {
             viewModel.delete(streamDetail)
@@ -260,10 +261,16 @@ fun DismissibleRecentStream(
             }
         }
     ) {
+        val connectionOptionsText = if (showDebugOptions.value) {
+            connectionOptionsText(
+                connectOptions = ConnectOptions.from(streamDetail)
+            )
+        } else null
         StyledButton(
             buttonText = streamDetail.streamName,
             subtextTitle = stringResource(id = R.string.id_title),
             subtext = streamDetail.accountID,
+            moreTexts = connectionOptionsText,
             onClickAction = onClickAction,
             buttonType = ButtonType.BASIC,
             capitalize = false,

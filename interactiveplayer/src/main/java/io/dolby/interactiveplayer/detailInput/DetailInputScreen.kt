@@ -37,6 +37,7 @@ import androidx.hilt.navigation.compose.hiltViewModel
 import io.dolby.interactiveplayer.R
 import io.dolby.interactiveplayer.alert.ClearStreamConfirmationAlert
 import io.dolby.interactiveplayer.alert.DetailInputValidationAlert
+import io.dolby.interactiveplayer.rts.domain.ConnectOptions
 import io.dolby.interactiveplayer.rts.domain.StreamingData
 import io.dolby.interactiveplayer.rts.ui.DolbyCopyrightFooterView
 import io.dolby.interactiveplayer.rts.ui.TopAppBar
@@ -61,6 +62,9 @@ fun DetailInputScreen(
 
     val streamName = viewModel.streamName.collectAsState()
     val accountId = viewModel.accountId.collectAsState()
+    val recentStreams = viewModel.uiState.collectAsState()
+
+    val showDebugOptions = viewModel.showDebugOptions.collectAsState()
 
     val screenName = stringResource(id = R.string.stream_detail_screen_name)
 
@@ -73,7 +77,7 @@ fun DetailInputScreen(
         if (!viewModel.shouldPlayStream) {
             showMissingStreamDetailDialog = true
         } else {
-            viewModel.connect()
+            viewModel.saveSelectedStream()
 
             coroutineScope.launch(Dispatchers.Main) {
                 onPlayClick(
@@ -179,6 +183,9 @@ fun DetailInputScreen(
 
                 Spacer(modifier = modifier.height(12.dp))
 
+                if (showDebugOptions.value) {
+                }
+
                 StyledButton(
                     buttonText = stringResource(id = R.string.play_button),
                     onClickAction = {
@@ -204,11 +211,16 @@ fun DetailInputScreen(
                 )
 
                 Spacer(modifier = modifier.height(12.dp))
-
+                val demoConnectionOptions = if (showDebugOptions.value) {
+                    val recentDemoStream = recentStreams.value.recentStreams.firstOrNull { it.accountID == DEMO_ACCOUNT_ID && it.streamName == DEMO_STREAM_NAME }
+                    val connectOptions = recentDemoStream?.let { ConnectOptions.from(it) } ?: ConnectOptions()
+                    connectionOptionsText(connectOptions)
+                } else null
                 StyledButton(
                     buttonText = DEMO_STREAM_NAME,
                     subtextTitle = stringResource(id = R.string.id_title),
                     subtext = DEMO_ACCOUNT_ID,
+                    moreTexts = demoConnectionOptions,
                     onClickAction = {
                         viewModel.useDemoStream()
                         playStream()
@@ -221,3 +233,12 @@ fun DetailInputScreen(
         }
     }
 }
+
+@Composable
+fun connectionOptionsText(connectOptions: ConnectOptions) =
+    "${stringResource(id = R.string.stream_connection_options_dev_server_title)} ${connectOptions.useDevEnv}\n" +
+        "${stringResource(id = R.string.stream_connection_options_video_jitter_buffer_ms_title)} ${connectOptions.videoJitterMinimumDelayMs}\n" +
+        "${stringResource(id = R.string.stream_connection_options_force_playout_delay_title)} ${connectOptions.forcePlayOutDelay}\n" +
+        "${stringResource(id = R.string.stream_connection_options_disable_audio_title)} ${connectOptions.disableAudio}\n" +
+        "${stringResource(id = R.string.stream_connection_options_primary_video_quality_title)} ${connectOptions.primaryVideoQuality}\n" +
+        "${stringResource(id = R.string.stream_connection_options_save_logs_title)} ${connectOptions.rtcLogs}"

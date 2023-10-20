@@ -9,6 +9,13 @@ message StreamDetail {
   string accountID = 1;
   string streamName = 2;
   google.protobuf.Timestamp lastUsedDate = 3;
+
+  bool useDevEnv = 4;
+  bool forcePlayOutDelay = 5;
+  bool disableAudio = 6;
+  bool rtcLogs = 7;
+  int32 videoJitterMinimumDelayMs = 8;
+  string primaryVideoQuality = 9;
 }
 
 message RecentStreams {

@@ -4,6 +4,8 @@ import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import dagger.hilt.android.lifecycle.HiltViewModel
 import io.dolby.interactiveplayer.datastore.RecentStreamsDataStore
+import io.dolby.interactiveplayer.preferenceStore.PrefsStore
+import io.dolby.interactiveplayer.rts.domain.ConnectOptions
 import io.dolby.interactiveplayer.rts.domain.StreamingData
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
@@ -15,10 +17,17 @@ import javax.inject.Inject
 
 @HiltViewModel
 class DetailInputViewModel @Inject constructor(
-    private val recentStreamsDataStore: RecentStreamsDataStore
+    private val recentStreamsDataStore: RecentStreamsDataStore,
+    private val preferencesStore: PrefsStore
 ) : ViewModel() {
     private val _uiState = MutableStateFlow(DetailInputScreenUiState())
     val uiState: StateFlow<DetailInputScreenUiState> = _uiState.asStateFlow()
+
+    private val _showDebugOptions = MutableStateFlow(false)
+    val showDebugOptions = _showDebugOptions.asStateFlow()
+
+    private val _selectedConnectionOptions = MutableStateFlow(ConnectOptions())
+    val selectedConnectionOptions = _selectedConnectionOptions.asStateFlow()
 
     private val _streamName = MutableStateFlow("")
     var streamName = _streamName.asStateFlow()
@@ -33,21 +42,40 @@ class DetailInputViewModel @Inject constructor(
             recentStreamsDataStore.recentStreams
                 .collectLatest {
                     _uiState.update { state ->
-                        state.copy(
-                            recentStreams = it
-                        )
+                        state.copy(recentStreams = it)
                     }
                 }
         }
+        viewModelScope.launch {
+            preferencesStore.showDebugOptions().collect { enabled ->
+                _showDebugOptions.update { enabled }
+            }
+        }
     }
 
-    fun connect() {
+    fun updateSelectedConnectionOptions(options: ConnectOptions) {
+        _selectedConnectionOptions.update {
+            it.copy(
+                useDevEnv = options.useDevEnv,
+                forcePlayOutDelay = options.forcePlayOutDelay,
+                disableAudio = options.disableAudio,
+                rtcLogs = options.rtcLogs,
+                primaryVideoQuality = options.primaryVideoQuality,
+                videoJitterMinimumDelayMs = options.videoJitterMinimumDelayMs
+            )
+        }
+    }
+
+    fun saveSelectedStream() {
         val streamingData =
             StreamingData(streamName = streamName.value, accountId = accountId.value)
         viewModelScope.launch {
             if (!isDemo) {
                 // Save the stream detail
-                recentStreamsDataStore.addStreamDetail(streamingData)
+                recentStreamsDataStore.addStreamDetail(
+                    streamingData,
+                    _selectedConnectionOptions.value
+                )
             }
         }
     }
