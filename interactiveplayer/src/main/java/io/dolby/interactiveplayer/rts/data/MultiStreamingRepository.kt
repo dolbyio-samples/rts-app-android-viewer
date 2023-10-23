@@ -70,12 +70,10 @@ class MultiStreamingRepository(
                     }
 
                     AudioSelection.FollowVideo -> {
-                        val selectedVideoTrack =
-                            data.value.videoTracks.find { it.sourceId == data.value.selectedVideoTrackId }
-                        val index = data.value.videoTracks.indexOf(selectedVideoTrack)
-                        val audioTracks = data.value.audioTracks
-                        if (index >= 0 && audioTracks.size > index) {
-                            playAudio(audioTracks[index])
+                        val selectAudioTrack =
+                            data.value.audioTracks.find { it.sourceId == data.value.selectedVideoTrackId }
+                        selectAudioTrack?.let {
+                            playAudio(selectAudioTrack)
                         }
                     }
 
@@ -299,6 +297,7 @@ class MultiStreamingRepository(
         }
 
         override fun onFrameMetadata(p0: Int, p1: Int, p2: ByteArray?) {
+            Log.d(TAG, "onFrameMetadata: $p0, $p1")
             TODO("Not yet implemented")
         }
 
@@ -315,23 +314,37 @@ class MultiStreamingRepository(
         }
 
         override fun onInactive(p0: String, p1: Optional<String>) {
-            Log.d(TAG, "onInactive")
+            Log.d(TAG, "onInactive $p0, ${p1.getOrNull()}")
             val sourceId = p1.getOrNull()
             data.update { data ->
                 data.videoTracks.filter { it.sourceId == sourceId }
                     .forEach { it.videoTrack.removeRenderer() }
                 val inactiveVideo = data.videoTracks.firstOrNull { it.sourceId == sourceId }
+                var selectedVideoTrack = data.selectedVideoTrackId
+                val tempVideos = data.videoTracks.toMutableList()
                 inactiveVideo?.let {
-                    val tempVideos = data.videoTracks.toMutableList()
                     tempVideos.remove(inactiveVideo)
-                    val selectedVideoTrack =
-                        if (data.selectedVideoTrackId == sourceId) null else data.selectedVideoTrackId
-                    return@update data.copy(
-                        selectedVideoTrackId = selectedVideoTrack,
-                        videoTracks = tempVideos
-                    )
+                    if (data.selectedVideoTrackId == sourceId && tempVideos.isNotEmpty()) {
+                        selectedVideoTrack = tempVideos[0].sourceId
+                    }
                 }
-                return@update data
+                val inactiveAudio = data.audioTracks.firstOrNull { it.sourceId == sourceId }
+                val tempAudios = data.audioTracks.toMutableList()
+                inactiveAudio?.let {
+                    tempAudios.remove(inactiveAudio)
+                    if (audioSelectionData.value is AudioSelection.CustomAudioSelection &&
+                        (audioSelectionData.value as AudioSelection.CustomAudioSelection).sourceId == inactiveAudio.sourceId &&
+                        tempAudios.isNotEmpty()
+                    ) {
+                        playAudio(tempAudios[0])
+                    }
+                }
+
+                return@update data.copy(
+                    selectedVideoTrackId = selectedVideoTrack,
+                    videoTracks = tempVideos.toList(),
+                    audioTracks = tempAudios.toList()
+                )
             }
         }
 
@@ -515,6 +528,7 @@ class MultiStreamingRepository(
                 AUTO -> AUTO
             }
         }
+
         companion object {
             fun valueToQuality(value: String): VideoQuality {
                 return try {

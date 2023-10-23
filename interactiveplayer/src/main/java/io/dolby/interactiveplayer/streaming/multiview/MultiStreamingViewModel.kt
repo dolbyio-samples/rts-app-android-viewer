@@ -189,8 +189,8 @@ class MultiStreamingViewModel @Inject constructor(
         repository.disconnect()
     }
 
-    fun selectVideoTrack(id: String?) {
-        repository.updateSelectedVideoTrackId(id)
+    fun selectVideoTrack(sourceId: String?) {
+        repository.updateSelectedVideoTrackId(sourceId)
     }
 
     fun playVideo(

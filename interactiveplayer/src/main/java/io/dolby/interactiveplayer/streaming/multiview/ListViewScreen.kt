@@ -139,7 +139,10 @@ fun HorizontalEndListView(
         Row {
             val selectedVideo =
                 uiState.videoTracks.firstOrNull { it.sourceId == uiState.selectedVideoTrackId }
-            val mainVideo: MultiStreamingData.Video? = selectedVideo ?: uiState.videoTracks.firstOrNull()
+            val mainVideo: MultiStreamingData.Video? =
+                selectedVideo ?: uiState.videoTracks.firstOrNull()?.also {
+                    viewModel.selectVideoTrack(it.sourceId)
+                }
             Box(
                 modifier = Modifier.clickable {
                     onMainClick(uiState.videoTracks.find { it.sourceId == uiState.selectedVideoTrackId }?.id)
@@ -158,7 +161,8 @@ fun HorizontalEndListView(
                         mainVideo?.play(
                             view = view,
                             viewModel = viewModel,
-                            videoQuality = uiState.connectOptions?.primaryVideoQuality ?: MultiStreamingRepository.VideoQuality.AUTO
+                            videoQuality = uiState.connectOptions?.primaryVideoQuality
+                                ?: MultiStreamingRepository.VideoQuality.AUTO
                         )
                     },
                     onRelease = {
@@ -227,7 +231,9 @@ fun VerticalTopListView(
             val selectedVideo =
                 uiState.videoTracks.firstOrNull { it.sourceId == uiState.selectedVideoTrackId }
             val mainVideo: MultiStreamingData.Video? =
-                selectedVideo ?: uiState.videoTracks.firstOrNull()
+                selectedVideo ?: uiState.videoTracks.firstOrNull()?.also {
+                    viewModel.selectVideoTrack(it.sourceId)
+                }
             Box(
                 modifier = Modifier.clickable {
                     onMainClick(uiState.videoTracks.find { it.sourceId == uiState.selectedVideoTrackId }?.id)
@@ -246,7 +252,8 @@ fun VerticalTopListView(
                         mainVideo?.play(
                             view = view,
                             viewModel = viewModel,
-                            videoQuality = uiState.connectOptions?.primaryVideoQuality ?: MultiStreamingRepository.VideoQuality.AUTO
+                            videoQuality = uiState.connectOptions?.primaryVideoQuality
+                                ?: MultiStreamingRepository.VideoQuality.AUTO
                         )
                     },
                     onRelease = {
