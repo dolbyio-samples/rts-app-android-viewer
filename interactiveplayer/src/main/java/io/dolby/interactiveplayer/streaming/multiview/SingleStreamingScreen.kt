@@ -9,10 +9,12 @@ import androidx.compose.foundation.pager.HorizontalPager
 import androidx.compose.foundation.pager.rememberPagerState
 import androidx.compose.material.Scaffold
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
+import androidx.compose.runtime.snapshotFlow
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.res.painterResource
@@ -84,6 +86,11 @@ fun SingleStreamingScreen(
                 initialPage = initialPage,
                 pageCount = { uiState.videoTracks.size }
             )
+            LaunchedEffect(pagerState) {
+                snapshotFlow { pagerState.currentPage }.collect { page ->
+                    viewModel.selectVideoTrack(uiState.videoTracks[pagerState.currentPage].sourceId)
+                }
+            }
             if (uiState.videoTracks.size > pagerState.currentPage) {
                 setTitle(
                     uiState.videoTracks[pagerState.currentPage].sourceId ?: mainSourceName
