@@ -1,6 +1,5 @@
 package io.dolby.interactiveplayer.savedStreams
 
-import androidx.compose.foundation.ExperimentalFoundationApi
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
@@ -51,7 +50,6 @@ import kotlin.math.min
 
 private const val RECENTLY_VIEWED_COUNT_TO_DISPLAY = 3
 
-@OptIn(ExperimentalFoundationApi::class)
 @Composable
 fun RecentStreamsScreen(
     modifier: Modifier = Modifier,
@@ -69,6 +67,9 @@ fun RecentStreamsScreen(
     LaunchedEffect(Unit) {
         delay(500)
         loading = false
+        if (uiState.recentStreams.isEmpty()) {
+            onPlayNewClick()
+        }
     }
 
     Scaffold(
@@ -85,11 +86,11 @@ fun RecentStreamsScreen(
                 .padding(paddingValues)
                 .semantics { contentDescription = screenName }
         ) {
-            if (loading) {
+            if (uiState.loading || loading) {
                 Box(modifier = Modifier.fillMaxSize()) {
                     CircularProgressIndicator(modifier = Modifier.align(Alignment.Center))
                 }
-            } else if (uiState.recentStreams.isNotEmpty()) {
+            } else {
                 Column(
                     horizontalAlignment = Alignment.CenterHorizontally,
                     modifier = modifier
@@ -185,8 +186,6 @@ fun RecentStreamsScreen(
                         buttonType = ButtonType.PRIMARY
                     )
                 }
-            } else {
-                onPlayNewClick()
             }
         }
     }

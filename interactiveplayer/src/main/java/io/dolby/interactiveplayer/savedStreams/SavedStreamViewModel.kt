@@ -37,7 +37,8 @@ class SavedStreamViewModel @Inject constructor(
                 .collectLatest {
                     _uiState.update { state ->
                         state.copy(
-                            recentStreams = it
+                            recentStreams = it,
+                            loading = false
                         )
                     }
                 }
