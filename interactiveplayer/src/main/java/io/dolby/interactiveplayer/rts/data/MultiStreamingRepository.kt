@@ -92,7 +92,7 @@ class MultiStreamingRepository(
         if (listener?.connected() == true) {
             return
         }
-        val listener = Listener(_data, _audioSelection.asStateFlow())
+        val listener = Listener(_data, _audioSelection.asStateFlow(), prefsStore, dispatcherProvider)
         this.listener = listener
         val subscriber = Subscriber.createSubscriber(listener)
 
@@ -191,7 +191,9 @@ class MultiStreamingRepository(
 
     private class Listener(
         private val data: MutableStateFlow<MultiStreamingData>,
-        private val audioSelectionData: StateFlow<AudioSelection>
+        private val audioSelectionData: StateFlow<AudioSelection>,
+        private val prefsStore: PrefsStore,
+        private val dispatcherProvider: DispatcherProvider
     ) : Subscriber.Listener {
 
         var subscriber: Subscriber? = null
@@ -333,10 +335,10 @@ class MultiStreamingRepository(
                 inactiveAudio?.let {
                     tempAudios.remove(inactiveAudio)
                     if (audioSelectionData.value is AudioSelection.CustomAudioSelection &&
-                        (audioSelectionData.value as AudioSelection.CustomAudioSelection).sourceId == inactiveAudio.sourceId &&
-                        tempAudios.isNotEmpty()
-                    ) {
-                        playAudio(tempAudios[0])
+                        (audioSelectionData.value as AudioSelection.CustomAudioSelection).sourceId == inactiveAudio.sourceId) {
+                        CoroutineScope(dispatcherProvider.main).launch {
+                            prefsStore.updateAudioSelection(AudioSelection.default, data.streamingData)
+                        }
                     }
                 }
 
