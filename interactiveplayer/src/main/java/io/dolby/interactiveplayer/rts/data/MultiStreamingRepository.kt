@@ -22,6 +22,7 @@ import kotlinx.coroutines.Job
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
+import kotlinx.coroutines.flow.combine
 import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.flow.updateAndGet
 import kotlinx.coroutines.launch
@@ -53,35 +54,47 @@ class MultiStreamingRepository(
     private fun listenForAudioSelection() {
         audioSelectionListenerJob?.cancel()
         audioSelectionListenerJob = CoroutineScope(dispatcherProvider.main).launch {
-            prefsStore.audioSelection(data.value.streamingData).collect { audioSelection ->
+            combine(
+                _data,
+                prefsStore.audioSelection(data.value.streamingData)
+            ) { data, audioSelection -> Pair(data, audioSelection) }.collect {
+                val data = it.first
+                val audioSelection = it.second
+                var audioSourceIdToSelect: MultiStreamingData.Audio? = null
                 _audioSelection.update { audioSelection }
                 when (audioSelection) {
                     AudioSelection.MainSource -> {
-                        data.value.audioTracks.firstOrNull { it.sourceId == null }
+                        data.audioTracks.firstOrNull { it.sourceId == null }
                             ?.let { mainTrack ->
-                                playAudio(mainTrack)
+                                audioSourceIdToSelect = mainTrack
                             }
                     }
 
                     AudioSelection.FirstSource -> {
-                        data.value.audioTracks.firstOrNull()?.let { firstTrack ->
-                            playAudio(firstTrack)
+                        data.audioTracks.firstOrNull()?.let { firstTrack ->
+                            audioSourceIdToSelect = firstTrack
                         }
                     }
 
                     AudioSelection.FollowVideo -> {
                         val selectAudioTrack =
-                            data.value.audioTracks.find { it.sourceId == data.value.selectedVideoTrackId }
+                            data.audioTracks.find { it.sourceId == data.selectedVideoTrackId }
                         selectAudioTrack?.let {
-                            playAudio(selectAudioTrack)
+                            audioSourceIdToSelect = selectAudioTrack
                         }
                     }
 
                     is AudioSelection.CustomAudioSelection -> {
-                        val audioTrack = data.value.audioTracks.firstOrNull { it.sourceId == audioSelection.sourceId }
+                        val audioTrack =
+                            data.audioTracks.firstOrNull { it.sourceId == audioSelection.sourceId }
                         audioTrack?.let {
-                            playAudio(audioTrack)
+                            audioSourceIdToSelect = audioTrack
                         }
+                    }
+                }
+                audioSourceIdToSelect?.let { audio ->
+                    if (audioSourceIdToSelect?.sourceId != data.selectedAudioTrackId) {
+                        playAudio(audio)
                     }
                 }
             }
@@ -161,12 +174,7 @@ class MultiStreamingRepository(
             val oldSelectedVideoTrack =
                 data.videoTracks.find { it.sourceId == oldSelectedVideoTrackId }
             oldSelectedVideoTrack?.videoTrack?.removeRenderer()
-            if (_audioSelection.value == AudioSelection.FollowVideo) {
-                val newSelectedAudioTrack = data.audioTracks.firstOrNull { it.sourceId == sourceId }
-                newSelectedAudioTrack?.let {
-                    listener?.playAudio(newSelectedAudioTrack)
-                }
-            }
+
             data.copy(selectedVideoTrackId = sourceId)
         }
     }
@@ -281,21 +289,6 @@ class MultiStreamingRepository(
                     data.appendAudioTrack(trackInfo, p0, p1.getOrNull(), trackInfo.sourceId)
                 } ?: data
             }
-            if (data.value.audioTracks.size == 1 &&
-                (
-                    audioSelectionData.value == AudioSelection.FirstSource ||
-                        audioSelectionData.value == AudioSelection.FollowVideo
-                    )
-            ) {
-                playAudio(data.value.audioTracks[0])
-            }
-            if (audioSelectionData.value is AudioSelection.CustomAudioSelection) {
-                val selectionSourceId =
-                    (audioSelectionData.value as AudioSelection.CustomAudioSelection).sourceId
-                data.value.audioTracks.firstOrNull { it.sourceId == selectionSourceId }?.let {
-                    playAudio(it)
-                }
-            }
         }
 
         override fun onFrameMetadata(p0: Int, p1: Int, p2: ByteArray?) {
@@ -335,9 +328,13 @@ class MultiStreamingRepository(
                 inactiveAudio?.let {
                     tempAudios.remove(inactiveAudio)
                     if (audioSelectionData.value is AudioSelection.CustomAudioSelection &&
-                        (audioSelectionData.value as AudioSelection.CustomAudioSelection).sourceId == inactiveAudio.sourceId) {
+                        (audioSelectionData.value as AudioSelection.CustomAudioSelection).sourceId == inactiveAudio.sourceId
+                    ) {
                         CoroutineScope(dispatcherProvider.main).launch {
-                            prefsStore.updateAudioSelection(AudioSelection.default, data.streamingData)
+                            prefsStore.updateAudioSelection(
+                                AudioSelection.default,
+                                data.streamingData
+                            )
                         }
                     }
                 }
@@ -459,6 +456,9 @@ class MultiStreamingRepository(
                 it.media = audio
             }
             subscriber?.project(audioTrack.sourceId ?: "", arrayListOf(projectionData))
+            data.update {
+                it.copy(selectedAudioTrackId = audioTrack.sourceId)
+            }
         }
 
         private fun processPendingTracks(data: MultiStreamingData) {
