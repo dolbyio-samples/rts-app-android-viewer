@@ -88,7 +88,9 @@ fun SingleStreamingScreen(
             )
             LaunchedEffect(pagerState) {
                 snapshotFlow { pagerState.currentPage }.collect { page ->
-                    viewModel.selectVideoTrack(uiState.videoTracks[pagerState.currentPage].sourceId)
+                    if (uiState.videoTracks.isNotEmpty()) {
+                        viewModel.selectVideoTrack(uiState.videoTracks[page].sourceId)
+                    }
                 }
             }
             if (uiState.videoTracks.size > pagerState.currentPage) {
