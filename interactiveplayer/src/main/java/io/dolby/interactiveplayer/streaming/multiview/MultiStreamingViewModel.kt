@@ -95,7 +95,6 @@ class MultiStreamingViewModel @Inject constructor(
         StreamingData(getAccountId(savedStateHandle), getStreamName(savedStateHandle))
 
     private suspend fun connect() {
-        if (!repository.data.value.isSubscribed) {
             val streamName = getStreamName(savedStateHandle)
 
             val streamDetail = recentStreamsDataStore.recentStream(
@@ -113,20 +112,24 @@ class MultiStreamingViewModel @Inject constructor(
                     accountId = getAccountId(savedStateHandle)
                 )
             }
-
+            val connectOptions =
+                streamDetail?.let { ConnectOptions.from(streamDetail) } ?: ConnectOptions()
             withContext(dispatcherProvider.main) {
                 _uiState.update {
                     it.copy(
-                        inProgress = true,
                         accountId = streamingData.accountId,
                         streamName = streamingData.streamName,
-                        connectOptions = streamDetail?.let { ConnectOptions.from(streamDetail) }
-                            ?: ConnectOptions()
+                        connectOptions = connectOptions
                     )
                 }
             }
-            val connectOptions =
-                streamDetail?.let { ConnectOptions.from(streamDetail) } ?: ConnectOptions()
+
+        if (!repository.data.value.isSubscribed) {
+            _uiState.update {
+                it.copy(
+                    inProgress = true
+                )
+            }
             repository.connect(streamingData, connectOptions)
         }
     }

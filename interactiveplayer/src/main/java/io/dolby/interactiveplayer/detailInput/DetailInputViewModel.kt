@@ -72,6 +72,7 @@ class DetailInputViewModel @Inject constructor(
                 )
             }
         }
+        isDemo = false
     }
 
     fun clearAllStreams() {

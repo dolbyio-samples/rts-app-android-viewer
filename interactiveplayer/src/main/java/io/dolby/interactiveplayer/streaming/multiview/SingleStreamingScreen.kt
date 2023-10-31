@@ -108,11 +108,13 @@ fun SingleStreamingScreen(
                 on = uiState.videoTracks.isNotEmpty() || uiState.audioTracks.isNotEmpty()
             )
 
-//            QualityLabel(
-//                viewModel = viewModel,
-//                video = uiState.videoTracks[pagerState.currentPage],
-//                modifier = Modifier.align(Alignment.BottomEnd)
-//            )
+//            if (uiState.videoTracks.isNotEmpty()) {
+//                QualityLabel(
+//                    viewModel = viewModel,
+//                    video = uiState.videoTracks[pagerState.currentPage],
+//                    modifier = Modifier.align(Alignment.BottomEnd)
+//                )
+//            }
 
             QualitySelector(viewModel = viewModel)
 
