@@ -95,34 +95,34 @@ class MultiStreamingViewModel @Inject constructor(
         StreamingData(getAccountId(savedStateHandle), getStreamName(savedStateHandle))
 
     private suspend fun connect() {
-            val streamName = getStreamName(savedStateHandle)
+        val streamName = getStreamName(savedStateHandle)
 
-            val streamDetail = recentStreamsDataStore.recentStream(
-                accountId = getAccountId(savedStateHandle),
-                streamName = streamName
+        val streamDetail = recentStreamsDataStore.recentStream(
+            accountId = getAccountId(savedStateHandle),
+            streamName = streamName
+        )
+        val streamingData = if (streamDetail != null) {
+            StreamingData(
+                streamName = streamName.trim(),
+                accountId = streamDetail.accountID.trim()
             )
-            val streamingData = if (streamDetail != null) {
-                StreamingData(
-                    streamName = streamName.trim(),
-                    accountId = streamDetail.accountID.trim()
-                )
-            } else {
-                StreamingData(
-                    streamName = streamName.trim(),
-                    accountId = getAccountId(savedStateHandle)
+        } else {
+            StreamingData(
+                streamName = streamName.trim(),
+                accountId = getAccountId(savedStateHandle)
+            )
+        }
+        val connectOptions =
+            streamDetail?.let { ConnectOptions.from(streamDetail) } ?: ConnectOptions()
+        withContext(dispatcherProvider.main) {
+            _uiState.update {
+                it.copy(
+                    accountId = streamingData.accountId,
+                    streamName = streamingData.streamName,
+                    connectOptions = connectOptions
                 )
             }
-            val connectOptions =
-                streamDetail?.let { ConnectOptions.from(streamDetail) } ?: ConnectOptions()
-            withContext(dispatcherProvider.main) {
-                _uiState.update {
-                    it.copy(
-                        accountId = streamingData.accountId,
-                        streamName = streamingData.streamName,
-                        connectOptions = connectOptions
-                    )
-                }
-            }
+        }
 
         if (!repository.data.value.isSubscribed) {
             _uiState.update {
