@@ -434,7 +434,7 @@ class MultiStreamingRepository(
         }
 
         fun playAudio(audioTrack: MultiStreamingData.Audio) {
-            val audioTrackIds = ArrayList(data.value.audioTracks.map { it.id })
+            val audioTrackIds = ArrayList(data.value.allAudioTrackIds)
             subscriber?.unproject(audioTrackIds)
 
             val projectionData = ProjectionData().also {
