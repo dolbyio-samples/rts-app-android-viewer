@@ -7,6 +7,7 @@ import io.dolby.interactiveplayer.rts.data.MultiStreamingRepository
 data class MultiStreamingData(
     val videoTracks: List<Video> = emptyList(),
     val audioTracks: List<Audio> = emptyList(),
+    val allAudioTrackIds: List<String?> = arrayListOf(),
     val selectedVideoTrackId: String? = null,
     val selectedAudioTrackId: String? = null,
     val viewerCount: Int = 0,
@@ -61,7 +62,10 @@ data class MultiStreamingData(
         val audioTracks = audioTracks.toMutableList().apply {
             add(Audio(id, audioTrack, sourceId))
         }
-        return copy(audioTracks = audioTracks, pendingAudioTracks = pendingAudioTracks)
+        val allAudioTracks = allAudioTrackIds.toMutableList().apply {
+            add(id)
+        }
+        return copy(audioTracks = audioTracks, allAudioTrackIds = allAudioTracks, pendingAudioTracks = pendingAudioTracks)
     }
 
     internal fun getPendingVideoTrackInfoOrNull(): PendingTrack? = pendingVideoTracks.firstOrNull()
