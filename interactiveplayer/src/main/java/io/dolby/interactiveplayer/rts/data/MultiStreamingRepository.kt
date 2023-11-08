@@ -144,6 +144,7 @@ class MultiStreamingRepository(
             e.printStackTrace()
         }
         _data.update { data -> data.copy(streamingData = streamingData) }
+        listenForAudioSelection()
     }
 
     fun disconnect() {
