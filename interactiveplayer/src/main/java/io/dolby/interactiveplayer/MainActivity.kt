@@ -24,7 +24,6 @@ class MainActivity : ComponentActivity() {
     override fun onResume() {
         super.onResume()
         val am = getSystemService(AudioManager::class.java) as AudioManager
-        am.mode = AudioManager.MODE_IN_COMMUNICATION
-        am.isSpeakerphoneOn = true
+        am.mode = AudioManager.MODE_NORMAL
     }
 }

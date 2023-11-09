@@ -1,9 +1,13 @@
 package io.dolby.interactiveplayer.rts.data
 
+import android.content.Context
+import android.media.AudioManager
 import android.os.Environment
 import android.util.Log
+import com.millicast.AudioPlayback
 import com.millicast.AudioTrack
 import com.millicast.LayerData
+import com.millicast.Media
 import com.millicast.Subscriber
 import com.millicast.Subscriber.ProjectionData
 import com.millicast.VideoTrack
@@ -37,6 +41,8 @@ import java.util.Optional
 import kotlin.jvm.optionals.getOrNull
 
 class MultiStreamingRepository(
+    private val context: Context,
+    private val millicastSdk: MillicastSdk,
     private val prefsStore: PrefsStore,
     private val dispatcherProvider: DispatcherProvider
 ) {
@@ -47,8 +53,16 @@ class MultiStreamingRepository(
     private val _audioSelection = MutableStateFlow(AudioSelection.default)
     private var audioSelectionListenerJob: Job? = null
 
+    private val media: Media
+//    private var audioPlayback: ArrayList<AudioPlayback>? = null
+
     init {
         listenForAudioSelection()
+        media = millicastSdk.getMedia(context)
+//        audioPlayback = media.audioPlayback
+
+        val am = context.getSystemService(AudioManager::class.java) as AudioManager
+        am.mode = AudioManager.MODE_NORMAL
     }
 
     private fun listenForAudioSelection() {
@@ -105,7 +119,7 @@ class MultiStreamingRepository(
         if (listener?.connected() == true) {
             return
         }
-        val listener = Listener(_data)
+        val listener = Listener(context, _data, media)
         this.listener = listener
         val subscriber = Subscriber.createSubscriber(listener)
 
@@ -197,7 +211,9 @@ class MultiStreamingRepository(
     }
 
     private class Listener(
-        private val data: MutableStateFlow<MultiStreamingData>
+        private val context: Context,
+        private val data: MutableStateFlow<MultiStreamingData>,
+        private val media: Media
     ) : Subscriber.Listener {
 
         var subscriber: Subscriber? = null
@@ -255,10 +271,17 @@ class MultiStreamingRepository(
         }
 
         override fun onSubscribed() {
+            setupAudioManager()
+            audioPlaybackStart()
             Log.d(TAG, "onSubscribed")
             val newData =
                 data.updateAndGet { data -> data.copy(isSubscribed = true, error = null) }
             processPendingTracks(newData)
+        }
+
+        private fun setupAudioManager() {
+            val am = context.getSystemService(AudioManager::class.java) as AudioManager
+            am.mode = AudioManager.MODE_NORMAL
         }
 
         override fun onSubscribedError(p0: String?) {
@@ -285,6 +308,7 @@ class MultiStreamingRepository(
                     data.appendAudioTrack(trackInfo, p0, p1.getOrNull(), trackInfo.sourceId)
                 } ?: data
             }
+            setupAudioManager()
         }
 
         override fun onFrameMetadata(p0: Int, p1: Int, p2: ByteArray?) {
@@ -436,6 +460,9 @@ class MultiStreamingRepository(
             val audioTrackIds = ArrayList(data.value.allAudioTrackIds)
             subscriber?.unproject(audioTrackIds)
 
+            val am = context.getSystemService(AudioManager::class.java) as AudioManager
+            am.mode = AudioManager.MODE_NORMAL
+
             val projectionData = ProjectionData().also {
                 it.mid = audioTrack.id
                 it.trackId = audio
@@ -458,6 +485,17 @@ class MultiStreamingRepository(
                     subscriber?.addRemoteTrack(audio)
                 }
                 this.data.update { it.markPendingTracksAsAdded() }
+            }
+        }
+
+        fun audioPlaybackStart() {
+            val audioPlayback = media.audioPlayback
+
+            Log.d(TAG, "AudioPlayback is: $audioPlayback")
+
+            audioPlayback?.let {
+                it[0].initPlayback()
+                Log.d(TAG, "OK. Playback initiated.")
             }
         }
     }
