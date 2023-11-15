@@ -89,7 +89,10 @@ class MultiStreamingRepository(
                             data.audioTracks.firstOrNull { it.sourceId == audioSelection.sourceId }
                         audioTrack?.let {
                             audioSourceIdToSelect = audioTrack
-                        } ?: prefsStore.updateAudioSelection(AudioSelection.default, data.streamingData)
+                        } ?: prefsStore.updateAudioSelection(
+                            AudioSelection.default,
+                            data.streamingData
+                        )
                     }
                 }
                 audioSourceIdToSelect?.let { audio ->
@@ -272,18 +275,27 @@ class MultiStreamingRepository(
             val mid = p1.getOrNull()
             Log.d(TAG, "onVideoTrack: $mid, $p0")
             data.update { data ->
-                data.getPendingVideoTrackInfoOrNull()?.let { trackInfo ->
-                    data.appendOtherVideoTrack(trackInfo, p0, mid, trackInfo.sourceId)
-                } ?: data
+                if (data.videoTracks.isEmpty()) {
+                    data.addPendingMainVideoTrack(p0, mid)
+                } else {
+                    data.getPendingVideoTrackInfoOrNull()?.let { trackInfo ->
+                        data.appendOtherVideoTrack(trackInfo, p0, mid, trackInfo.sourceId)
+                    } ?: data
+                }
             }
         }
 
         override fun onTrack(p0: AudioTrack, p1: Optional<String>) {
-            Log.d(TAG, "onAudioTrack: ${p1.getOrNull()}, $p0")
+            val mid = p1.getOrNull()
+            Log.d(TAG, "onAudioTrack: $mid, $p0")
             data.update { data ->
-                data.getPendingAudioTrackInfoOrNull()?.let { trackInfo ->
-                    data.appendAudioTrack(trackInfo, p0, p1.getOrNull(), trackInfo.sourceId)
-                } ?: data
+                if (data.audioTracks.isEmpty()) {
+                    data.addPendingMainAudioTrack(p0, mid)
+                } else {
+                    data.getPendingAudioTrackInfoOrNull()?.let { trackInfo ->
+                        data.appendAudioTrack(trackInfo, p0, p1.getOrNull(), trackInfo.sourceId)
+                    } ?: data
+                }
             }
         }
 
@@ -300,8 +312,19 @@ class MultiStreamingRepository(
             Log.d(TAG, "onActive: $stream, $tracksInfo, ${optionalSourceId.getOrNull()}")
             val sourceId = optionalSourceId.getOrNull()
             val pendingTracks = MultiStreamingData.parseTracksInfo(tracksInfo, sourceId)
-            val newData = data.updateAndGet { data -> data.addPendingTracks(pendingTracks) }
-            processPendingTracks(newData)
+            if (data.value.videoTracks.isEmpty()) {
+                data.update { data ->
+                    data.addPendingMainVideoTrack(pendingTracks.videoTracks.firstOrNull())
+                }
+                if (data.value.audioTracks.isEmpty()) {
+                    data.update { data ->
+                        data.addPendingMainAudioTrack(pendingTracks.audioTracks.firstOrNull())
+                    }
+                }
+            } else {
+                val newData = data.updateAndGet { data -> data.addPendingTracks(pendingTracks) }
+                processPendingTracks(newData)
+            }
         }
 
         override fun onInactive(p0: String, p1: Optional<String>) {
