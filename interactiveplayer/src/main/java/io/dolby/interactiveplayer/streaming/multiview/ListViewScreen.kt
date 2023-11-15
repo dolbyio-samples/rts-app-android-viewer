@@ -42,6 +42,7 @@ import io.dolby.interactiveplayer.R
 import io.dolby.interactiveplayer.rts.data.MultiStreamingRepository
 import io.dolby.interactiveplayer.rts.domain.MultiStreamingData
 import io.dolby.interactiveplayer.rts.ui.DolbyBackgroundBox
+import io.dolby.interactiveplayer.rts.ui.LabelIndicator
 import io.dolby.interactiveplayer.rts.ui.LiveIndicator
 import io.dolby.interactiveplayer.rts.ui.TopAppBar
 import io.dolby.interactiveplayer.streaming.ErrorView
@@ -172,11 +173,9 @@ fun HorizontalEndListView(
                     }
                 )
                 if (displayLabel) {
-                    Text(
-                        text = uiState.selectedVideoTrackId ?: "Main",
-                        modifier = Modifier.align(
-                            Alignment.BottomStart
-                        )
+                    LabelIndicator(
+                        modifier = Modifier.align(Alignment.BottomStart),
+                        label = uiState.selectedVideoTrackId
                     )
                 }
 //                QualityLabel(
@@ -263,9 +262,9 @@ fun VerticalTopListView(
                     }
                 )
                 if (displayLabel) {
-                    Text(
-                        text = mainVideo?.sourceId ?: "Main",
-                        modifier = Modifier.align(Alignment.BottomStart)
+                    LabelIndicator(
+                        modifier = Modifier.align(Alignment.BottomStart),
+                        label = mainVideo?.sourceId
                     )
                 }
 //                QualityLabel(
@@ -334,10 +333,7 @@ fun VideoView(
             }
         )
         if (displayLabel) {
-            Text(
-                text = video.sourceId ?: "Main",
-                modifier = Modifier.align(Alignment.BottomStart)
-            )
+            LabelIndicator(modifier = Modifier.align(Alignment.BottomStart), label = video.sourceId)
         }
         if (displayQuality) {
             QualityLabel(

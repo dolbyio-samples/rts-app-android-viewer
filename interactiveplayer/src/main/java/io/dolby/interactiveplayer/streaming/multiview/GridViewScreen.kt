@@ -13,7 +13,6 @@ import androidx.compose.foundation.lazy.grid.items
 import androidx.compose.foundation.lazy.grid.rememberLazyGridState
 import androidx.compose.material.CircularProgressIndicator
 import androidx.compose.material.Scaffold
-import androidx.compose.material.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
@@ -32,6 +31,7 @@ import io.dolby.interactiveplayer.R
 import io.dolby.interactiveplayer.rts.data.MultiStreamingRepository
 import io.dolby.interactiveplayer.rts.domain.MultiStreamingData
 import io.dolby.interactiveplayer.rts.ui.DolbyBackgroundBox
+import io.dolby.interactiveplayer.rts.ui.LabelIndicator
 import io.dolby.interactiveplayer.rts.ui.TopAppBar
 import io.dolby.interactiveplayer.streaming.ErrorView
 import org.webrtc.RendererCommon
@@ -166,9 +166,9 @@ private fun VideoView(
             }
         )
         if (displayLabel) {
-            Text(
-                text = video.sourceId ?: "Main",
-                modifier = Modifier.align(Alignment.BottomStart)
+            LabelIndicator(
+                modifier = Modifier.align(Alignment.BottomStart),
+                label = video.sourceId
             )
         }
         if (displayQuality) {
