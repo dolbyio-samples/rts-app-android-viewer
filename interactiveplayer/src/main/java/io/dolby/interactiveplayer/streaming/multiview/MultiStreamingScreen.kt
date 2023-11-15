@@ -1,5 +1,6 @@
 package io.dolby.interactiveplayer.streaming.multiview
 
+import androidx.activity.compose.BackHandler
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.collectAsState
 import androidx.hilt.navigation.compose.hiltViewModel
@@ -19,6 +20,10 @@ fun MultiStreamingScreen(
         uiState.value.streamName?.let { streamName ->
             StreamingData(accountId, streamName)
         }
+    }
+    BackHandler(true) {
+        viewModel.disconnect()
+        onBack()
     }
     when (multiviewLayout.value) {
         MultiviewLayout.GridView -> {
