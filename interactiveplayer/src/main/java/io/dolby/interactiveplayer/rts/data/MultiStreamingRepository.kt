@@ -309,21 +309,24 @@ class MultiStreamingRepository(
             tracksInfo: Array<out String>,
             optionalSourceId: Optional<String>
         ) {
-            Log.d(TAG, "onActive: $stream, $tracksInfo, ${optionalSourceId.getOrNull()}")
+            Log.d(TAG, "onActive: $stream, ${tracksInfo.toList()}, ${optionalSourceId.getOrNull()}")
             val sourceId = optionalSourceId.getOrNull()
             val pendingTracks = MultiStreamingData.parseTracksInfo(tracksInfo, sourceId)
             if (data.value.videoTracks.isEmpty()) {
                 data.update { data ->
                     data.addPendingMainVideoTrack(pendingTracks.videoTracks.firstOrNull())
                 }
-                if (data.value.audioTracks.isEmpty()) {
-                    data.update { data ->
-                        data.addPendingMainAudioTrack(pendingTracks.audioTracks.firstOrNull())
-                    }
+            } else {
+                val newData = data.updateAndGet { data -> data.addPendingTracks(pendingTracks, processAudio = false) }
+                processPendingTracks(newData, processAudio = false)
+            }
+            if (data.value.audioTracks.isEmpty()) {
+                data.update { data ->
+                    data.addPendingMainAudioTrack(pendingTracks.audioTracks.firstOrNull())
                 }
             } else {
-                val newData = data.updateAndGet { data -> data.addPendingTracks(pendingTracks) }
-                processPendingTracks(newData)
+                val newData = data.updateAndGet { data -> data.addPendingTracks(pendingTracks, processVideo = false) }
+                processPendingTracks(newData, processVideo = false)
             }
         }
 
@@ -470,17 +473,21 @@ class MultiStreamingRepository(
             }
         }
 
-        private fun processPendingTracks(data: MultiStreamingData) {
+        private fun processPendingTracks(data: MultiStreamingData, processVideo: Boolean = true, processAudio: Boolean = true) {
             if (data.isSubscribed) {
-                val pendingTracks = data.pendingVideoTracks.count { !it.added }
-                val pendingAudioTracks = data.pendingAudioTracks.count { !it.added }
-                repeat(pendingTracks) {
-                    subscriber?.addRemoteTrack(video)
+                if (processVideo) {
+                    val pendingVideoTracks = data.pendingVideoTracks.count { !it.added }
+                    repeat(pendingVideoTracks) {
+                        subscriber?.addRemoteTrack(video)
+                    }
                 }
-                repeat(pendingAudioTracks) {
-                    subscriber?.addRemoteTrack(audio)
+                if (processAudio) {
+                    val pendingAudioTracks = data.pendingAudioTracks.count { !it.added }
+                    repeat(pendingAudioTracks) {
+                        subscriber?.addRemoteTrack(audio)
+                    }
                 }
-                this.data.update { it.markPendingTracksAsAdded() }
+                this.data.update { it.markPendingTracksAsAdded(processVideo = processVideo, processAudio = processAudio) }
             }
         }
     }

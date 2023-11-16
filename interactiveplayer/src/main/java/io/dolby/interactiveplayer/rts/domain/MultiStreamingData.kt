@@ -97,13 +97,17 @@ data class MultiStreamingData(
         return copy(videoTracks = videoTracks, pendingVideoTracks = pendingVideoTracks)
     }
 
-    internal fun addPendingTracks(pendingTracks: PendingTracks): MultiStreamingData {
-        val pendingVideoTracks = pendingVideoTracks.toMutableList().apply {
-            addAll(pendingTracks.videoTracks)
-        }
-        val pendingAudioTracks = pendingAudioTracks.toMutableList().apply {
-            addAll(pendingTracks.audioTracks)
-        }
+    internal fun addPendingTracks(pendingTracks: PendingTracks, processVideo: Boolean = true, processAudio: Boolean = true): MultiStreamingData {
+        val pendingVideoTracks = if (processVideo) {
+            pendingVideoTracks.toMutableList().apply {
+                addAll(pendingTracks.videoTracks)
+            }
+        } else pendingVideoTracks
+        val pendingAudioTracks = if (processAudio) {
+            pendingAudioTracks.toMutableList().apply {
+                addAll(pendingTracks.audioTracks)
+            }
+        } else pendingAudioTracks
         return copy(
             pendingVideoTracks = pendingVideoTracks,
             pendingAudioTracks = pendingAudioTracks,
@@ -129,7 +133,15 @@ data class MultiStreamingData(
         val pendingMainVideoTrack = pendingMainVideoTrack ?: return this
         pendingTrack ?: return this
         val videoTracks = videoTracks.toMutableList().apply {
-            add(Video(pendingMainVideoTrack.mid, pendingMainVideoTrack.videoTrack, pendingTrack.sourceId, pendingTrack.mediaType, pendingTrack.trackId))
+            add(
+                Video(
+                    pendingMainVideoTrack.mid,
+                    pendingMainVideoTrack.videoTrack,
+                    pendingTrack.sourceId,
+                    pendingTrack.mediaType,
+                    pendingTrack.trackId
+                )
+            )
         }
         return copy(videoTracks = videoTracks)
     }
@@ -144,9 +156,9 @@ data class MultiStreamingData(
         }
         return copy(audioTracks = audioTracks, allAudioTrackIds = allAudioTracks)
     }
-    fun markPendingTracksAsAdded(): MultiStreamingData {
-        val pendingVideoTracks = pendingVideoTracks.map { it.copy(added = true) }
-        val pendingAudioTracks = pendingAudioTracks.map { it.copy(added = true) }
+    fun markPendingTracksAsAdded(processVideo: Boolean = true, processAudio: Boolean = true): MultiStreamingData {
+        val pendingVideoTracks = if (processVideo) pendingVideoTracks.map { it.copy(added = true) } else pendingVideoTracks
+        val pendingAudioTracks = if (processAudio) pendingAudioTracks.map { it.copy(added = true) } else pendingAudioTracks
         return copy(
             pendingVideoTracks = pendingVideoTracks,
             pendingAudioTracks = pendingAudioTracks,
