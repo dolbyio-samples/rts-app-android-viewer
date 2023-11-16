@@ -23,11 +23,11 @@ fun MultiStreamingScreen(
     }
     BackHandler(true) {
         viewModel.disconnect()
-        onBack()
     }
     when (multiviewLayout.value) {
         MultiviewLayout.GridView -> {
             GridViewScreen(
+                viewModel = viewModel,
                 onBack = onBack,
                 onMainClick = onMainClick,
                 onSettingsClick = { onSettingsClick(streamingData) }

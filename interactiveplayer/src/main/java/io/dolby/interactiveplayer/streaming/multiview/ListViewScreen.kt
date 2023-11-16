@@ -50,7 +50,7 @@ import org.webrtc.RendererCommon
 
 @Composable
 fun ListViewScreen(
-    viewModel: MultiStreamingViewModel = hiltViewModel(),
+    viewModel: MultiStreamingViewModel,
     onBack: () -> Unit,
     onMainClick: (String?) -> Unit,
     onSettingsClick: () -> Unit
