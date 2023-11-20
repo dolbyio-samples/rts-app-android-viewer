@@ -55,39 +55,38 @@ class MultiStreamingRepository(
     private var audioSelectionListenerJob: Job? = null
 
     private val audioManager = context.getSystemService(AudioManager::class.java) as AudioManager
+    private val handlerThread = HandlerThread("Audio Device Listener")
+    private val audioDeviceCallback = object : AudioDeviceCallback() {
+        override fun onAudioDevicesAdded(addedDevices: Array<out AudioDeviceInfo>) {
+            if (
+                addedDevices.firstOrNull {
+                    it.type == AudioDeviceInfo.TYPE_BLUETOOTH_A2DP ||
+                        it.type == AudioDeviceInfo.TYPE_BLUETOOTH_SCO
+                } != null
+            ) {
+                turnBluetoothHeadset()
+            }
+        }
+
+        override fun onAudioDevicesRemoved(removedDevices: Array<out AudioDeviceInfo>) {
+            if (removedDevices.firstOrNull {
+                it.type == AudioDeviceInfo.TYPE_BLUETOOTH_A2DP ||
+                    it.type == AudioDeviceInfo.TYPE_BLUETOOTH_SCO
+            } != null
+            ) {
+                turnSpeakerPhone()
+            }
+        }
+    }
 
     init {
         listenForAudioSelection()
-
-        listenForAudioMode()
     }
 
-    private fun listenForAudioMode() {
-        val handlerThread = HandlerThread("listener")
+    private fun listenForAudioDevices() {
         handlerThread.start()
         audioManager.registerAudioDeviceCallback(
-            object : AudioDeviceCallback() {
-                override fun onAudioDevicesAdded(addedDevices: Array<out AudioDeviceInfo>) {
-                    if (
-                        addedDevices.firstOrNull {
-                            it.type == AudioDeviceInfo.TYPE_BLUETOOTH_A2DP ||
-                                it.type == AudioDeviceInfo.TYPE_BLUETOOTH_SCO
-                        } != null
-                    ) {
-                        turnBluetoothHeadset()
-                    }
-                }
-
-                override fun onAudioDevicesRemoved(removedDevices: Array<out AudioDeviceInfo>) {
-                    if (removedDevices.firstOrNull {
-                        it.type == AudioDeviceInfo.TYPE_BLUETOOTH_A2DP ||
-                            it.type == AudioDeviceInfo.TYPE_BLUETOOTH_SCO
-                    } != null
-                    ) {
-                        turnSpeakerPhone()
-                    }
-                }
-            },
+            audioDeviceCallback,
             Handler(handlerThread.looper)
         )
         if (audioManager.getDevices(AudioManager.GET_DEVICES_OUTPUTS).firstOrNull {
@@ -99,6 +98,10 @@ class MultiStreamingRepository(
         } else {
             turnSpeakerPhone()
         }
+    }
+
+    private fun unregisterAudioDeviceListener() {
+        audioManager.unregisterAudioDeviceCallback(audioDeviceCallback)
     }
 
     private fun turnBluetoothHeadset() {
@@ -211,11 +214,13 @@ class MultiStreamingRepository(
         }
         _data.update { data -> data.copy(streamingData = streamingData) }
         listenForAudioSelection()
+        listenForAudioDevices()
     }
 
     fun disconnect() {
         _data.update { MultiStreamingData() }
         listener?.disconnect()
+        unregisterAudioDeviceListener()
     }
 
     private fun credential(
