@@ -1,5 +1,6 @@
 package io.dolby.interactiveplayer.streaming.multiview
 
+import androidx.activity.compose.BackHandler
 import androidx.compose.foundation.ExperimentalFoundationApi
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.aspectRatio
@@ -59,6 +60,7 @@ fun SingleStreamingScreen(
             StreamingData(accountId, streamName)
         }
     }
+
     Scaffold(
         topBar = {
             TopAppBar(
@@ -130,7 +132,7 @@ fun SingleStreamingScreen(
                 }
             )
 
-            Statistics(viewModel, uiState, pagerState.currentPage)
+            Statistics(viewModel, uiState, pagerState.currentPage, onBack)
         }
     }
 }
@@ -139,9 +141,18 @@ fun SingleStreamingScreen(
 private fun Statistics(
     viewModel: MultiStreamingViewModel,
     uiState: MultiStreamingUiState,
-    currentPage: Int
+    currentPage: Int,
+    onBack: () -> Unit
 ) {
     val statisticsState by viewModel.statisticsState.collectAsStateWithLifecycle()
+
+    BackHandler {
+        if (statisticsState.showStatistics) {
+            viewModel.updateStatistics(false)
+        } else {
+            onBack()
+        }
+    }
     if (statisticsState.showStatistics && statisticsState.statisticsData != null) {
         val statistics =
             viewModel.streamingStatistics(uiState.videoTracks[currentPage].id)

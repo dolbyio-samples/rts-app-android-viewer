@@ -23,6 +23,7 @@ fun MultiStreamingScreen(
     }
     BackHandler(true) {
         viewModel.disconnect()
+        onBack()
     }
     when (multiviewLayout.value) {
         MultiviewLayout.GridView -> {
