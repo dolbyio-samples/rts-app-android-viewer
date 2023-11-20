@@ -1,6 +1,5 @@
 package io.dolby.interactiveplayer
 
-import android.media.AudioManager
 import android.os.Bundle
 import androidx.activity.ComponentActivity
 import androidx.activity.compose.setContent
@@ -19,12 +18,5 @@ class MainActivity : ComponentActivity() {
                 AppNavigation(navController)
             }
         }
-    }
-
-    override fun onResume() {
-        super.onResume()
-        val am = getSystemService(AudioManager::class.java) as AudioManager
-        am.mode = AudioManager.MODE_IN_COMMUNICATION
-        am.isSpeakerphoneOn = true
     }
 }
