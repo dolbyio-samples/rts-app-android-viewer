@@ -1,6 +1,12 @@
 package io.dolby.interactiveplayer.rts.data
 
+import android.content.Context
+import android.media.AudioDeviceCallback
+import android.media.AudioDeviceInfo
+import android.media.AudioManager
 import android.os.Environment
+import android.os.Handler
+import android.os.HandlerThread
 import android.util.Log
 import com.millicast.AudioTrack
 import com.millicast.LayerData
@@ -37,6 +43,7 @@ import java.util.Optional
 import kotlin.jvm.optionals.getOrNull
 
 class MultiStreamingRepository(
+    context: Context,
     private val prefsStore: PrefsStore,
     private val dispatcherProvider: DispatcherProvider
 ) {
@@ -47,8 +54,64 @@ class MultiStreamingRepository(
     private val _audioSelection = MutableStateFlow(AudioSelection.default)
     private var audioSelectionListenerJob: Job? = null
 
+    private val audioManager = context.getSystemService(AudioManager::class.java) as AudioManager
+
     init {
         listenForAudioSelection()
+
+        listenForAudioMode()
+    }
+
+    private fun listenForAudioMode() {
+        val handlerThread = HandlerThread("listener")
+        handlerThread.start()
+        audioManager.registerAudioDeviceCallback(
+            object : AudioDeviceCallback() {
+                override fun onAudioDevicesAdded(addedDevices: Array<out AudioDeviceInfo>) {
+                    if (
+                        addedDevices.firstOrNull {
+                            it.type == AudioDeviceInfo.TYPE_BLUETOOTH_A2DP ||
+                                it.type == AudioDeviceInfo.TYPE_BLUETOOTH_SCO
+                        } != null
+                    ) {
+                        turnBluetoothHeadset()
+                    }
+                }
+
+                override fun onAudioDevicesRemoved(removedDevices: Array<out AudioDeviceInfo>) {
+                    if (removedDevices.firstOrNull {
+                        it.type == AudioDeviceInfo.TYPE_BLUETOOTH_A2DP ||
+                            it.type == AudioDeviceInfo.TYPE_BLUETOOTH_SCO
+                    } != null
+                    ) {
+                        turnSpeakerPhone()
+                    }
+                }
+            },
+            Handler(handlerThread.looper)
+        )
+        if (audioManager.getDevices(AudioManager.GET_DEVICES_OUTPUTS).firstOrNull {
+            it.type == AudioDeviceInfo.TYPE_BLUETOOTH_A2DP ||
+                it.type == AudioDeviceInfo.TYPE_BLUETOOTH_SCO
+        } != null
+        ) {
+            turnBluetoothHeadset()
+        } else {
+            turnSpeakerPhone()
+        }
+    }
+
+    private fun turnBluetoothHeadset() {
+        audioManager.mode = AudioManager.MODE_IN_CALL
+        audioManager.isBluetoothScoOn = true
+        audioManager.startBluetoothSco()
+    }
+
+    private fun turnSpeakerPhone() {
+        audioManager.mode = AudioManager.MODE_IN_COMMUNICATION
+        audioManager.stopBluetoothSco()
+        audioManager.isBluetoothScoOn = false
+        audioManager.isSpeakerphoneOn = true
     }
 
     private fun listenForAudioSelection() {
