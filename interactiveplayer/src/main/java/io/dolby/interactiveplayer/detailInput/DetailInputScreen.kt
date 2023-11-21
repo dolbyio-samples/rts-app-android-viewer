@@ -321,7 +321,7 @@ fun ConnectionOptions(viewModel: DetailInputViewModel) {
                         )
                     }
 
-                    var sliderValue by remember { mutableFloatStateOf(0f) }
+                    var sliderValue by remember { mutableFloatStateOf(selectedConnectOptions.value.videoJitterMinimumDelayMs.toFloat()) }
                     Text(
                         text = stringResource(id = R.string.connection_options_jitter_buffer_delay_title) +
                             " - ${selectedConnectOptions.value.videoJitterMinimumDelayMs}ms"
