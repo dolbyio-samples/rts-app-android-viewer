@@ -170,6 +170,7 @@ data class MultiStreamingData(
     fun populateError(error: String): MultiStreamingData = copy(
         videoTracks = emptyList(),
         audioTracks = emptyList(),
+        selectedAudioTrackId = null,
         error = error,
         isSubscribed = false
     )
