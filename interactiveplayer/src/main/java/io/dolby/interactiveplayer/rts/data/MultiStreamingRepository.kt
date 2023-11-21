@@ -81,10 +81,10 @@ class MultiStreamingRepository(
 
     init {
         listenForAudioSelection()
+        handlerThread.start()
     }
 
     private fun listenForAudioDevices() {
-        handlerThread.start()
         audioManager.registerAudioDeviceCallback(
             audioDeviceCallback,
             Handler(handlerThread.looper)
