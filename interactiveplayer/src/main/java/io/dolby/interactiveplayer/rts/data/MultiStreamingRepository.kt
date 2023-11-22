@@ -7,6 +7,7 @@ import android.media.AudioManager
 import android.os.Environment
 import android.os.Handler
 import android.os.HandlerThread
+import android.provider.Settings
 import android.util.Log
 import com.millicast.AudioTrack
 import com.millicast.LayerData
@@ -22,6 +23,8 @@ import io.dolby.interactiveplayer.rts.domain.MultiStreamingData.Companion.audio
 import io.dolby.interactiveplayer.rts.domain.MultiStreamingData.Companion.video
 import io.dolby.interactiveplayer.rts.domain.StreamingData
 import io.dolby.interactiveplayer.rts.utils.DispatcherProvider
+import io.dolby.interactiveplayer.utils.VolumeObserver
+import io.dolby.interactiveplayer.utils.adjustTrackVolume
 import io.dolby.interactiveplayer.utils.createDirectoryIfNotExists
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Job
@@ -43,7 +46,7 @@ import java.util.Optional
 import kotlin.jvm.optionals.getOrNull
 
 class MultiStreamingRepository(
-    context: Context,
+    private val context: Context,
     private val prefsStore: PrefsStore,
     private val dispatcherProvider: DispatcherProvider
 ) {
@@ -54,6 +57,7 @@ class MultiStreamingRepository(
     private val _audioSelection = MutableStateFlow(AudioSelection.default)
     private var audioSelectionListenerJob: Job? = null
 
+    private var volumeObserver: VolumeObserver? = null
     private val audioManager = context.getSystemService(AudioManager::class.java) as AudioManager
     private val handlerThread = HandlerThread("Audio Device Listener")
     private val audioDeviceCallback = object : AudioDeviceCallback() {
@@ -111,7 +115,7 @@ class MultiStreamingRepository(
     }
 
     private fun turnSpeakerPhone() {
-        audioManager.mode = AudioManager.MODE_IN_COMMUNICATION
+        audioManager.mode = AudioManager.MODE_NORMAL
         audioManager.stopBluetoothSco()
         audioManager.isBluetoothScoOn = false
         audioManager.isSpeakerphoneOn = true
@@ -165,6 +169,8 @@ class MultiStreamingRepository(
                     if (audioSourceIdToSelect?.sourceId != data.selectedAudioTrackId) {
                         playAudio(audio)
                     }
+                    adjustTrackVolume(context, audio.audioTrack)
+                    addVolumeObserver(audio.audioTrack)
                 }
             }
         }
@@ -219,6 +225,7 @@ class MultiStreamingRepository(
 
     fun disconnect() {
         _data.update { MultiStreamingData() }
+        unregisterVolumeObserver()
         listener?.disconnect()
         unregisterAudioDeviceListener()
     }
@@ -265,6 +272,24 @@ class MultiStreamingRepository(
 
     private fun playAudio(audio: MultiStreamingData.Audio) {
         listener?.playAudio(audio)
+    }
+
+    private fun addVolumeObserver(audioTrack: AudioTrack) {
+        unregisterVolumeObserver()
+        val volumeObserver = VolumeObserver(context, Handler(handlerThread.looper), audioTrack)
+        context.contentResolver.registerContentObserver(
+            Settings.System.CONTENT_URI,
+            true,
+            volumeObserver
+        )
+        this.volumeObserver = volumeObserver
+    }
+
+    private fun unregisterVolumeObserver() {
+        volumeObserver?.let {
+            context.contentResolver.unregisterContentObserver(it)
+        }
+        volumeObserver = null
     }
 
     private class Listener(
