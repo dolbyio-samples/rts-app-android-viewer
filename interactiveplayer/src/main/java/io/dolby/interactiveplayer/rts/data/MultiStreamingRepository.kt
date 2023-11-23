@@ -4,6 +4,7 @@ import android.content.Context
 import android.media.AudioDeviceCallback
 import android.media.AudioDeviceInfo
 import android.media.AudioManager
+import android.os.Build
 import android.os.Environment
 import android.os.Handler
 import android.os.HandlerThread
@@ -111,14 +112,29 @@ class MultiStreamingRepository(
     private fun turnBluetoothHeadset() {
         audioManager.mode = AudioManager.MODE_IN_CALL
         audioManager.isBluetoothScoOn = true
-        audioManager.startBluetoothSco()
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.S) {
+            val device = audioManager.availableCommunicationDevices.firstOrNull { it.type == AudioDeviceInfo.TYPE_BLUETOOTH_SCO }
+            device?.let {
+                audioManager.setCommunicationDevice(it)
+            }
+        } else {
+            audioManager.startBluetoothSco()
+        }
     }
 
     private fun turnSpeakerPhone() {
         audioManager.mode = AudioManager.MODE_NORMAL
-        audioManager.stopBluetoothSco()
         audioManager.isBluetoothScoOn = false
-        audioManager.isSpeakerphoneOn = true
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.S) {
+            val device = audioManager.availableCommunicationDevices.firstOrNull { it.type == AudioDeviceInfo.TYPE_BUILTIN_SPEAKER }
+            device?.let {
+                audioManager.clearCommunicationDevice()
+                audioManager.setCommunicationDevice(it)
+            }
+        } else {
+            audioManager.stopBluetoothSco()
+            audioManager.isSpeakerphoneOn = true
+        }
     }
 
     private fun listenForAudioSelection() {
