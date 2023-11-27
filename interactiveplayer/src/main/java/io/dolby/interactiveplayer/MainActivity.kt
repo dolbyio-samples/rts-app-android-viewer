@@ -6,7 +6,6 @@ import androidx.activity.compose.setContent
 import androidx.navigation.compose.rememberNavController
 import dagger.hilt.android.AndroidEntryPoint
 import io.dolby.interactiveplayer.navigation.AppNavigation
-import io.dolby.interactiveplayer.utils.SetupVolumeControlAudioStream
 import io.dolby.rtsviewer.uikit.theme.RTSViewerTheme
 
 @AndroidEntryPoint
@@ -16,7 +15,7 @@ class MainActivity : ComponentActivity() {
         setContent {
             val navController = rememberNavController()
             RTSViewerTheme {
-                SetupVolumeControlAudioStream()
+//                SetupVolumeControlAudioStream()
                 AppNavigation(navController)
             }
         }

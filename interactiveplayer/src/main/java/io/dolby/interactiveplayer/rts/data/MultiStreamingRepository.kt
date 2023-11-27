@@ -115,7 +115,7 @@ class MultiStreamingRepository(
     }
 
     private fun turnSpeakerPhone() {
-        audioManager.mode = AudioManager.MODE_NORMAL
+        audioManager.mode = AudioManager.MODE_IN_COMMUNICATION
         audioManager.stopBluetoothSco()
         audioManager.isBluetoothScoOn = false
         audioManager.isSpeakerphoneOn = true
