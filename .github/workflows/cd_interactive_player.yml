@@ -59,13 +59,6 @@ jobs:
           path: |
             ./interactiveplayer/build/outputs/bundle/release/interactiveplayer-release.aab
 
-      - name: Archive Interactive Player production apk
-        uses: actions/upload-artifact@v3
-        with:
-          name: interactive-player-release-apk
-          path: |
-            ./interactiveplayer/build/outputs/bundle/release/interactiveplayer-release.apk
-
   Android-Play-Store-Distribution:
     needs: Android-Interactive-Player-Build
     runs-on: ubuntu-latest
