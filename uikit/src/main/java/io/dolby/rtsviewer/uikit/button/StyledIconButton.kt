@@ -17,13 +17,14 @@ import androidx.compose.foundation.interaction.MutableInteractionSource
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.padding
 import androidx.compose.material.MaterialTheme
-import androidx.compose.material.Text
+import io.dolby.rtsviewer.uikit.text.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.remember
 import androidx.compose.ui.Alignment.Companion.CenterVertically
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.ColorFilter
 import androidx.compose.ui.graphics.painter.Painter
+import androidx.compose.ui.platform.testTag
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.semantics.Role
 import androidx.compose.ui.semantics.contentDescription
@@ -67,6 +68,7 @@ fun StyledIconButton(
             )
             .padding(17.dp)
             .semantics { contentDescription = iconButtonContentDescription }
+            .testTag(iconButtonContentDescription)
     ) {
         text?.let {
             Text(
@@ -78,6 +80,7 @@ fun StyledIconButton(
                 modifier = Modifier
                     .align(CenterVertically)
                     .semantics { contentDescription = iconButtonContentDescription }
+                    .testTag(iconButtonContentDescription)
                     .padding(horizontal = 10.dp)
             )
         }

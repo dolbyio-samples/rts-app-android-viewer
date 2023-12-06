@@ -16,6 +16,10 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.focus.FocusRequester
 import androidx.compose.ui.focus.focusRequester
 import androidx.compose.ui.focus.onFocusChanged
+import androidx.compose.ui.platform.testTag
+import androidx.compose.ui.res.stringResource
+import androidx.compose.ui.semantics.contentDescription
+import androidx.compose.ui.semantics.semantics
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.launch
 
@@ -38,6 +42,8 @@ fun TvTextInput(
     val isFocused by interactionSource.collectIsFocusedAsState()
     val focusRequester = remember { FocusRequester() }
     val scope = rememberCoroutineScope()
+    val textInputContentDescription =
+        "${label.ifEmpty { value }} ${stringResource(id = textInputContentDescriptionId)}"
 
     if (isFocused) {
         LaunchedEffect(Unit) {
@@ -55,7 +61,9 @@ fun TvTextInput(
                         isActivatedState.value = false
                         isSelectedState.value = false
                     }
-                },
+                }
+                .semantics { contentDescription = textInputContentDescription }
+                .testTag(textInputContentDescription),
             value,
             onValueChange,
             label,
@@ -85,7 +93,9 @@ fun TvTextInput(
                     if (it.isFocused && isSelectedState.value) {
                         isActivatedState.value = true
                     }
-                },
+                }
+                .semantics { contentDescription = textInputContentDescription }
+                .testTag(textInputContentDescription),
             value,
             onValueChange,
             label,

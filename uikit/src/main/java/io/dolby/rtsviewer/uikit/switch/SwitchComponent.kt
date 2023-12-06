@@ -27,7 +27,7 @@ import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.selection.toggleable
 import androidx.compose.material.MaterialTheme
 import androidx.compose.material.Switch
-import androidx.compose.material.Text
+import io.dolby.rtsviewer.uikit.text.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.remember
@@ -35,6 +35,7 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.ColorFilter
 import androidx.compose.ui.graphics.painter.Painter
+import androidx.compose.ui.platform.testTag
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.semantics.Role
 import androidx.compose.ui.semantics.contentDescription
@@ -67,8 +68,7 @@ fun SwitchComponent(
     val backgroundColor = selectableButtonBackgroundColor(state = viewState)
     val borderColor = selectableButtonBorderColor(state = viewState)
     val fontColor = selectableButtonFontColor(state = viewState, isPrimary = true)
-    val switchComponentContentDescription =
-        "$text ${stringResource(id = R.string.switch_contentDescription)}"
+    val switchComponentContentDescription = "$text ${stringResource(id = R.string.switch_contentDescription)}"
 
     Row(
         modifier = modifier
@@ -86,6 +86,7 @@ fun SwitchComponent(
                 contentDescription = switchComponentContentDescription
                 toggleableState = if (checked) ToggleableState.On else ToggleableState.Off
             }
+            .testTag(switchComponentContentDescription)
             .toggleable(
                 value = checked,
                 interactionSource = interactionSource,
