@@ -7,7 +7,6 @@ import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.height
 import androidx.compose.material.MaterialTheme
-import io.dolby.rtsviewer.uikit.text.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
@@ -16,6 +15,7 @@ import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import io.dolby.interactiveplayer.R
 import io.dolby.interactiveplayer.streaming.multiview.Error
+import io.dolby.rtsviewer.uikit.text.Text
 
 @Composable
 fun ErrorView(error: Error) {

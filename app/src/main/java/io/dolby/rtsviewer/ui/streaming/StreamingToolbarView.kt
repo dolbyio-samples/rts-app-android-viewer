@@ -9,7 +9,6 @@ import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.MaterialTheme
-import io.dolby.rtsviewer.uikit.text.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
@@ -30,6 +29,7 @@ import androidx.constraintlayout.compose.ConstraintLayout
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import io.dolby.rtsviewer.R
 import io.dolby.rtsviewer.uikit.button.StyledIconButton
+import io.dolby.rtsviewer.uikit.text.Text
 import io.dolby.rtsviewer.utils.anyDpadKeyEvent
 import kotlinx.coroutines.delay
 import java.util.Locale

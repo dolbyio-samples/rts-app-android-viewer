@@ -23,7 +23,6 @@ import androidx.compose.material.FractionalThreshold
 import androidx.compose.material.MaterialTheme
 import androidx.compose.material.Scaffold
 import androidx.compose.material.SwipeToDismiss
-import io.dolby.rtsviewer.uikit.text.Text
 import androidx.compose.material.rememberDismissState
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
@@ -59,6 +58,7 @@ import io.dolby.interactiveplayer.utils.horizontalPaddingDp
 import io.dolby.interactiveplayer.utils.streamingDataFrom
 import io.dolby.rtsviewer.uikit.button.ButtonType
 import io.dolby.rtsviewer.uikit.button.StyledButton
+import io.dolby.rtsviewer.uikit.text.Text
 import io.dolby.rtsviewer.uikit.theme.fontColor
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.launch
