@@ -11,8 +11,10 @@ import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
+import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
+import androidx.compose.material.Icon
 import androidx.compose.material.MaterialTheme
 import androidx.compose.material.Scaffold
 import androidx.compose.material.Switch
@@ -53,11 +55,6 @@ fun SettingsScreen(
     var showAudioSelectionScreen by remember { mutableStateOf(false) }
 
     val background = MaterialTheme.colors.background
-    val screenName =
-        stringResource(
-            id = viewModel.streamingData()?.let { R.string.stream_settings_screen_name }
-                ?: R.string.global_settings_screen_name
-        )
 
     val showDebugOptions = viewModel.showDebugOptions.collectAsState()
     val showSourceLabels = viewModel.showSourceLabels.collectAsState()
@@ -65,6 +62,15 @@ fun SettingsScreen(
     val streamSortOrder = viewModel.streamSortOrder.collectAsState()
     val audioSelection = viewModel.audioSelection.collectAsState()
 
+    val screenName = stringResource(
+        id = when {
+            showMultiviewScreen -> R.string.settings_multiview_layout
+            showStreamSortOrderScreen -> R.string.settings_stream_sort_order
+            showAudioSelectionScreen -> R.string.settings_audio_selection
+            else -> viewModel.streamingData()?.let { R.string.stream_settings_screen_name }
+                ?: R.string.global_settings_screen_name
+        }
+    )
     Scaffold(
         topBar = {
             TopAppBar(screenName, onBack = {
@@ -155,21 +161,35 @@ fun SettingsScreen(
                                 onCheckedChange = { onClick?.invoke() }
                             )
                         } else if (selection.currentValueRes != null && selection.onClick == null) {
-                            Text(
-                                text = stringResource(id = selection.currentValueRes),
-                                style = MaterialTheme.typography.body1,
-                                fontWeight = FontWeight.Medium,
-                                color = fontColor(background),
-                                textAlign = TextAlign.End
-                            )
+                            Row(modifier = Modifier.align(Alignment.CenterVertically)) {
+                                Text(
+                                    text = stringResource(id = selection.currentValueRes),
+                                    style = MaterialTheme.typography.body1,
+                                    fontWeight = FontWeight.Medium,
+                                    color = fontColor(background),
+                                    textAlign = TextAlign.End
+                                )
+                                Spacer(modifier = Modifier.width(8.dp))
+                                Icon(
+                                    painter = painterResource(id = io.dolby.uikit.R.drawable.ic_arrow_right),
+                                    contentDescription = stringResource(id = selection.nameRes!!)
+                                )
+                            }
                         } else if (selection.currentValue != null && selection.onClick == null) {
-                            Text(
-                                text = selection.currentValue,
-                                style = MaterialTheme.typography.body1,
-                                fontWeight = FontWeight.Medium,
-                                color = fontColor(background),
-                                textAlign = TextAlign.End
-                            )
+                            Row(modifier = Modifier.align(Alignment.CenterVertically)) {
+                                Text(
+                                    text = selection.currentValue,
+                                    style = MaterialTheme.typography.body1,
+                                    fontWeight = FontWeight.Medium,
+                                    color = fontColor(background),
+                                    textAlign = TextAlign.End
+                                )
+                                Spacer(modifier = Modifier.width(8.dp))
+                                Icon(
+                                    painter = painterResource(id = io.dolby.uikit.R.drawable.ic_arrow_right),
+                                    contentDescription = stringResource(id = selection.nameRes!!)
+                                )
+                            }
                         } else if (selection.selected) {
                             Image(
                                 painter = painterResource(id = io.dolby.uikit.R.drawable.ic_selected),
