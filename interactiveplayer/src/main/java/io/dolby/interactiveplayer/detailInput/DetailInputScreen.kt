@@ -57,7 +57,9 @@ import io.dolby.interactiveplayer.alert.DetailInputValidationAlert
 import io.dolby.interactiveplayer.rts.domain.ConnectOptions
 import io.dolby.interactiveplayer.rts.domain.StreamingData
 import io.dolby.interactiveplayer.rts.ui.DolbyCopyrightFooterView
+import io.dolby.interactiveplayer.rts.ui.TopActionBar
 import io.dolby.interactiveplayer.rts.ui.TopAppBar
+import io.dolby.interactiveplayer.savedStreams.SavedStreamViewModel
 import io.dolby.interactiveplayer.utils.horizontalPaddingDp
 import io.dolby.rtsviewer.uikit.button.ButtonType
 import io.dolby.rtsviewer.uikit.button.StyledButton
@@ -73,11 +75,13 @@ fun DetailInputScreen(
     onBack: () -> Unit,
     modifier: Modifier = Modifier,
     streamingData: StreamingData? = null,
-    viewModel: DetailInputViewModel = hiltViewModel()
+    viewModel: DetailInputViewModel = hiltViewModel(),
+    savedStreamViewModel: SavedStreamViewModel = hiltViewModel()
 ) {
     var showMissingStreamDetailDialog by remember { mutableStateOf(false) }
     var showClearStreamsConfirmationDialog by remember { mutableStateOf(false) }
 
+    val savedStreamsUiState by viewModel.uiState.collectAsStateWithLifecycle()
     val streamName = viewModel.streamName.collectAsState()
     val accountId = viewModel.accountId.collectAsState()
     val recentStreams = viewModel.uiState.collectAsState()
@@ -141,7 +145,11 @@ fun DetailInputScreen(
 
     Scaffold(
         topBar = {
-            TopAppBar(title = "", onBack = onBack, onAction = onSettingsClick)
+            if (savedStreamsUiState.recentStreams.isNotEmpty()) {
+                TopAppBar(title = "", onBack = onBack, onAction = onSettingsClick)
+            } else {
+                TopActionBar(onActionClick = onSettingsClick)
+            }
         },
         bottomBar = {
             DolbyCopyrightFooterView()

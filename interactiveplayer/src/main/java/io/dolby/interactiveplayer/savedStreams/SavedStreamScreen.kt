@@ -86,7 +86,7 @@ fun SavedStreamScreen(
     Scaffold(
         topBar = {
             TopAppBar(
-                title = "Saved Streams",
+                title = stringResource(id = R.string.saved_streams_screen_title),
                 onBack = { onBack() },
                 actionIcon = io.dolby.uikit.R.drawable.ic_delete,
                 onAction = { showClearStreamsConfirmationDialog = true }
@@ -107,22 +107,6 @@ fun SavedStreamScreen(
                     .align(Alignment.TopCenter)
                     .padding(horizontal = horizontalPaddingDp(), vertical = 16.dp)
             ) {
-                // Header - Title
-
-                stickyHeader {
-                    Text(
-                        stringResource(id = R.string.saved_streams_screen_title),
-                        style = MaterialTheme.typography.h2,
-                        fontWeight = FontWeight.Bold,
-                        color = fontColor(background),
-                        textAlign = TextAlign.Center,
-                        modifier = Modifier
-                            .fillMaxWidth()
-                            .padding(bottom = 8.dp)
-                            .background(background)
-                    )
-                }
-
                 // Section - Last played stream
 
                 item {

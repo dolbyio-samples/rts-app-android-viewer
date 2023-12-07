@@ -84,8 +84,8 @@
     <string name="main_source_name">Main</string>
 
     <!-- Settings -->
-    <string name="global_settings_screen_name">Global Settings</string>
-    <string name="stream_settings_screen_name">Stream Settings</string>
+    <string name="global_settings_screen_name">Global settings</string>
+    <string name="stream_settings_screen_name">Stream settings</string>
     <string name="settings_show_debug_options">Show debug features</string>
     <string name="settings_show_source_labels">Show source labels</string>
     <string name="settings_multiview_layout">Default multi-view layout</string>
