@@ -6,7 +6,6 @@ import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.material.MaterialTheme
 import androidx.compose.material.MaterialTheme.colors
 import androidx.compose.material.OutlinedTextField
-import io.dolby.rtsviewer.uikit.text.Text
 import androidx.compose.material.TextFieldDefaults
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.mutableStateOf
@@ -17,6 +16,7 @@ import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.semantics.contentDescription
 import androidx.compose.ui.semantics.semantics
 import androidx.compose.ui.tooling.preview.Preview
+import io.dolby.rtsviewer.uikit.text.Text
 import io.dolby.uikit.R
 
 internal val textInputContentDescriptionId = R.string.textInput_contentDescription

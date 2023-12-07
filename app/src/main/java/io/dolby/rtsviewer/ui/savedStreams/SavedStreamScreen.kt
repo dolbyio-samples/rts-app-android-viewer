@@ -12,7 +12,6 @@ import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.relocation.BringIntoViewRequester
 import androidx.compose.foundation.relocation.bringIntoViewRequester
 import androidx.compose.material.MaterialTheme
-import io.dolby.rtsviewer.uikit.text.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
@@ -39,6 +38,7 @@ import io.dolby.rtsviewer.R
 import io.dolby.rtsviewer.datastore.StreamDetail
 import io.dolby.rtsviewer.uikit.button.ButtonType
 import io.dolby.rtsviewer.uikit.button.StyledButton
+import io.dolby.rtsviewer.uikit.text.Text
 import io.dolby.rtsviewer.uikit.theme.fontColor
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.launch

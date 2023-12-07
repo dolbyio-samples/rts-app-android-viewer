@@ -36,22 +36,22 @@ fun Text(
     onTextLayout: (TextLayoutResult) -> Unit = {},
     style: TextStyle = LocalTextStyle.current
 ) = androidx.compose.material.Text(
-        text,
-        modifier
-            .semantics { contentDescription = text }
-            .testTag(text),
-        color,
-        fontSize,
-        fontStyle,
-        fontWeight,
-        fontFamily,
-        letterSpacing,
-        textDecoration,
-        textAlign,
-        lineHeight,
-        overflow,
-        softWrap,
-        maxLines,
-        onTextLayout,
-        style
-    )
+    text,
+    modifier
+        .semantics { contentDescription = text }
+        .testTag(text),
+    color,
+    fontSize,
+    fontStyle,
+    fontWeight,
+    fontFamily,
+    letterSpacing,
+    textDecoration,
+    textAlign,
+    lineHeight,
+    overflow,
+    softWrap,
+    maxLines,
+    onTextLayout,
+    style
+)

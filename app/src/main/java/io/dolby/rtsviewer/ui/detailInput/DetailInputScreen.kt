@@ -15,7 +15,6 @@ import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.MaterialTheme
 import androidx.compose.material.Scaffold
-import io.dolby.rtsviewer.uikit.text.Text
 import androidx.compose.material.TextButton
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
@@ -51,6 +50,7 @@ import io.dolby.rtsviewer.ui.alert.DetailInputValidationAlert
 import io.dolby.rtsviewer.uikit.button.ButtonType
 import io.dolby.rtsviewer.uikit.button.StyledButton
 import io.dolby.rtsviewer.uikit.input.TvTextInput
+import io.dolby.rtsviewer.uikit.text.Text
 import io.dolby.rtsviewer.uikit.theme.fontColor
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch

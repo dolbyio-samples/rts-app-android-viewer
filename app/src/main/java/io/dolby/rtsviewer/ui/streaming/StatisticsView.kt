@@ -12,7 +12,6 @@ import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.MaterialTheme
-import io.dolby.rtsviewer.uikit.text.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
 import androidx.compose.ui.Alignment
@@ -25,6 +24,7 @@ import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import io.dolby.rtsviewer.R
+import io.dolby.rtsviewer.uikit.text.Text
 import io.dolby.rtsviewer.uikit.theme.getColorPalette
 
 private const val TAG = "StatisticsView"

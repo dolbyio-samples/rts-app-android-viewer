@@ -2,11 +2,11 @@ package io.dolby.interactiveplayer.rts.ui
 
 import androidx.compose.material.Icon
 import androidx.compose.material.IconButton
-import io.dolby.rtsviewer.uikit.text.Text
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.ArrowBack
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.res.painterResource
+import io.dolby.rtsviewer.uikit.text.Text
 
 @Composable
 fun TopAppBar(

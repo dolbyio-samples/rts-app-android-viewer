@@ -21,7 +21,6 @@ import androidx.compose.foundation.lazy.grid.rememberLazyGridState
 import androidx.compose.foundation.lazy.items
 import androidx.compose.material.CircularProgressIndicator
 import androidx.compose.material.Scaffold
-import io.dolby.rtsviewer.uikit.text.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
@@ -46,6 +45,7 @@ import io.dolby.interactiveplayer.rts.ui.LabelIndicator
 import io.dolby.interactiveplayer.rts.ui.LiveIndicator
 import io.dolby.interactiveplayer.rts.ui.TopAppBar
 import io.dolby.interactiveplayer.streaming.ErrorView
+import io.dolby.rtsviewer.uikit.text.Text
 import org.webrtc.RendererCommon
 
 @Composable
