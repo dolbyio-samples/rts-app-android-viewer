@@ -51,9 +51,6 @@ fun DetailInput(
             viewModel.updateAccountId(it)
         },
         keyboardOptions = KeyboardOptions(imeAction = ImeAction.Done),
-        keyboardActions = KeyboardActions(
-            onDone = { playStream() }
-        ),
         maximumCharacters = MAXIMUM_CHARACTERS
     )
 }
