@@ -328,9 +328,6 @@ class MultiStreamingRepository(
 
         override fun onSignalingError(p0: String?) {
             Log.d(TAG, "onSignalingError: $p0")
-            data.update {
-                it.populateError(error = p0 ?: "Signaling error")
-            }
         }
 
         override fun onStatsReport(p0: RTCStatsReport?) {
