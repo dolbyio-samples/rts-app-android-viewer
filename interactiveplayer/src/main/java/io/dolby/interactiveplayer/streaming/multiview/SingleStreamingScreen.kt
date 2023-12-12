@@ -64,7 +64,9 @@ fun SingleStreamingScreen(
     Scaffold(
         topBar = {
             TopAppBar(
-                title = title,
+                title = if (defaultLayout.value == MultiviewLayout.SingleStreamView) {
+                    uiState.streamName ?: screenContentDescription
+                } else "",
                 onBack = {
                     onBack()
                     if (defaultLayout.value == MultiviewLayout.SingleStreamView) {
