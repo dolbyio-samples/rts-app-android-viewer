@@ -41,11 +41,13 @@ object DataModule {
 
     @Provides
     @Singleton
-    fun provideMillicastSdk(@ApplicationContext context: Context): MillicastSdk {
+    fun provideMillicastSdk(): MillicastSdk {
         val result = object : MillicastSdk {
-            override fun getMedia(context: Context): Media = Media.getInstance(context)
+//            override fun getMedia(context: Context): Media = Media.getInstance(context)
+            override fun getMedia(): Media = Media.getInstance()
         }
-        Client.initMillicastSdk(context)
+//        Client.initMillicastSdk(context)
+        Client.initialize()
         return result
     }
 
@@ -56,8 +58,10 @@ object DataModule {
         millicastSdk: MillicastSdk,
         prefsStore: PrefsStore,
         dispatcherProvider: DispatcherProvider
-    ): MultiStreamingRepository =
-        MultiStreamingRepository(context, prefsStore, dispatcherProvider)
+    ): MultiStreamingRepository {
+        millicastSdk.getMedia()
+        return MultiStreamingRepository(context, prefsStore, dispatcherProvider)
+    }
 
     @Provides
     @Singleton

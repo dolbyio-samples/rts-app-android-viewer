@@ -9,6 +9,7 @@ import android.os.Handler
 import android.os.HandlerThread
 import android.provider.Settings
 import android.util.Log
+import com.millicast.Media
 import com.millicast.AudioTrack
 import com.millicast.LayerData
 import com.millicast.Subscriber
@@ -65,7 +66,7 @@ class MultiStreamingRepository(
             if (
                 addedDevices.firstOrNull {
                     it.type == AudioDeviceInfo.TYPE_BLUETOOTH_A2DP ||
-                        it.type == AudioDeviceInfo.TYPE_BLUETOOTH_SCO
+                            it.type == AudioDeviceInfo.TYPE_BLUETOOTH_SCO
                 } != null
             ) {
                 turnBluetoothHeadset()
@@ -74,9 +75,9 @@ class MultiStreamingRepository(
 
         override fun onAudioDevicesRemoved(removedDevices: Array<out AudioDeviceInfo>) {
             if (removedDevices.firstOrNull {
-                it.type == AudioDeviceInfo.TYPE_BLUETOOTH_A2DP ||
-                    it.type == AudioDeviceInfo.TYPE_BLUETOOTH_SCO
-            } != null
+                    it.type == AudioDeviceInfo.TYPE_BLUETOOTH_A2DP ||
+                            it.type == AudioDeviceInfo.TYPE_BLUETOOTH_SCO
+                } != null
             ) {
                 turnSpeakerPhone()
             }
@@ -94,9 +95,9 @@ class MultiStreamingRepository(
             Handler(handlerThread.looper)
         )
         if (audioManager.getDevices(AudioManager.GET_DEVICES_OUTPUTS).firstOrNull {
-            it.type == AudioDeviceInfo.TYPE_BLUETOOTH_A2DP ||
-                it.type == AudioDeviceInfo.TYPE_BLUETOOTH_SCO
-        } != null
+                it.type == AudioDeviceInfo.TYPE_BLUETOOTH_A2DP ||
+                        it.type == AudioDeviceInfo.TYPE_BLUETOOTH_SCO
+            } != null
         ) {
             turnBluetoothHeadset()
         } else {
@@ -319,26 +320,22 @@ class MultiStreamingRepository(
             }
         }
 
-        override fun onConnectionError(p0: Int, p1: String?) {
+        override fun onConnectionError(p0: Int, p1: String) {
             Log.d(TAG, "onConnectionError: $p0, $p1")
             data.update {
                 it.populateError(error = p1 ?: "Unknown error")
             }
         }
 
-        override fun onSignalingError(p0: String?) {
+        override fun onSignalingError(p0: String) {
             Log.d(TAG, "onSignalingError: $p0")
         }
 
-        override fun onStatsReport(p0: RTCStatsReport?) {
-            p0?.let { report ->
-                data.update { data ->
-                    data.copy(
-                        statisticsData = MultiStreamStatisticsData.from(
-                            report
-                        )
-                    )
-                }
+        override fun onStatsReport(p0: RTCStatsReport) {
+            data.update { data ->
+                data.copy(
+                    statisticsData = MultiStreamStatisticsData.from(p0)
+                )
             }
         }
 
@@ -354,7 +351,7 @@ class MultiStreamingRepository(
             processPendingTracks(newData)
         }
 
-        override fun onSubscribedError(p0: String?) {
+        override fun onSubscribedError(p0: String) {
             Log.d(TAG, "onSubscribedError: $p0")
             data.update {
                 it.copy(error = p0 ?: "Subscribed error")
@@ -389,7 +386,7 @@ class MultiStreamingRepository(
             }
         }
 
-        override fun onFrameMetadata(p0: Int, p1: Int, p2: ByteArray?) {
+        override fun onFrameMetadata(p0: Int, p1: Int, p2: ByteArray) {
             Log.d(TAG, "onFrameMetadata: $p0, $p1")
             TODO("Not yet implemented")
         }
@@ -407,7 +404,12 @@ class MultiStreamingRepository(
                     data.addPendingMainVideoTrack(pendingTracks.videoTracks.firstOrNull())
                 }
             } else {
-                val newData = data.updateAndGet { data -> data.addPendingTracks(pendingTracks, processAudio = false) }
+                val newData = data.updateAndGet { data ->
+                    data.addPendingTracks(
+                        pendingTracks,
+                        processAudio = false
+                    )
+                }
                 processPendingTracks(newData, processAudio = false)
             }
             if (data.value.audioTracks.isEmpty()) {
@@ -415,7 +417,12 @@ class MultiStreamingRepository(
                     data.addPendingMainAudioTrack(pendingTracks.audioTracks.firstOrNull())
                 }
             } else {
-                val newData = data.updateAndGet { data -> data.addPendingTracks(pendingTracks, processVideo = false) }
+                val newData = data.updateAndGet { data ->
+                    data.addPendingTracks(
+                        pendingTracks,
+                        processVideo = false
+                    )
+                }
                 processPendingTracks(newData, processVideo = false)
             }
         }
@@ -453,21 +460,21 @@ class MultiStreamingRepository(
             Log.d(TAG, "onStopped")
         }
 
-        override fun onVad(p0: String?, p1: Optional<String>?) {
+        override fun onVad(p0: String, p1: Optional<String>) {
             TODO("Not yet implemented")
         }
 
         override fun onLayers(
-            mid: String?,
-            activeLayers: Array<out LayerData>?,
-            inactiveLayers: Array<out LayerData>?
+            mid: String,
+            activeLayers: Array<out LayerData>,
+            inactiveLayers: Array<out LayerData>
         ) {
             Log.d(
                 TAG,
                 "onLayers: $mid, ${Arrays.toString(activeLayers)}, ${
-                Arrays.toString(
-                    inactiveLayers
-                )
+                    Arrays.toString(
+                        inactiveLayers
+                    )
                 }"
             )
             mid?.let {
@@ -553,7 +560,7 @@ class MultiStreamingRepository(
             subscriber?.unproject(audioTrackIds)
 
             val projectionData = ProjectionData().also {
-                it.mid = audioTrack.id
+                it.mid = audioTrack.id ?: ""
                 it.trackId = audio
                 it.media = audio
             }
@@ -563,7 +570,11 @@ class MultiStreamingRepository(
             }
         }
 
-        private fun processPendingTracks(data: MultiStreamingData, processVideo: Boolean = true, processAudio: Boolean = true) {
+        private fun processPendingTracks(
+            data: MultiStreamingData,
+            processVideo: Boolean = true,
+            processAudio: Boolean = true
+        ) {
             if (data.isSubscribed) {
                 if (processVideo) {
                     val pendingVideoTracks = data.pendingVideoTracks.count { !it.added }
@@ -577,7 +588,12 @@ class MultiStreamingRepository(
                         subscriber?.addRemoteTrack(audio)
                     }
                 }
-                this.data.update { it.markPendingTracksAsAdded(processVideo = processVideo, processAudio = processAudio) }
+                this.data.update {
+                    it.markPendingTracksAsAdded(
+                        processVideo = processVideo,
+                        processAudio = processAudio
+                    )
+                }
             }
         }
     }
@@ -589,7 +605,7 @@ class MultiStreamingRepository(
             video: MultiStreamingData.Video,
             availablePreferredVideoQuality: LowLevelVideoQuality?
         ): ProjectionData = ProjectionData().also {
-            it.mid = video.id
+            it.mid = video.id ?: ""
             it.trackId = video.trackId
             it.media = video.mediaType
             it.layer = availablePreferredVideoQuality?.layerData?.let { layerData ->

@@ -15,12 +15,25 @@ dependencyResolutionManagement {
         google()
         mavenCentral()
 
+        maven {
+            name = "Snapshots"
+            url = uri("https://jfrog-us-west-2.dolby.net:443/artifactory/dolbyio-capi-mvn-snapshots")
+            credentials {
+                username = ""
+                password = ""
+            }
+            authentication {
+                digest(BasicAuthentication)
+            }
+        }
+
         // Millicast SDK via Maven from GitHub Packages
         maven {
             name = "GitHubPackages"
             url = uri("https://maven.pkg.github.com/millicast/maven")
             credentials {
                 username = gitUserName
+                logger.lifecycle("User name: ${gitUserName}")
                 password = gitPat
             }
         }
