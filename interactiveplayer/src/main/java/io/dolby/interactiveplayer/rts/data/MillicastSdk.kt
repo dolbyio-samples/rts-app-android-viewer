@@ -6,7 +6,7 @@ import com.millicast.Media
 import io.dolby.interactiveplayer.rts.domain.StreamingData
 
 interface MillicastSdk {
-    fun getMedia(context: Context): Media
+    fun getMedia(): Media
 }
 interface SubscriptionManagerInterface {
     suspend fun connect(streamingData: StreamingData): Boolean
