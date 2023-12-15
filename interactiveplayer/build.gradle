@@ -112,7 +112,7 @@ dependencies {
     implementation "androidx.datastore:datastore-preferences:1.0.0"
 
 //    implementation 'com.millicast:millicast-sdk-android:1.5.2'
-    implementation("com.millicast:millicast-sdk-android:1.6.0-alpha1")
+    implementation("com.millicast:millicast-sdk-android:1.6.0-alpha2")
 //    implementation project(":millicastsdk")
     implementation project(path: ':uikit')
 
