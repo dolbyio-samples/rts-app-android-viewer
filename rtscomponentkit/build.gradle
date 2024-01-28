@@ -37,7 +37,7 @@ kotlin {
 }
 
 dependencies {
-    api 'com.millicast:millicast-sdk-android:1.5.0'
+    api libs.millicast.sdk
 
     implementation project(path: ':uikit')
     implementation libs.androidx.core.ktx

@@ -6,62 +6,39 @@ pluginManagement {
     }
 }
 
-def gitUserName = System.env.GIT_USERNAME ?: getGithubUsername()
-def gitPat = System.env.GIT_PAT ?: getGithubUserPassword()
+def prop = { String key ->
+    properties.containsKey(key) ? properties[key] as String : null
+}
+
+def internalRepo = prop("DOLBY_INTERNAL_MAVEN_URL")
+def user = prop("DOLBY_INTERNAL_MAVEN_USER")
+def password = prop("DOLBY_INTERNAL_MAVEN_PASSWORD")
 
 dependencyResolutionManagement {
     repositoriesMode.set(RepositoriesMode.FAIL_ON_PROJECT_REPOS)
     repositories {
         google()
         mavenCentral()
+        mavenLocal()
 
-        maven {
-            name = "Snapshots"
-            url = uri("https://jfrog-us-west-2.dolby.net:443/artifactory/dolbyio-capi-mvn-snapshots")
-            credentials {
-                username = ""
-                password = ""
-            }
-            authentication {
-                digest(BasicAuthentication)
-            }
-        }
-
-        // Millicast SDK via Maven from GitHub Packages
-        maven {
-            name = "GitHubPackages"
-            url = uri("https://maven.pkg.github.com/millicast/maven")
-            credentials {
-                username = gitUserName
-                logger.lifecycle("User name: ${gitUserName}")
-                password = gitPat
+        if (null != internalRepo && null != user && null != password) {
+            maven {
+                name = "Snapshots"
+                url = uri(internalRepo)
+                credentials {
+                    username = user
+                    password
+                }
+                authentication {
+                    digest(BasicAuthentication)
+                }
             }
         }
     }
 }
-def getGithubUsername() {
-    Properties properties = new Properties()
-    properties.load(new File(rootDir.absolutePath + "/local.properties").newDataInputStream())
-    def githubUserName = properties.getProperty('githubUsername', null)
-    if (githubUserName == null) {
-        throw new GradleException(
-                "Github username not found. Define location with githubUsername in the local.properties file")
-    }
-    return githubUserName
-}
-def getGithubUserPassword() {
-    Properties properties = new Properties()
-    properties.load(new File(rootDir.absolutePath + "/local.properties").newDataInputStream())
-    def githubUserPassword = properties.getProperty('githubPat', null)
-    if (githubUserPassword == null) {
-        throw new GradleException(
-                "Github PAT not found. Define location with githubPat in the local.properties file")
-    }
-    return githubUserPassword
-}
+
 rootProject.name = "rts-app-android-viewer"
 include ':app'
 include ':rtscomponentkit'
 include ':uikit'
 include ':interactiveplayer'
-include ':millicastsdk'

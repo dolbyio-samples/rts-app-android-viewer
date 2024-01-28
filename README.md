@@ -4,8 +4,8 @@
 
 This project demonstrates what a simple Realtime Streaming monitor experience is like when built for an Android TV device.
 
-| Use cases              | Features                                                         | Tech Stack       |
-| ---------------------- | ---------------------------------------------------------------- | ---------------- |
+| Use cases              | Features                                                         | Tech Stack      |
+| ---------------------- | ---------------------------------------------------------------- |-----------------|
 | Monitor a video stream | Start a stream monitoring with a stream name and account ID pair | Kotlin, Android |
 
 ## Pre-requisites
@@ -41,22 +41,15 @@ git clone git@github.com:dolbyio-samples/rts-app-android-viewer.git
 
 ## Setup
 
-Add the following properties (with values) into your local.properties file under project root:
-
-The username of a working GitHub account user.
-
-```bash
-githubUsername=[GitHub_username]
-```
-
-The GitHub's user's Personal Access Token (PAT) with the read:packages scope.
+For public usage, nothing needs to be done, the sdk will be retrieved through public maven repository.
+Internal development with untested & candidate releases needs to make 3 modifications inside
+`~/.gradle/gradle.properties` :
 
 ```bash
-githubPat=[GitHub_Personal_Access_Token]
+DOLBY_INTERNAL_MAVEN_URL=url_of_maven_repository
+DOLBY_INTERNAL_MAVEN_USER=both_username
+DOLBY_INTERNAL_MAVEN_PASSWORD=and_password
 ```
-
-For more information on how to create and use a classic PAT
-> **_Info:_** [Creating a personal access token](https://docs.github.com/en/authentication/keeping-your-account-and-data-secure/creating-a-personal-access-token) and [Working with the Gardle registry](https://docs.github.com/en/packages/working-with-a-github-packages-registry/working-with-the-gradle-registry)
 
 ## Building and running the app
 

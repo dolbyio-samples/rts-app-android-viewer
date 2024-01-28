@@ -1,7 +1,7 @@
 package io.dolby.interactiveplayer.rts.domain
 
 import io.dolby.interactiveplayer.datastore.StreamDetail
-import io.dolby.interactiveplayer.rts.data.MultiStreamingRepository
+import io.dolby.interactiveplayer.rts.data.VideoQuality
 
 data class StreamingData(
     val accountId: String,
@@ -13,7 +13,7 @@ data class ConnectOptions(
     val forcePlayOutDelay: Boolean = false,
     val disableAudio: Boolean = false,
     val rtcLogs: Boolean = false,
-    val primaryVideoQuality: MultiStreamingRepository.VideoQuality = MultiStreamingRepository.VideoQuality.AUTO,
+    val primaryVideoQuality: VideoQuality = VideoQuality.AUTO,
     val videoJitterMinimumDelayMs: Int = 20
 ) {
     companion object {
@@ -23,7 +23,7 @@ data class ConnectOptions(
                 forcePlayOutDelay = streamDetail.forcePlayOutDelay,
                 disableAudio = streamDetail.disableAudio,
                 rtcLogs = streamDetail.rtcLogs,
-                primaryVideoQuality = MultiStreamingRepository.VideoQuality.valueToQuality(streamDetail.primaryVideoQuality),
+                primaryVideoQuality = VideoQuality.valueToQuality(streamDetail.primaryVideoQuality),
                 videoJitterMinimumDelayMs = streamDetail.videoJitterMinimumDelayMs
             )
     }

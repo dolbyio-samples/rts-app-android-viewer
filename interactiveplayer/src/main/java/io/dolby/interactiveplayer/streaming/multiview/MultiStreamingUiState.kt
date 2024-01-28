@@ -1,6 +1,8 @@
 package io.dolby.interactiveplayer.streaming.multiview
 
+import io.dolby.interactiveplayer.rts.data.LowLevelVideoQuality
 import io.dolby.interactiveplayer.rts.data.MultiStreamingRepository
+import io.dolby.interactiveplayer.rts.data.VideoQuality
 import io.dolby.interactiveplayer.rts.domain.ConnectOptions
 import io.dolby.interactiveplayer.rts.domain.MultiStreamStatisticsData
 import io.dolby.interactiveplayer.rts.domain.MultiStreamingData
@@ -18,7 +20,7 @@ data class MultiStreamingUiState(
     val selectedVideoTrackId: String? = null,
     val error: Error? = null,
     val hasNetwork: Boolean = true,
-    val layerData: Map<String, List<MultiStreamingRepository.LowLevelVideoQuality>> = emptyMap()
+    val layerData: Map<String, List<LowLevelVideoQuality>> = emptyMap()
 )
 
 data class MultiStreamingStatisticsState(
@@ -28,7 +30,7 @@ data class MultiStreamingStatisticsState(
 
 data class MultiStreamingVideoQualityState(
     val showVideoQualitySelectionForMid: String? = null,
-    val videoQualities: Map<String, MultiStreamingRepository.VideoQuality> = emptyMap(),
-    val availableVideoQualities: Map<String, List<MultiStreamingRepository.LowLevelVideoQuality>> = emptyMap(),
-    val preferredVideoQualities: Map<String, MultiStreamingRepository.VideoQuality> = emptyMap()
+    val videoQualities: Map<String, VideoQuality> = emptyMap(),
+    val availableVideoQualities: Map<String, List<LowLevelVideoQuality>> = emptyMap(),
+    val preferredVideoQualities: Map<String, VideoQuality> = emptyMap()
 )

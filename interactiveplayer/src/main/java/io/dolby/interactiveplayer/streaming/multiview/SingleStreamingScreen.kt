@@ -30,6 +30,7 @@ import com.millicast.VideoRenderer
 import io.dolby.interactiveplayer.R
 import io.dolby.interactiveplayer.preferenceStore.MultiviewLayout
 import io.dolby.interactiveplayer.rts.data.MultiStreamingRepository
+import io.dolby.interactiveplayer.rts.data.VideoQuality
 import io.dolby.interactiveplayer.rts.domain.StreamingData
 import io.dolby.interactiveplayer.rts.ui.DolbyBackgroundBox
 import io.dolby.interactiveplayer.rts.ui.LiveIndicator
@@ -197,8 +198,8 @@ private fun VideoView(
                     uiState.videoTracks[page],
                     if (isSelected) {
                         uiState.connectOptions?.primaryVideoQuality
-                            ?: MultiStreamingRepository.VideoQuality.AUTO
-                    } else MultiStreamingRepository.VideoQuality.LOW
+                            ?: VideoQuality.AUTO
+                    } else VideoQuality.LOW
                 )
             },
             onRelease = { view ->

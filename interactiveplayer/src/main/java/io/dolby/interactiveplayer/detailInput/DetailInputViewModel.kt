@@ -5,7 +5,7 @@ import androidx.lifecycle.viewModelScope
 import dagger.hilt.android.lifecycle.HiltViewModel
 import io.dolby.interactiveplayer.datastore.RecentStreamsDataStore
 import io.dolby.interactiveplayer.preferenceStore.PrefsStore
-import io.dolby.interactiveplayer.rts.data.MultiStreamingRepository
+import io.dolby.interactiveplayer.rts.data.VideoQuality
 import io.dolby.interactiveplayer.rts.domain.ConnectOptions
 import io.dolby.interactiveplayer.rts.domain.StreamingData
 import kotlinx.coroutines.flow.MutableStateFlow
@@ -132,10 +132,9 @@ class DetailInputViewModel @Inject constructor(
         _showVideoQualityState.update { show }
     }
 
-    fun videoQualities(): Array<MultiStreamingRepository.VideoQuality> =
-        MultiStreamingRepository.VideoQuality.values()
+    fun videoQualities(): Array<VideoQuality> = VideoQuality.values()
 
-    fun updatePrimaryVideoQuality(videoQuality: MultiStreamingRepository.VideoQuality) {
+    fun updatePrimaryVideoQuality(videoQuality: VideoQuality) {
         _selectedConnectionOptions.update {
             it.copy(primaryVideoQuality = videoQuality)
         }

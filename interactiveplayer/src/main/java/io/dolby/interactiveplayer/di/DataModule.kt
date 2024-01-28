@@ -17,6 +17,7 @@ package io.dolby.interactiveplayer.di
 
 import android.content.Context
 import com.millicast.Client
+import com.millicast.Core
 import com.millicast.Media
 import dagger.Module
 import dagger.Provides
@@ -43,11 +44,10 @@ object DataModule {
     @Singleton
     fun provideMillicastSdk(): MillicastSdk {
         val result = object : MillicastSdk {
-//            override fun getMedia(context: Context): Media = Media.getInstance(context)
-            override fun getMedia(): Media = Media.getInstance()
+            override fun getMedia(): Media = Media
         }
-//        Client.initMillicastSdk(context)
-        Client.initialize()
+
+        Core.initialize()
         return result
     }
 
