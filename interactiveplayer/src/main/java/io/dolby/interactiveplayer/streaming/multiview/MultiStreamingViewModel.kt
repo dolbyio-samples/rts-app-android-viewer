@@ -10,6 +10,7 @@ import io.dolby.interactiveplayer.preferenceStore.MultiviewLayout
 import io.dolby.interactiveplayer.preferenceStore.PrefsStore
 import io.dolby.interactiveplayer.preferenceStore.StreamSortOrder
 import io.dolby.interactiveplayer.rts.data.MultiStreamingRepository
+import io.dolby.interactiveplayer.rts.data.VideoQuality
 import io.dolby.interactiveplayer.rts.domain.ConnectOptions
 import io.dolby.interactiveplayer.rts.domain.MultiStreamingData
 import io.dolby.interactiveplayer.rts.domain.StatsInboundRtp.Companion.inboundRtpAudioVideoDataToList
@@ -188,7 +189,7 @@ class MultiStreamingViewModel @Inject constructor(
             }
         }
 
-    fun disconnect() {
+    fun disconnect() = viewModelScope.launch {
         repository.disconnect()
     }
 
@@ -198,8 +199,8 @@ class MultiStreamingViewModel @Inject constructor(
 
     fun playVideo(
         video: MultiStreamingData.Video,
-        preferredVideoQuality: MultiStreamingRepository.VideoQuality
-    ) {
+        preferredVideoQuality: VideoQuality
+    ) = viewModelScope.launch {
         repository.playVideo(
             video = video,
             preferredVideoQuality = preferredVideoQuality,
@@ -207,7 +208,7 @@ class MultiStreamingViewModel @Inject constructor(
         )
     }
 
-    fun stopVideo(video: MultiStreamingData.Video) {
+    fun stopVideo(video: MultiStreamingData.Video) = viewModelScope.launch {
         repository.stopVideo(video)
     }
 
@@ -231,7 +232,7 @@ class MultiStreamingViewModel @Inject constructor(
         _videoQualityState.update { it.copy(showVideoQualitySelectionForMid = if (show) mid else null) }
     }
 
-    fun preferredVideoQuality(mid: String?, videoQuality: MultiStreamingRepository.VideoQuality) {
+    fun preferredVideoQuality(mid: String?, videoQuality: VideoQuality) {
         mid?.let {
             _videoQualityState.update {
                 val currentPreferredVideoQuantities = it.preferredVideoQualities.toMutableMap()

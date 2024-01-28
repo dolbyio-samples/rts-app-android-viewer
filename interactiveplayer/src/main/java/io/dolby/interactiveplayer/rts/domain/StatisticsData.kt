@@ -2,6 +2,7 @@ package io.dolby.interactiveplayer.rts.domain
 
 import android.icu.text.SimpleDateFormat
 import android.util.Log
+import com.millicast.clients.stats.RtsReport
 import io.dolby.interactiveplayer.R
 import org.webrtc.RTCStatsReport
 import java.math.BigInteger
@@ -411,12 +412,12 @@ data class MultiStreamStatisticsData(
     val video: List<StatsInboundRtp>?
 ) {
     companion object {
-        fun from(report: RTCStatsReport): MultiStreamStatisticsData {
-            val rtt = StatisticsData.getStatisticsRoundTripTime(report)
-            val bitrate = StatisticsData.getBitrate(report)
+        fun from(report: RtsReport): MultiStreamStatisticsData {
+            val rtt = null // StatisticsData.getStatisticsRoundTripTime(report)
+            val bitrate = null // StatisticsData.getBitrate(report)
             val audio = mutableListOf<StatsInboundRtp>()
             val video = mutableListOf<StatsInboundRtp>()
-            val timestamp = report.timestampUs
+            /*val timestamp = report.timestampUs
             val inboundRtpStreamStatsList = report.statsMap.values.filter { it.type == "inbound-rtp" }
             inboundRtpStreamStatsList.forEach { statsData ->
                 val statsMembers = statsData.members
@@ -429,8 +430,8 @@ data class MultiStreamStatisticsData(
                 } else {
                     audio.add(statsInboundRtp)
                 }
-            }
-            return MultiStreamStatisticsData(rtt, bitrate, timestamp, audio.toList(), video.toList())
+            }*/
+            return MultiStreamStatisticsData(rtt, bitrate, null, audio.toList(), video.toList())
         }
     }
 }

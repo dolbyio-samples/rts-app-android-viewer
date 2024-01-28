@@ -28,7 +28,7 @@ import androidx.compose.ui.viewinterop.AndroidView
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import com.millicast.VideoRenderer
 import io.dolby.interactiveplayer.R
-import io.dolby.interactiveplayer.rts.data.MultiStreamingRepository
+import io.dolby.interactiveplayer.rts.data.VideoQuality
 import io.dolby.interactiveplayer.rts.domain.MultiStreamingData
 import io.dolby.interactiveplayer.rts.ui.DolbyBackgroundBox
 import io.dolby.interactiveplayer.rts.ui.LabelIndicator
@@ -124,7 +124,7 @@ private fun Grid(
                     viewModel = viewModel,
                     video = video,
                     displayLabel = showSourceLabels,
-                    videoQuality = MultiStreamingRepository.VideoQuality.LOW,
+                    videoQuality = VideoQuality.LOW,
                     onClick = onMainClick,
                     modifier = Modifier.aspectRatio(16F / 9)
                 )
@@ -145,7 +145,7 @@ private fun VideoView(
     video: MultiStreamingData.Video,
     displayLabel: Boolean = true,
     displayQuality: Boolean = false,
-    videoQuality: MultiStreamingRepository.VideoQuality = MultiStreamingRepository.VideoQuality.AUTO,
+    videoQuality: VideoQuality = VideoQuality.AUTO,
     onClick: ((String?) -> Unit)? = null,
     modifier: Modifier
 ) {

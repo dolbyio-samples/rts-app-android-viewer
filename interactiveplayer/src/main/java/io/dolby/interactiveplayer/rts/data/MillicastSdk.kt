@@ -1,13 +1,13 @@
 package io.dolby.interactiveplayer.rts.data
 
-import android.content.Context
-import com.millicast.LayerData
 import com.millicast.Media
+import com.millicast.subscribers.state.LayerData
 import io.dolby.interactiveplayer.rts.domain.StreamingData
 
 interface MillicastSdk {
     fun getMedia(): Media
 }
+
 interface SubscriptionManagerInterface {
     suspend fun connect(streamingData: StreamingData): Boolean
     suspend fun startSubscribe(): Boolean

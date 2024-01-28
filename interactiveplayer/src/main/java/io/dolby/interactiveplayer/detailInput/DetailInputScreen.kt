@@ -332,7 +332,7 @@ fun ConnectionOptions(viewModel: DetailInputViewModel) {
                     var sliderValue by remember { mutableFloatStateOf(selectedConnectOptions.value.videoJitterMinimumDelayMs.toFloat()) }
                     Text(
                         text = stringResource(id = R.string.connection_options_jitter_buffer_delay_title) +
-                            " - ${selectedConnectOptions.value.videoJitterMinimumDelayMs}ms"
+                                " - ${selectedConnectOptions.value.videoJitterMinimumDelayMs}ms"
                     )
                     Row(verticalAlignment = Alignment.CenterVertically) {
                         Text(
@@ -381,6 +381,10 @@ fun ConnectionOptions(viewModel: DetailInputViewModel) {
 private fun QualityLabel(viewModel: DetailInputViewModel) {
     val selectedConnectionOptions = viewModel.selectedConnectionOptions.collectAsState()
     val showVideoQualitySelection = viewModel.showVideoQualityState.collectAsStateWithLifecycle()
+
+    val trainlingIcon =
+        ExposedDropdownMenuDefaults.TrailingIcon(expanded = showVideoQualitySelection.value)
+
     Row {
         ExposedDropdownMenuBox(
             expanded = showVideoQualitySelection.value,
@@ -390,7 +394,7 @@ private fun QualityLabel(viewModel: DetailInputViewModel) {
                 value = selectedConnectionOptions.value.primaryVideoQuality.name,
                 onValueChange = {},
                 readOnly = true,
-                trailingIcon = { ExposedDropdownMenuDefaults.TrailingIcon(expanded = showVideoQualitySelection.value) }
+                trailingIcon = { trainlingIcon }
             )
             ExposedDropdownMenu(
                 expanded = showVideoQualitySelection.value,
@@ -412,8 +416,8 @@ private fun QualityLabel(viewModel: DetailInputViewModel) {
 @Composable
 fun connectionOptionsText(connectOptions: ConnectOptions) =
     "${stringResource(id = R.string.stream_connection_options_dev_server_title)} ${connectOptions.useDevEnv}\n" +
-        "${stringResource(id = R.string.stream_connection_options_video_jitter_buffer_ms_title)} ${connectOptions.videoJitterMinimumDelayMs}\n" +
-        "${stringResource(id = R.string.stream_connection_options_force_playout_delay_title)} ${connectOptions.forcePlayOutDelay}\n" +
-        "${stringResource(id = R.string.stream_connection_options_disable_audio_title)} ${connectOptions.disableAudio}\n" +
-        "${stringResource(id = R.string.stream_connection_options_primary_video_quality_title)} ${connectOptions.primaryVideoQuality}\n" +
-        "${stringResource(id = R.string.stream_connection_options_save_logs_title)} ${connectOptions.rtcLogs}"
+            "${stringResource(id = R.string.stream_connection_options_video_jitter_buffer_ms_title)} ${connectOptions.videoJitterMinimumDelayMs}\n" +
+            "${stringResource(id = R.string.stream_connection_options_force_playout_delay_title)} ${connectOptions.forcePlayOutDelay}\n" +
+            "${stringResource(id = R.string.stream_connection_options_disable_audio_title)} ${connectOptions.disableAudio}\n" +
+            "${stringResource(id = R.string.stream_connection_options_primary_video_quality_title)} ${connectOptions.primaryVideoQuality}\n" +
+            "${stringResource(id = R.string.stream_connection_options_save_logs_title)} ${connectOptions.rtcLogs}"

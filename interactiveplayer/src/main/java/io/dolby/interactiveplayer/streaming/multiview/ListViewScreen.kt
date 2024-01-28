@@ -38,7 +38,7 @@ import androidx.compose.ui.viewinterop.AndroidView
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import com.millicast.VideoRenderer
 import io.dolby.interactiveplayer.R
-import io.dolby.interactiveplayer.rts.data.MultiStreamingRepository
+import io.dolby.interactiveplayer.rts.data.VideoQuality
 import io.dolby.interactiveplayer.rts.domain.MultiStreamingData
 import io.dolby.interactiveplayer.rts.ui.DolbyBackgroundBox
 import io.dolby.interactiveplayer.rts.ui.LabelIndicator
@@ -162,7 +162,7 @@ fun HorizontalEndListView(
                             view = view,
                             viewModel = viewModel,
                             videoQuality = uiState.connectOptions?.primaryVideoQuality
-                                ?: MultiStreamingRepository.VideoQuality.AUTO
+                                ?: VideoQuality.AUTO
                         )
                     },
                     onRelease = {
@@ -199,7 +199,7 @@ fun HorizontalEndListView(
                         viewModel = viewModel,
                         video = video,
                         displayLabel = displayLabel,
-                        videoQuality = MultiStreamingRepository.VideoQuality.LOW,
+                        videoQuality = VideoQuality.LOW,
                         onClick = onOtherClick,
                         modifier = Modifier.aspectRatio(16F / 9)
                     )
@@ -251,7 +251,7 @@ fun VerticalTopListView(
                             view = view,
                             viewModel = viewModel,
                             videoQuality = uiState.connectOptions?.primaryVideoQuality
-                                ?: MultiStreamingRepository.VideoQuality.AUTO
+                                ?: VideoQuality.AUTO
                         )
                     },
                     onRelease = {
@@ -290,7 +290,7 @@ fun VerticalTopListView(
                         viewModel = viewModel,
                         video = video,
                         displayLabel = displayLabel,
-                        videoQuality = MultiStreamingRepository.VideoQuality.LOW,
+                        videoQuality = VideoQuality.LOW,
                         onClick = onOtherClick,
                         modifier = Modifier.aspectRatio(16F / 9)
                     )
@@ -312,7 +312,7 @@ fun VideoView(
     video: MultiStreamingData.Video,
     displayLabel: Boolean = true,
     displayQuality: Boolean = false,
-    videoQuality: MultiStreamingRepository.VideoQuality = MultiStreamingRepository.VideoQuality.AUTO,
+    videoQuality: VideoQuality = VideoQuality.AUTO,
     onClick: ((MultiStreamingData.Video) -> Unit)? = null,
     modifier: Modifier
 ) {
@@ -369,7 +369,7 @@ fun QualitySelector(
     val videoQualityState by viewModel.videoQualityState.collectAsStateWithLifecycle()
     videoQualityState.showVideoQualitySelectionForMid?.let { mid ->
         val availableVideoQualitiesForStream =
-            videoQualityState.availableVideoQualities[mid]?.map { it.videoQuality() } ?: emptyList()
+            videoQualityState.availableVideoQualities[mid]?.map { it.videoQuality } ?: emptyList()
         Box(
             modifier = Modifier
                 .fillMaxSize()
@@ -416,7 +416,7 @@ fun LiveIndicatorComponent(modifier: Modifier, on: Boolean) {
 fun MultiStreamingData.Video.play(
     view: VideoRenderer,
     viewModel: MultiStreamingViewModel,
-    videoQuality: MultiStreamingRepository.VideoQuality = MultiStreamingRepository.VideoQuality.AUTO
+    videoQuality: VideoQuality = VideoQuality.AUTO
 ) {
     videoTrack.setRenderer(view)
     viewModel.playVideo(
