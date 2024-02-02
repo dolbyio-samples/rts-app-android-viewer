@@ -53,6 +53,7 @@ import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import io.dolby.interactiveplayer.R
 import io.dolby.interactiveplayer.alert.ClearStreamConfirmationAlert
 import io.dolby.interactiveplayer.alert.DetailInputValidationAlert
+import io.dolby.interactiveplayer.rts.data.VideoQuality
 import io.dolby.interactiveplayer.rts.domain.ConnectOptions
 import io.dolby.interactiveplayer.rts.domain.StreamingData
 import io.dolby.interactiveplayer.rts.ui.DolbyCopyrightFooterView
@@ -381,10 +382,6 @@ fun ConnectionOptions(viewModel: DetailInputViewModel) {
 private fun QualityLabel(viewModel: DetailInputViewModel) {
     val selectedConnectionOptions = viewModel.selectedConnectionOptions.collectAsState()
     val showVideoQualitySelection = viewModel.showVideoQualityState.collectAsStateWithLifecycle()
-
-    val trainlingIcon =
-        ExposedDropdownMenuDefaults.TrailingIcon(expanded = showVideoQualitySelection.value)
-
     Row {
         ExposedDropdownMenuBox(
             expanded = showVideoQualitySelection.value,
@@ -394,7 +391,7 @@ private fun QualityLabel(viewModel: DetailInputViewModel) {
                 value = selectedConnectionOptions.value.primaryVideoQuality.name,
                 onValueChange = {},
                 readOnly = true,
-                trailingIcon = { trainlingIcon }
+                trailingIcon = { ExposedDropdownMenuDefaults.TrailingIcon(expanded = showVideoQualitySelection.value) }
             )
             ExposedDropdownMenu(
                 expanded = showVideoQualitySelection.value,
