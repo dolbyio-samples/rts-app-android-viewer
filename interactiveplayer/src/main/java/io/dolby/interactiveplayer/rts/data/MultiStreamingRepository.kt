@@ -187,7 +187,7 @@ class MultiStreamingRepository(
             return
         }
         val subscriber = Core.createSubscriber()
-        listener = Listener(TAG, _data, subscriber).apply {
+        listener = Listener(_data, subscriber).apply {
             start()
         }
 
@@ -213,7 +213,7 @@ class MultiStreamingRepository(
                 .replace(':', '-')
             options = options.copy(rtcEventLogOutputPath = path + "/${timeStamp}_rtclogs.proto")
         }
-        //subscriber.setOptions(options)
+//        subscriber.setOptions(options)
         subscriber.enableStats(true)
 
         subscriber.setCredentials(credential(subscriber.credentials, streamingData, connectOptions))
@@ -299,6 +299,6 @@ class MultiStreamingRepository(
     }
 
     companion object {
-        private const val TAG = "io.dolby.interactiveplayer"
+        const val TAG = "io.dolby.interactiveplayer"
     }
 }

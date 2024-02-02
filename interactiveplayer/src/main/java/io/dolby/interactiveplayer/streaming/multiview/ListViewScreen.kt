@@ -369,7 +369,7 @@ fun QualitySelector(
     val videoQualityState by viewModel.videoQualityState.collectAsStateWithLifecycle()
     videoQualityState.showVideoQualitySelectionForMid?.let { mid ->
         val availableVideoQualitiesForStream =
-            videoQualityState.availableVideoQualities[mid]?.map { it.videoQuality } ?: emptyList()
+            videoQualityState.availableVideoQualities[mid]?.map { it.videoQuality() } ?: emptyList()
         Box(
             modifier = Modifier
                 .fillMaxSize()
