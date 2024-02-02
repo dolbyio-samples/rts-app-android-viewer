@@ -4,9 +4,9 @@ import android.content.Context
 import android.database.ContentObserver
 import android.media.AudioManager
 import android.os.Handler
-import com.millicast.devices.track.AudioTrack
+import com.millicast.AudioTrack
 
-class VolumeObserver(
+class VolumeObserver constructor(
     var context: Context,
     handler: Handler?,
     private val audioTrack: AudioTrack

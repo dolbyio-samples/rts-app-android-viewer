@@ -1,6 +1,7 @@
 package io.dolby.rtscomponentkit.manager
 
 import android.util.Log
+import com.millicast.LayerData
 import com.millicast.Subscriber
 import com.millicast.subscribers.state.LayerData
 import java.util.*

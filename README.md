@@ -4,9 +4,9 @@
 
 This project demonstrates what a simple Realtime Streaming monitor experience is like when built for an Android TV device.
 
-| Use cases              | Features                                                         | Tech Stack      |
-| ---------------------- | ---------------------------------------------------------------- |-----------------|
-| Monitor a video stream | Start a stream monitoring with a stream name and account ID pair | Kotlin, Android |
+| Use cases              | Features                                                         | Tech Stack        |
+| ---------------------- | ---------------------------------------------------------------- |-------------------|
+| Monitor a video stream | Start a stream monitoring with a stream name and account ID pair | Kotlin, Android   |
 
 ## Pre-requisites
 
@@ -41,15 +41,22 @@ git clone git@github.com:dolbyio-samples/rts-app-android-viewer.git
 
 ## Setup
 
-For public usage, nothing needs to be done, the sdk will be retrieved through public maven repository.
-Internal development with untested & candidate releases needs to make 3 modifications inside
-`~/.gradle/gradle.properties` :
+Add the following properties (with values) into your local.properties file under project root:
+
+The username of a working GitHub account user.
 
 ```bash
-DOLBY_INTERNAL_MAVEN_URL=url_of_maven_repository
-DOLBY_INTERNAL_MAVEN_USER=both_username
-DOLBY_INTERNAL_MAVEN_PASSWORD=and_password
+githubUsername=[GitHub_username]
 ```
+
+The GitHub's user's Personal Access Token (PAT) with the read:packages scope.
+
+```bash
+githubPat=[GitHub_Personal_Access_Token]
+```
+
+For more information on how to create and use a classic PAT
+> **_Info:_** [Creating a personal access token](https://docs.github.com/en/authentication/keeping-your-account-and-data-secure/creating-a-personal-access-token) and [Working with the Gardle registry](https://docs.github.com/en/packages/working-with-a-github-packages-registry/working-with-the-gradle-registry)
 
 ## Building and running the app
 
@@ -62,9 +69,9 @@ From the top of the Android Studio, select the actual target to be run on.
 Click on the `Start` ► button on top of the Android Studio to start running and debugging the app.
 
 > **_Info:_** To run on a real device, you need to connect it to the Android Studio with the [ADB](https://developer.android.com/studio/command-line/adb#:~:text=Connect%20to%20a%20device%20over%20Wi-Fi%20%28Android%2011%2B%29,and%20port%20number%20from%20step%205.%20See%20More.)
->  
+>
 > ### Connecting a real Chromecast device
-> 
+>
 * Power up the Chromecast device and connect it to a display unit.
 * Navigate to "Settings > System > About > Android TV OS build" and click on this options 7 times to turn on "Developers option"
 * You should see a "You are now a developer!"
