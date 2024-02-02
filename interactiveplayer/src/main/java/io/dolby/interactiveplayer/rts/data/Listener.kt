@@ -17,7 +17,8 @@ import io.dolby.interactiveplayer.rts.domain.MultiStreamStatisticsData
 import io.dolby.interactiveplayer.rts.domain.MultiStreamingData
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
-import kotlinx.coroutines.Job
+import kotlinx.coroutines.cancel
+import kotlinx.coroutines.cancelChildren
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.FlowCollector
 import kotlinx.coroutines.flow.MutableStateFlow
@@ -32,10 +33,9 @@ class Listener(
     private val data: MutableStateFlow<MultiStreamingData>,
     private var subscriber: Subscriber
 ) {
-    private val coroutineScope = CoroutineScope(Dispatchers.IO)
+    private var coroutineScope = CoroutineScope(Dispatchers.IO)
 
-    private fun <T> Flow<T>.collect(
-        coroutineScope: CoroutineScope,
+    private fun <T> Flow<T>.collectInLocalScope(
         collector: FlowCollector<T>
     ) = this.let {
         coroutineScope.launch { it.collect(collector) }
@@ -43,8 +43,13 @@ class Listener(
 
     fun start() {
         Log.d(TAG, "Listener start")
+        coroutineScope = CoroutineScope(Dispatchers.IO)
 
-        subscriber.activity.collect(coroutineScope) {
+        subscriber.onTransformableFrame = { ssrc: Int, timestamp: Int, data: ByteArray ->
+            Log.d(TAG, "onFrameMetadata: $ssrc, $timestamp, ${data.size}")
+        }
+
+        subscriber.activity.collectInLocalScope {
             when (it) {
                 is ActivityStream.Active -> onActive(
                     it.streamId,
@@ -59,49 +64,36 @@ class Listener(
             }
         }
 
-        subscriber.layers.collect(coroutineScope) {
+        subscriber.layers.collectInLocalScope {
             onLayers(it.mid, it.activeLayers, it.inactiveLayersEncodingIds)
         }
 
-        subscriber.state.map { it.subscriptionState }.collect(coroutineScope) { state ->
+        subscriber.state.map { it.subscriptionState }.collectInLocalScope { state ->
             when (state) {
                 SubscriptionState.Default -> {}
                 is SubscriptionState.Error -> {
-                    Log.d(TAG, "onSubscribedError: ${state.reason}")
-                    data.update {
-                        it.copy(error = state.reason)
-                    }
+                    onSubscribedError(state.reason)
                 }
 
                 SubscriptionState.Stopped -> {
-                    Log.d(TAG, "onStopped")
+                    onStopped()
                 }
 
                 SubscriptionState.Subscribed -> {
-                    Log.d(TAG, "onSubscribed")
-                    val newData =
-                        data.updateAndGet { data ->
-                            data.copy(
-                                isSubscribed = true,
-                                error = null
-                            )
-                        }
-                    processPendingTracks(newData)
+                    onSubscribed()
                 }
             }
         }
 
-        subscriber.state.map { it.viewers }.collect(coroutineScope) {
-            Log.d(TAG, "onViewerCount: $it")
-            data.update { data -> data.copy(viewerCount = it) }
+        subscriber.state.map { it.viewers }.collectInLocalScope {
+            onViewerCount(it)
         }
 
-        subscriber.state.map { it.connectionState }.collect(coroutineScope) { state ->
+        subscriber.state.map { it.connectionState }.collectInLocalScope { state ->
             when (state) {
                 ConnectionState.Default -> {}
                 ConnectionState.Connected -> {
-                    Log.d(TAG, "onConnected, this: $this, thread: ${Thread.currentThread().id}")
-                    subscriber.subscribe()
+                    onConnected()
                 }
 
                 ConnectionState.Connecting -> {
@@ -109,17 +101,11 @@ class Listener(
                 }
 
                 ConnectionState.Disconnected -> {
-                    Log.d(TAG, "onDisconnected")
-                    data.update {
-                        it.populateError(error = "Disconnected")
-                    }
+                    onDisconnected()
                 }
 
                 is ConnectionState.DisconnectedError -> {
-                    Log.d(TAG, "onConnectionError: ${state.httpCode}, ${state.reason}")
-                    data.update {
-                        it.populateError(error = state.reason)
-                    }
+                    onConnectionError(state.httpCode, state.reason)
                 }
 
                 ConnectionState.Disconnecting -> {
@@ -128,7 +114,7 @@ class Listener(
             }
         }
 
-        subscriber.track.collect(coroutineScope) { holder ->
+        subscriber.track.collectInLocalScope { holder ->
             Log.d(TAG, "onTrack, ${holder.track}, ${holder.mid}")
             when (holder.track) {
                 is VideoTrack -> {
@@ -141,16 +127,16 @@ class Listener(
             }
         }
 
-        subscriber.rtcStatsReport.collect(coroutineScope) { report ->
+        subscriber.rtcStatsReport.collectInLocalScope { report ->
             //TODO: update the report structure
             onStatsReport(report)
         }
 
-        subscriber.signalingError.collect(coroutineScope) {
+        subscriber.signalingError.collectInLocalScope {
             Log.d(TAG, "subscriber.signalingError: $it")
         }
 
-        subscriber.vad.collect(coroutineScope) {
+        subscriber.vad.collectInLocalScope {
             Log.d(TAG, "subscriber.vad: $it")
         }
     }
@@ -158,6 +144,10 @@ class Listener(
     fun connected(): Boolean = subscriber.isSubscribed
 
     suspend fun disconnect() {
+        Log.d(TAG, "Cancelling coroutines...")
+        coroutineScope.coroutineContext.cancelChildren()
+        coroutineScope.coroutineContext.cancel()
+        Log.d(TAG, "Disconnecting subscriber...")
         subscriber.disconnect()
     }
 
@@ -436,7 +426,7 @@ class Listener(
             trackId = MultiStreamingData.audio,
             media = MultiStreamingData.audio
         )
-        subscriber?.project(audioTrack.sourceId ?: "", arrayListOf(projectionData))
+        subscriber.project(audioTrack.sourceId ?: "", arrayListOf(projectionData))
         data.update {
             it.copy(selectedAudioTrackId = audioTrack.sourceId)
         }
@@ -451,13 +441,13 @@ class Listener(
             if (processVideo) {
                 val pendingVideoTracks = data.pendingVideoTracks.count { !it.added }
                 repeat(pendingVideoTracks) {
-                    subscriber?.addRemoteTrack(TrackType.Video)
+                    subscriber.addRemoteTrack(TrackType.Video)
                 }
             }
             if (processAudio) {
                 val pendingAudioTracks = data.pendingAudioTracks.count { !it.added }
                 repeat(pendingAudioTracks) {
-                    subscriber?.addRemoteTrack(TrackType.Audio)
+                    subscriber.addRemoteTrack(TrackType.Audio)
                 }
             }
             this.data.update {

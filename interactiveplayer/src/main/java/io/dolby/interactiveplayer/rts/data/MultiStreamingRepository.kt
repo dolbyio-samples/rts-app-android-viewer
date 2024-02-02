@@ -231,9 +231,11 @@ class MultiStreamingRepository(
     }
 
     suspend fun disconnect() {
+        val listener = listener
+        this.listener = null
+        listener?.disconnect()
         _data.update { MultiStreamingData() }
         unregisterVolumeObserver()
-        listener?.disconnect()
         unregisterAudioDeviceListener()
     }
 
