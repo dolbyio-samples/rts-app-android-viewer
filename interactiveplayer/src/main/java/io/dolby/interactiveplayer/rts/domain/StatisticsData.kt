@@ -2,7 +2,11 @@ package io.dolby.interactiveplayer.rts.domain
 
 import android.icu.text.SimpleDateFormat
 import android.util.Log
+import com.millicast.clients.stats.Codecs
+import com.millicast.clients.stats.InboundRtpStream
+import com.millicast.clients.stats.RemoteOutboundRtpStream
 import com.millicast.clients.stats.RtsReport
+import com.millicast.clients.stats.StatsType
 import io.dolby.interactiveplayer.R
 import org.webrtc.RTCStatsReport
 import java.math.BigInteger
@@ -56,6 +60,24 @@ data class StatisticsData(
             return null
         }
 
+        internal fun getStatisticsRoundTripTime(report: RtsReport): Double? {
+            val remoteStream = report.stats()
+                .find { it is RemoteOutboundRtpStream && it.statsType() == StatsType.REMOTE_OUTBOUND_RTP }
+            remoteStream?.let {
+                return (it as RemoteOutboundRtpStream).roundTripTime
+            }
+            return null
+        }
+
+        internal fun getBitrate(report: RtsReport): Double? {
+//            val remoteStream = report.stats()
+//                .find { it is RemoteOutboundRtpStream && it.statsType() == StatsType.REMOTE_OUTBOUND_RTP }
+//            remoteStream?.let {
+//                return (it as RemoteOutboundRtpStream).totalRoundTripTime
+//            }
+            return null
+        }
+
         internal fun getBitrate(report: RTCStatsReport): Double? {
             report.statsMap.values.firstOrNull {
                 it.type == "candidate-pair" && it.members.containsKey(
@@ -69,6 +91,12 @@ data class StatisticsData(
 
         internal fun getCodec(codecId: String, report: RTCStatsReport): String =
             report.statsMap.getValue(codecId).members["mimeType"] as String
+
+        internal fun getCodec(codecId: String, report: RtsReport): String? {
+            val codec: Codecs? = report.stats()
+                .firstOrNull { it is Codecs && it.id == codecId && it.statsType() == StatsType.CODEC } as Codecs?
+            return codec?.mimeType
+        }
     }
 }
 
@@ -78,28 +106,28 @@ data class StatsInboundRtp(
     val frameWidth: Long?,
     val frameHeight: Long?,
     val fps: Double?,
-    val bytesReceived: BigInteger,
-    val jitter: Double,
-    val packetsLost: Int,
+    val bytesReceived: BigInteger?,
+    val jitter: Double?,
+    val packetsLost: Long?,
     val codecName: String?,
     val decoderImplementation: String?,
-    val trackIdentifier: String,
+    val trackIdentifier: String?,
     val decoder: String?,
     val processingDelay: Double?,
     val decodeTime: Double?,
     val audioLevel: Double?,
     val totalEnergy: Double?,
-    val framesReceived: Int?,
+    val framesReceived: Long?,
     val framesDecoded: Long?,
     val framesDropped: Long?,
     val jitterBufferEmittedCount: BigInteger,
-    val jitterBufferDelay: Double,
+    val jitterBufferDelay: Double?,
     val jitterBufferTargetDelay: Double?,
     val jitterBufferMinimumDelay: Double?,
     val nackCount: Long?,
     val totalSamplesDuration: Double?,
-    val packetsReceived: Long,
-    val timestamp: Double
+    val packetsReceived: Long?,
+    val timestamp: Long
 ) {
     val videoResolution: String? = frameWidth?.let { frameWidth ->
         frameHeight?.let { frameHeight ->
@@ -107,6 +135,7 @@ data class StatsInboundRtp(
         }
     }
     val isVideo: Boolean = kind == "video"
+
     companion object {
         fun from(
             statsMembers: MutableMap<String, Any>,
@@ -121,7 +150,7 @@ data class StatsInboundRtp(
                 fps = statsMembers.getOrDefault("framesPerSecond", null) as Double?,
                 bytesReceived = statsMembers["bytesReceived"] as BigInteger,
                 jitter = statsMembers["jitter"] as Double,
-                packetsLost = statsMembers["packetsLost"] as Int,
+                packetsLost = statsMembers["packetsLost"] as Long,
                 codecName = codecName,
                 decoderImplementation = statsMembers["decoderImplementation"] as String?, //
                 trackIdentifier = statsMembers["trackIdentifier"] as String,
@@ -130,7 +159,7 @@ data class StatsInboundRtp(
                 decodeTime = statsMembers["totalDecodeTime"] as Double?, //
                 audioLevel = statsMembers["audioLevel"] as Double?,
                 totalEnergy = statsMembers["totalAudioEnergy"] as Double?,
-                framesReceived = statsMembers["framesReceived"] as Int?, //
+                framesReceived = statsMembers["framesReceived"] as Long?, //
                 framesDecoded = statsMembers["framesDecoded"] as Long?, //
                 framesDropped = statsMembers["framesDropped"] as Long?, //
                 jitterBufferEmittedCount = statsMembers["jitterBufferEmittedCount"] as BigInteger,
@@ -140,7 +169,42 @@ data class StatsInboundRtp(
                 nackCount = statsMembers["nackCount"] as Long?,
                 totalSamplesDuration = statsMembers["totalSamplesDuration"] as Double?,
                 packetsReceived = statsMembers["packetsReceived"] as Long,
-                timestamp = timestamp
+                timestamp = timestamp.toLong()
+            )
+        }
+
+        fun from(
+            statsMembers: InboundRtpStream,
+            codecName: String?
+        ): StatsInboundRtp {
+            return StatsInboundRtp(
+                mid = statsMembers.mid ?: "null",
+                kind = statsMembers.kind,
+                frameWidth = statsMembers.frameWidth?.toLong(),
+                frameHeight = statsMembers.frameHeight?.toLong(),
+                fps = statsMembers.framesPerSecond,
+                bytesReceived = BigInteger.valueOf(statsMembers.bytesReceived?.toLong() ?: 0),
+                jitter = statsMembers.jitter,
+                packetsLost = statsMembers.packetsLost,
+                codecName = codecName,
+                decoderImplementation = statsMembers.decoderImplementation,
+                trackIdentifier = statsMembers.trackIdentifier,
+                decoder = statsMembers.decoderImplementation,
+                processingDelay = statsMembers.totalProcessingDelay,
+                decodeTime = statsMembers.totalDecodeTime,
+                audioLevel = statsMembers.audioLevel,
+                totalEnergy = statsMembers.totalAudioEnergy,
+                framesReceived = statsMembers.framesReceived?.toLong(),
+                framesDecoded = statsMembers.framesDecoded?.toLong(),
+                framesDropped = statsMembers.framesDropped?.toLong(),
+                jitterBufferEmittedCount = BigInteger.valueOf(statsMembers.jitterBufferEmittedCount?.toLong() ?: 0),
+                jitterBufferDelay = statsMembers.jitterBufferDelay,
+                jitterBufferTargetDelay = statsMembers.jitterBufferTargetDelay,
+                jitterBufferMinimumDelay = statsMembers.jitterBufferMinimumDelay,
+                nackCount = statsMembers.nackCount?.toLong(),
+                totalSamplesDuration = statsMembers.totalSamplesDuration,
+                packetsReceived = statsMembers.packetsReceived?.toLong(),
+                timestamp = statsMembers.timestamp.toLong()
             )
         }
 
@@ -345,10 +409,10 @@ data class StatsInboundRtp(
 
             audioStatistics?.codecName?.let { audioCodec ->
                 val codecs = audioCodec + (
-                    videoStatistics?.codecName?.let { videoCodec ->
-                        ", $videoCodec"
-                    } ?: ""
-                    )
+                        videoStatistics?.codecName?.let { videoCodec ->
+                            ", $videoCodec"
+                        } ?: ""
+                        )
                 statisticsValuesList.add(Pair(R.string.statisticsScreen_codecs, codecs))
             } ?: {
                 videoStatistics?.codecName?.let { videoCodec ->
@@ -370,10 +434,10 @@ data class StatsInboundRtp(
             return statisticsValuesList
         }
 
-        private fun getDateTime(timeStamp: Double): String? {
+        private fun getDateTime(timeStamp: Long): String? {
             return try {
                 val dateFormat = SimpleDateFormat.getDateTimeInstance()
-                val netDate = Date((timeStamp / 1000).toLong())
+                val netDate = Date(timeStamp)
                 dateFormat.format(netDate)
             } catch (e: Exception) {
                 Log.e("StatisticsData", e.toString())
@@ -413,25 +477,36 @@ data class MultiStreamStatisticsData(
 ) {
     companion object {
         fun from(report: RtsReport): MultiStreamStatisticsData {
-            val rtt = null // StatisticsData.getStatisticsRoundTripTime(report)
-            val bitrate = null // StatisticsData.getBitrate(report)
+            val rtt = StatisticsData.getStatisticsRoundTripTime(report)
+            val bitrate = StatisticsData.getBitrate(report)
             val audio = mutableListOf<StatsInboundRtp>()
             val video = mutableListOf<StatsInboundRtp>()
-            /*val timestamp = report.timestampUs
-            val inboundRtpStreamStatsList = report.statsMap.values.filter { it.type == "inbound-rtp" }
-            inboundRtpStreamStatsList.forEach { statsData ->
-                val statsMembers = statsData.members
-                val codecId = statsMembers["codecId"] as String?
+            val inboundRtpStreams = report.stats()
+                .filter { it is InboundRtpStream && it.statsType() == StatsType.INBOUND_RTP }
+            val timestamp = inboundRtpStreams.firstOrNull()?.timestamp?.toDouble()
+            //val inboundRtpStreamStatsList = report.statsMap.values.filter { it.type == "inbound-rtp" }
+            inboundRtpStreams.forEach { statsData ->
+                val inboundData = statsData as InboundRtpStream
+                val codecId = inboundData.codecId
                 val codecName = codecId?.let { StatisticsData.getCodec(codecId, report) }
                 val statsInboundRtp =
-                    StatsInboundRtp.from(statsMembers, codecName, statsData.timestampUs)
+                    StatsInboundRtp.from(inboundData, codecName)
+
+//                val statsInboundRtp =
+//                    StatsInboundRtp.from(statsMembers, codecName, statsData.timestampUs)
                 if (statsInboundRtp.isVideo) {
                     video.add(statsInboundRtp)
                 } else {
                     audio.add(statsInboundRtp)
                 }
-            }*/
-            return MultiStreamStatisticsData(rtt, bitrate, null, audio.toList(), video.toList())
+            }
+            return MultiStreamStatisticsData(
+                rtt,
+                bitrate,
+                timestamp,
+                audio.toList(),
+                video.toList()
+            )
         }
     }
 }
