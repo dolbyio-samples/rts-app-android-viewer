@@ -7,6 +7,7 @@ import com.millicast.clients.stats.RtsReport
 import com.millicast.devices.track.AudioTrack
 import com.millicast.devices.track.TrackType
 import com.millicast.devices.track.VideoTrack
+import com.millicast.subscribers.Option
 import com.millicast.subscribers.ProjectionData
 import com.millicast.subscribers.state.ActivityStream
 import com.millicast.subscribers.state.LayerData
@@ -31,7 +32,8 @@ import kotlin.jvm.optionals.getOrNull
 
 class Listener(
     private val data: MutableStateFlow<MultiStreamingData>,
-    private var subscriber: Subscriber
+    private var subscriber: Subscriber,
+    private val options: Option
 ) {
     private var coroutineScope = CoroutineScope(Dispatchers.IO)
 
@@ -157,7 +159,7 @@ class Listener(
             "onConnected, this: $this, thread: ${Thread.currentThread().id}"
         )
 
-        subscriber.subscribe()
+        subscriber.subscribe(options = options)
     }
 
     private fun onDisconnected() {
