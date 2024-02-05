@@ -1,7 +1,7 @@
 package io.dolby.rtsviewer.ui.streaming
 
-import com.millicast.AudioTrack
-import com.millicast.VideoTrack
+import com.millicast.devices.track.AudioTrack
+import com.millicast.devices.track.VideoTrack
 import io.dolby.rtscomponentkit.data.RTSViewerDataStore
 
 enum class Error {
