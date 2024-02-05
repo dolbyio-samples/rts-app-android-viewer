@@ -13,7 +13,6 @@
             <option value="$PROJECT_DIR$" />
             <option value="$PROJECT_DIR$/app" />
             <option value="$PROJECT_DIR$/interactiveplayer" />
-            <option value="$PROJECT_DIR$/millicastsdk" />
             <option value="$PROJECT_DIR$/rtscomponentkit" />
             <option value="$PROJECT_DIR$/uikit" />
           </set>

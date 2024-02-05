@@ -10,40 +10,26 @@ import android.os.HandlerThread
 import android.provider.Settings
 import android.util.Log
 import com.millicast.Core
-import com.millicast.Subscriber
-import com.millicast.clients.state.ConnectionState
 import com.millicast.devices.track.AudioTrack
-import com.millicast.devices.track.Track
-import com.millicast.devices.track.TrackType
 import com.millicast.subscribers.Credential
 import com.millicast.subscribers.Option
-import com.millicast.subscribers.ProjectionData
-import com.millicast.subscribers.state.ActivityStream
-import com.millicast.subscribers.state.LayerData
-import com.millicast.subscribers.state.SubscriptionState
+import io.dolby.interactiveplayer.detailInput.ConnectionOptions
 import io.dolby.interactiveplayer.preferenceStore.AudioSelection
 import io.dolby.interactiveplayer.preferenceStore.PrefsStore
 import io.dolby.interactiveplayer.rts.domain.ConnectOptions
-import io.dolby.interactiveplayer.rts.domain.MultiStreamStatisticsData
 import io.dolby.interactiveplayer.rts.domain.MultiStreamingData
-import io.dolby.interactiveplayer.rts.domain.MultiStreamingData.Companion.audio
 import io.dolby.interactiveplayer.rts.domain.StreamingData
 import io.dolby.interactiveplayer.rts.utils.DispatcherProvider
 import io.dolby.interactiveplayer.utils.VolumeObserver
 import io.dolby.interactiveplayer.utils.adjustTrackVolume
 import io.dolby.interactiveplayer.utils.createDirectoryIfNotExists
 import kotlinx.coroutines.CoroutineScope
-import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.Job
-import kotlinx.coroutines.flow.Flow
-import kotlinx.coroutines.flow.FlowCollector
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.combine
-import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.flow.update
-import kotlinx.coroutines.flow.updateAndGet
 import kotlinx.coroutines.launch
 import java.time.Instant
 import java.time.ZoneId
@@ -192,7 +178,6 @@ class MultiStreamingRepository(
         }
 
         var options = Option(
-            autoReconnect = true,
             statsDelayMs = 10_000,
             disableAudio = connectOptions.disableAudio,
             forcePlayoutDelay = connectOptions.forcePlayOutDelay,
@@ -221,7 +206,7 @@ class MultiStreamingRepository(
         Log.d(TAG, "Connecting ...")
 
         try {
-            subscriber.connect()
+            subscriber.connect(com.millicast.clients.ConnectionOptions(true))
         } catch (e: Exception) {
             e.printStackTrace()
         }
