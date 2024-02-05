@@ -173,9 +173,6 @@ class MultiStreamingRepository(
             return
         }
         val subscriber = Core.createSubscriber()
-        listener = Listener(_data, subscriber).apply {
-            start()
-        }
 
         var options = Option(
             statsDelayMs = 10_000,
@@ -198,7 +195,10 @@ class MultiStreamingRepository(
                 .replace(':', '-')
             options = options.copy(rtcEventLogOutputPath = path + "/${timeStamp}_rtclogs.proto")
         }
-//        subscriber.setOptions(options)
+
+        listener = Listener(_data, subscriber, options).apply {
+            start()
+        }
         subscriber.enableStats(true)
 
         subscriber.setCredentials(credential(subscriber.credentials, streamingData, connectOptions))
