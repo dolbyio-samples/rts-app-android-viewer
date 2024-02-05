@@ -1,15 +1,14 @@
 package io.dolby.rtscomponentkit.data
 
-import android.content.Context
 import android.util.Log
-import com.millicast.AudioPlayback
-import com.millicast.AudioTrack
-import com.millicast.LayerData
+import com.millicast.Core
 import com.millicast.Media
-import com.millicast.Subscriber
-import com.millicast.VideoTrack
-import io.dolby.rtscomponentkit.manager.SubscriptionManagerInterface
-import io.dolby.rtscomponentkit.manager.TAG
+import com.millicast.devices.playback.AudioPlayback
+import com.millicast.devices.track.AudioTrack
+import com.millicast.devices.track.VideoTrack
+import com.millicast.subscribers.Credential
+import com.millicast.subscribers.state.LayerData
+import io.dolby.rtscomponentkit.domain.StreamingData
 import io.dolby.rtscomponentkit.utils.DispatcherProvider
 import io.dolby.rtscomponentkit.utils.DispatcherProviderImpl
 import kotlinx.coroutines.CoroutineScope
@@ -20,141 +19,12 @@ import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.asSharedFlow
 import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.launch
-import org.webrtc.RTCStatsReport
-import java.util.Optional
 
 class RTSViewerDataStore constructor(
-    context: Context,
     millicastSdk: MillicastSdk,
     dispatcherProvider: DispatcherProvider = DispatcherProviderImpl
 ) {
     private val apiScope = CoroutineScope(dispatcherProvider.default + Job())
-
-    private val subscriptionDelegate = object : Subscriber.Listener {
-        override fun onSubscribed() {
-            apiScope.launch {
-                _state.emit(State.Subscribed)
-            }
-        }
-
-        override fun onSubscribedError(reason: String) {
-            Log.d(TAG, "onSubscribedError: $reason")
-            apiScope.launch {
-                _state.emit(State.Error(SubscriptionError.SubscribeError(reason)))
-            }
-            _statistics.value = null
-        }
-
-        override fun onTrack(track: VideoTrack, p1: Optional<String>?) {
-            Log.d(TAG, "onVideoTrack")
-            apiScope.launch {
-                _state.emit(State.VideoTrackReady(track))
-            }
-        }
-
-        override fun onTrack(track: AudioTrack, p1: Optional<String>?) {
-            Log.d(TAG, "onAudioTrack")
-            apiScope.launch {
-                _state.emit(State.AudioTrackReady(track))
-            }
-        }
-
-        override fun onStatsReport(report: RTCStatsReport) {
-            Log.d(TAG, "onStatsReport")
-            _statistics.value = StatisticsData.from(report)
-        }
-
-        override fun onViewerCount(p0: Int) {
-            Log.d("Subscriber", "onViewerCount")
-        }
-
-        override fun onConnected() {
-            Log.d(TAG, "onConnected")
-            startSubscribe()
-        }
-
-        override fun onActive(p0: String?, p1: Array<out String>?, p2: Optional<String>?) {
-            Log.d(TAG, "onActive")
-            apiScope.launch {
-                _state.emit(State.StreamActive)
-            }
-        }
-
-        override fun onInactive(p0: String?, p1: Optional<String>?) {
-            Log.d(TAG, "onInactive")
-            apiScope.launch {
-                _state.emit(State.StreamInactive)
-            }
-        }
-
-        override fun onStopped() {
-            Log.d(TAG, "onStopped")
-            apiScope.launch {
-                _state.emit(State.StreamInactive)
-            }
-            _statistics.value = null
-        }
-
-        override fun onVad(p0: String?, p1: Optional<String>?) {
-            Log.d(TAG, "onVad")
-        }
-
-        override fun onConnectionError(reason: String) {
-            Log.d(TAG, "onConnectionError: $reason")
-            _statistics.value = null
-            apiScope.launch {
-                _state.emit(State.Error(SubscriptionError.ConnectError(reason)))
-            }
-        }
-
-        override fun onSignalingError(reason: String?) {
-            Log.d(TAG, "onSignalingError: $reason")
-            _statistics.value = null
-        }
-
-        override fun onLayers(mid: String?, activeLayers: Array<out LayerData>?, inactiveLayers: Array<out LayerData>?) {
-            Log.d(TAG, "onLayers: $activeLayers")
-            val filteredActiveLayers = activeLayers?.filter {
-                // For H.264 there are no temporal layers and the id is set to 255. For VP8 use the first temporal layer.
-                it.temporalLayerId == 0 || it.temporalLayerId == 255
-            }
-
-            filteredActiveLayers?.let { activeLayers ->
-                val newActiveLayers = when (activeLayers?.count()) {
-                    2 -> {
-                        listOf(
-                            StreamQualityType.Auto,
-                            StreamQualityType.High(activeLayers[0]),
-                            StreamQualityType.Low(activeLayers[1])
-                        )
-                    }
-                    3 -> {
-                        listOf(
-                            StreamQualityType.Auto,
-                            StreamQualityType.High(activeLayers[0]),
-                            StreamQualityType.Medium(activeLayers[1]),
-                            StreamQualityType.Low(activeLayers[2])
-                        )
-                    }
-                    else -> emptyList()
-                }
-
-                if (_streamQualityTypes.value != newActiveLayers) {
-                    _streamQualityTypes.value = newActiveLayers
-                    // Update selected stream quality type everytime the `streamQualityTypes` change
-                    // It preserves the current selected type if the new list has a stream matching the type `selectedStreamQualityType`
-                    val updatedStreamQualityType = _streamQualityTypes.value.firstOrNull { type ->
-                        _selectedStreamQualityType.value::class == type::class
-                    } ?: StreamQualityType.Auto
-
-                    _selectedStreamQualityType.value = updatedStreamQualityType
-                }
-            }
-        }
-    }
-
-    private val subscriptionManager: SubscriptionManagerInterface =
-        millicastSdk.initSubscriptionManager(subscriptionDelegate)
 
     private val _state: MutableSharedFlow<State> = MutableSharedFlow()
     val state: Flow<State> = _state.asSharedFlow()
@@ -163,7 +33,7 @@ class RTSViewerDataStore constructor(
     val statisticsData: Flow<StatisticsData?> = _statistics.asStateFlow()
 
     private var media: Media
-    private var audioPlayback: ArrayList<AudioPlayback>? = null
+    private var audioPlayback: List<AudioPlayback>? = null
 
     private var _streamQualityTypes: MutableStateFlow<List<StreamQualityType>> =
         MutableStateFlow(emptyList())
@@ -174,23 +44,54 @@ class RTSViewerDataStore constructor(
     val selectedStreamQualityType: Flow<StreamQualityType> =
         _selectedStreamQualityType.asStateFlow()
 
+    private var listener: Listener? = null
+
     init {
-        millicastSdk.init(context)
-        media = millicastSdk.getMedia(context)
+        media = millicastSdk.getMedia()
         audioPlayback = media.audioPlayback
     }
 
-    fun connect(streamName: String, accountId: String) = apiScope.launch {
+    suspend fun connect(streamName: String, accountId: String) {
+        if (listener?.connected() == true) {
+            return
+        }
+
         _state.emit(State.Connecting)
-        subscriptionManager.connect(streamName, accountId)
+
+        val subscriber = Core.createSubscriber()
+
+        subscriber.setCredentials(
+            credential(
+                subscriber.credentials,
+                StreamingData(accountId = accountId, streamName = streamName)
+            )
+        )
+        listener = Listener(
+            subscriber = subscriber,
+            state = _state,
+            statistics = _statistics,
+            streamQualityTypes = _streamQualityTypes,
+            selectedStreamQualityType = _selectedStreamQualityType
+        ).apply { start() }
+
+        try {
+            subscriber.connect()
+        } catch (e: Exception) {
+            Log.e(TAG, "${e.message}")
+        }
     }
 
-    private fun startSubscribe() = apiScope.launch {
-        subscriptionManager.startSubscribe()
-    }
+    private fun credential(
+        credentials: Credential,
+        streamingData: StreamingData,
+    ) = credentials.copy(
+        streamName = streamingData.streamName,
+        accountId = streamingData.accountId,
+        apiUrl = "https://director.millicast.com/api/director/subscribe"
+    )
 
     fun stopSubscribe() = apiScope.launch {
-        subscriptionManager.stopSubscribe()
+        listener?.stopSubscribe()
 
         resetStreamQualityTypes()
     }
@@ -215,7 +116,7 @@ class RTSViewerDataStore constructor(
     }
 
     fun selectStreamQualityType(type: StreamQualityType) = apiScope.launch {
-        val success = subscriptionManager.selectLayer(type.layerData)
+        val success = listener?.selectLayer(type.layerData) ?: false
         if (success) {
             _selectedStreamQualityType.value = type
         }
@@ -248,16 +149,19 @@ class RTSViewerDataStore constructor(
                 return other is Auto
             }
         }
+
         data class High(val layer: LayerData) : StreamQualityType() {
             override fun equals(other: Any?): Boolean {
                 return other is High && other.layer.isEqualTo(this.layer)
             }
         }
+
         data class Medium(val layer: LayerData) : StreamQualityType() {
             override fun equals(other: Any?): Boolean {
                 return other is Medium && other.layer.isEqualTo(this.layer)
             }
         }
+
         data class Low(val layer: LayerData) : StreamQualityType() {
             override fun equals(other: Any?): Boolean {
                 return other is Low && other.layer.isEqualTo(this.layer)
@@ -280,6 +184,10 @@ class RTSViewerDataStore constructor(
                 is Low -> (this as Low) == other
             }
         }
+    }
+
+    companion object {
+        const val TAG = "io.dolby.rtscomponentkit"
     }
 }
 

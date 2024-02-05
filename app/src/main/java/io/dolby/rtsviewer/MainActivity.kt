@@ -7,7 +7,7 @@ import android.provider.Settings
 import androidx.activity.ComponentActivity
 import androidx.activity.compose.setContent
 import androidx.navigation.compose.rememberNavController
-import com.millicast.AudioTrack
+import com.millicast.devices.track.AudioTrack
 import dagger.hilt.android.AndroidEntryPoint
 import io.dolby.rtscomponentkit.utils.VolumeObserver
 import io.dolby.rtsviewer.ui.navigation.AppNavigation
