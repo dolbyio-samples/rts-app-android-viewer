@@ -7,12 +7,17 @@ pluginManagement {
 }
 
 def prop = { String key ->
+    Properties properties = new Properties()
+    properties.load(new File(rootDir.absolutePath + "/local.properties").newDataInputStream())
     properties.containsKey(key) ? properties[key] as String : null
 }
 
 def internalRepo = prop("DOLBY_INTERNAL_MAVEN_URL")
-def user = prop("DOLBY_INTERNAL_MAVEN_USER")
-def password = prop("DOLBY_INTERNAL_MAVEN_PASSWORD")
+def internalUser = prop("DOLBY_INTERNAL_MAVEN_USER")
+def internalPassword = prop("DOLBY_INTERNAL_MAVEN_PASSWORD")
+
+def gitUserName = System.env.GIT_USERNAME ?: getGithubUsername()
+def gitPat = System.env.GIT_PAT ?: getGithubUserPassword()
 
 dependencyResolutionManagement {
     repositoriesMode.set(RepositoriesMode.FAIL_ON_PROJECT_REPOS)
@@ -21,13 +26,23 @@ dependencyResolutionManagement {
         mavenCentral()
         mavenLocal()
 
-        if (null != internalRepo && null != user && null != password) {
+        maven {
+            name = "GitHubPackages"
+            url = uri("https://maven.pkg.github.com/millicast/maven")
+            credentials {
+                username = gitUserName
+                logger.lifecycle("User name: ${gitUserName}")
+                password = gitPat
+            }
+        }
+
+        if (null != internalRepo && null != internalUser && null != internalPassword) {
             maven {
                 name = "Snapshots"
                 url = uri(internalRepo)
                 credentials {
-                    username = user
-                    password
+                    username = internalUser
+                    password = internalPassword
                 }
                 authentication {
                     digest(BasicAuthentication)
@@ -35,6 +50,27 @@ dependencyResolutionManagement {
             }
         }
     }
+}
+
+def getGithubUsername() {
+    Properties properties = new Properties()
+    properties.load(new File(rootDir.absolutePath + "/local.properties").newDataInputStream())
+    def githubUserName = properties.getProperty('githubUsername', null)
+    if (githubUserName == null) {
+        throw new GradleException(
+                "Github username not found. Define location with githubUsername in the local.properties file")
+    }
+    return githubUserName
+}
+def getGithubUserPassword() {
+    Properties properties = new Properties()
+    properties.load(new File(rootDir.absolutePath + "/local.properties").newDataInputStream())
+    def githubUserPassword = properties.getProperty('githubPat', null)
+    if (githubUserPassword == null) {
+        throw new GradleException(
+                "Github PAT not found. Define location with githubPat in the local.properties file")
+    }
+    return githubUserPassword
 }
 
 rootProject.name = "rts-app-android-viewer"

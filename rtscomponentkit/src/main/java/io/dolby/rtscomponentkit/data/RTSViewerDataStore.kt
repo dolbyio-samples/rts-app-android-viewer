@@ -8,8 +8,6 @@ import com.millicast.LayerData
 import com.millicast.Media
 import com.millicast.Subscriber
 import com.millicast.VideoTrack
-import com.millicast.devices.playback.AudioPlayback
-import com.millicast.subscribers.state.LayerData
 import io.dolby.rtscomponentkit.manager.SubscriptionManagerInterface
 import io.dolby.rtscomponentkit.manager.TAG
 import io.dolby.rtscomponentkit.utils.DispatcherProvider
