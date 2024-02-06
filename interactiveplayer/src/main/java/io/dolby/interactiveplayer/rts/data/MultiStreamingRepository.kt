@@ -29,6 +29,7 @@ import io.dolby.interactiveplayer.rts.domain.MultiStreamingData
 import io.dolby.interactiveplayer.rts.domain.MultiStreamingData.Companion.audio
 import io.dolby.interactiveplayer.rts.domain.StreamingData
 import io.dolby.interactiveplayer.rts.utils.DispatcherProvider
+import io.dolby.interactiveplayer.streaming.multiview.safeLaunch
 import io.dolby.interactiveplayer.utils.VolumeObserver
 import io.dolby.interactiveplayer.utils.adjustTrackVolume
 import io.dolby.interactiveplayer.utils.createDirectoryIfNotExists
@@ -129,7 +130,7 @@ class MultiStreamingRepository(
 
     private fun listenForAudioSelection() {
         audioSelectionListenerJob?.cancel()
-        audioSelectionListenerJob = CoroutineScope(dispatcherProvider.main).launch {
+        audioSelectionListenerJob = CoroutineScope(dispatcherProvider.main).safeLaunch {
             combine(
                 _data,
                 prefsStore.audioSelection(data.value.streamingData)
@@ -192,7 +193,6 @@ class MultiStreamingRepository(
         }
 
         var options = Option(
-            autoReconnect = true,
             statsDelayMs = 10_000,
             disableAudio = connectOptions.disableAudio,
             forcePlayoutDelay = connectOptions.forcePlayOutDelay,

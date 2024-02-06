@@ -8,6 +8,7 @@ import io.dolby.interactiveplayer.datastore.StreamDetail
 import io.dolby.interactiveplayer.preferenceStore.PrefsStore
 import io.dolby.interactiveplayer.rts.domain.ConnectOptions
 import io.dolby.interactiveplayer.rts.domain.StreamingData
+import io.dolby.interactiveplayer.streaming.multiview.safeLaunch
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
@@ -32,7 +33,7 @@ class SavedStreamViewModel @Inject constructor(
     val connectionOptions = _connectionOptions.asStateFlow()
 
     init {
-        viewModelScope.launch {
+        viewModelScope.safeLaunch {
             recentStreamsDataStore.recentStreams
                 .collectLatest {
                     _uiState.update { state ->
@@ -43,7 +44,7 @@ class SavedStreamViewModel @Inject constructor(
                     }
                 }
         }
-        viewModelScope.launch {
+        viewModelScope.safeLaunch {
             preferencesStore.showDebugOptions().collectLatest { value ->
                 _showDebugOptions.update {
                     value
@@ -53,7 +54,7 @@ class SavedStreamViewModel @Inject constructor(
     }
 
     fun clearAll() {
-        viewModelScope.launch {
+        viewModelScope.safeLaunch {
             recentStreamsDataStore.clearAll()
         }
     }
@@ -65,7 +66,7 @@ class SavedStreamViewModel @Inject constructor(
     }
 
     fun add(streamDetail: StreamDetail) {
-        viewModelScope.launch {
+        viewModelScope.safeLaunch {
             recentStreamsDataStore.addStreamDetail(
                 StreamingData(
                     streamDetail.accountID,

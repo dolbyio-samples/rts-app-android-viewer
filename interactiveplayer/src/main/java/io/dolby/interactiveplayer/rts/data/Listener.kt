@@ -9,6 +9,8 @@ import com.millicast.subscribers.state.ActivityStream
 import com.millicast.subscribers.state.LayerData
 import com.millicast.subscribers.state.SubscriptionState
 import io.dolby.interactiveplayer.rts.domain.MultiStreamingData
+import io.dolby.interactiveplayer.streaming.multiview.log
+import io.dolby.interactiveplayer.streaming.multiview.safeLaunch
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.Job
@@ -32,11 +34,11 @@ class Listener(
         coroutineScope: CoroutineScope,
         collector: FlowCollector<T>
     ) = this.let {
-        coroutineScope.launch { it.collect(collector) }
+        coroutineScope.safeLaunch { it.collect(collector) }
     }
 
     fun start() {
-        flowJob = coroutineScope.launch {
+        flowJob = coroutineScope.safeLaunch {
             // added it, even tho it's not used currently, it shows how it can be registered
             subscriber.onTransformableFrame = { ssrc: Int, timestamp: Int, data: ByteArray ->
                 Log.d(TAG, "onFrameMetadata: $ssrc, $timestamp, ${data.size}")
@@ -265,11 +267,13 @@ class Listener(
         video: MultiStreamingData.Video,
         preferredVideoQuality: VideoQuality
     ) {
+        log("Listener#playVideo called for ${video.id} ${video.sourceId} ${video.trackId}")
         val availablePreferredVideoQuality =
             availablePreferredVideoQuality(video, preferredVideoQuality)
         val projected = data.value.trackProjectedData[video.id] ?: return
 
         if (projected.videoQuality == availablePreferredVideoQuality?.videoQuality) {
+            log("Listener#playVideo skipped ${projected.videoQuality} ${availablePreferredVideoQuality?.videoQuality}")
             return
         }
 
@@ -304,6 +308,7 @@ class Listener(
     }
 
     suspend fun stopVideo(video: MultiStreamingData.Video) {
+        log("Listener#stopVideo called for ${video.id} ${video.sourceId} ${video.trackId}")
         subscriber.unproject(arrayListOf(video.id))
         data.update {
             val mutableOldProjectedData = it.trackProjectedData.toMutableMap()

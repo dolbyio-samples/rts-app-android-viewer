@@ -5,6 +5,7 @@ import androidx.datastore.preferences.core.booleanPreferencesKey
 import androidx.datastore.preferences.core.intPreferencesKey
 import androidx.datastore.preferences.core.stringPreferencesKey
 import io.dolby.interactiveplayer.rts.domain.StreamingData
+import io.dolby.interactiveplayer.streaming.multiview.safeLaunch
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.flow.Flow
@@ -37,7 +38,7 @@ class PrefsStoreImpl constructor(private val context: Context) : PrefsStore {
 
     private fun prefillPreferences(prefs: PrefsImpl) {
         preferences[GLOBAL_PREFERENCES_NAME]?.let { globalSettings ->
-            coroutineScope.launch {
+            coroutineScope.safeLaunch {
                 globalSettings.data.collectLatest {
                     prefs.registerDefaultPreferenceValuesIfNeeded(
                         it[PreferencesKeys.SHOW_SOURCE_LABELS] ?: true,

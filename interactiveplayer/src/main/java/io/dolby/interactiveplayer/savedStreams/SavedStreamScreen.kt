@@ -54,6 +54,7 @@ import io.dolby.interactiveplayer.rts.domain.ConnectOptions
 import io.dolby.interactiveplayer.rts.domain.StreamingData
 import io.dolby.interactiveplayer.rts.ui.DolbyBackgroundBox
 import io.dolby.interactiveplayer.rts.ui.TopAppBar
+import io.dolby.interactiveplayer.streaming.multiview.safeLaunch
 import io.dolby.interactiveplayer.utils.horizontalPaddingDp
 import io.dolby.interactiveplayer.utils.streamingDataFrom
 import io.dolby.rtsviewer.uikit.button.ButtonType
@@ -142,7 +143,7 @@ fun SavedStreamScreen(
                                 .focusRequester(focusRequester)
                                 .onFocusEvent {
                                     if (it.isFocused) {
-                                        scope.launch {
+                                        scope.safeLaunch {
                                             bringIntoViewRequester.bringIntoView(
                                                 lastPlayedStreamCoordinates.copy(
                                                     top = lastPlayedStreamCoordinates.top - 200F

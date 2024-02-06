@@ -17,6 +17,7 @@ import io.dolby.interactiveplayer.rts.domain.StatsInboundRtp.Companion.inboundRt
 import io.dolby.interactiveplayer.rts.domain.StreamingData
 import io.dolby.interactiveplayer.rts.utils.DispatcherProvider
 import io.dolby.interactiveplayer.utils.NetworkStatusObserver
+import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
@@ -50,7 +51,7 @@ class MultiStreamingViewModel @Inject constructor(
     val showSourceLabels = _showSourceLabels.asStateFlow()
 
     init {
-        viewModelScope.launch {
+        viewModelScope.safeLaunch {
             connect()
             repository.data.collect { data ->
                 update(data)
@@ -58,7 +59,7 @@ class MultiStreamingViewModel @Inject constructor(
                 updateLayers(data)
             }
         }
-        viewModelScope.launch {
+        viewModelScope.safeLaunch {
             networkStatusObserver.status.collect { networkStatus ->
                 when (networkStatus) {
                     NetworkStatusObserver.Status.Unavailable -> _uiState.update { it.copy(hasNetwork = false) }
@@ -66,17 +67,17 @@ class MultiStreamingViewModel @Inject constructor(
                 }
             }
         }
-        viewModelScope.launch {
+        viewModelScope.safeLaunch {
             prefsStore.multiviewLayout(streamingData()).collect { layout ->
                 _multiviewLayout.update { layout }
             }
         }
-        viewModelScope.launch {
+        viewModelScope.safeLaunch {
             prefsStore.showSourceLabels(streamingData()).collect { show ->
                 _showSourceLabels.update { show }
             }
         }
-        viewModelScope.launch {
+        viewModelScope.safeLaunch {
             prefsStore.streamSourceOrder(streamingData()).collect { sortOrder ->
                 _streamSortOrder.update { sortOrder }
             }
@@ -189,7 +190,7 @@ class MultiStreamingViewModel @Inject constructor(
             }
         }
 
-    fun disconnect() = viewModelScope.launch {
+    fun disconnect() = viewModelScope.safeLaunch {
         repository.disconnect()
     }
 
@@ -200,7 +201,7 @@ class MultiStreamingViewModel @Inject constructor(
     fun playVideo(
         video: MultiStreamingData.Video,
         preferredVideoQuality: VideoQuality
-    ) = viewModelScope.launch {
+    ) = viewModelScope.safeLaunch {
         repository.playVideo(
             video = video,
             preferredVideoQuality = preferredVideoQuality,
@@ -208,8 +209,8 @@ class MultiStreamingViewModel @Inject constructor(
         )
     }
 
-    fun stopVideo(video: MultiStreamingData.Video) = viewModelScope.launch {
-        repository.stopVideo(video)
+    fun stopVideo(video: MultiStreamingData.Video) = viewModelScope.safeLaunch {
+        //repository.stopVideo(video)
     }
 
     fun updateStatistics(show: Boolean) {
@@ -240,5 +241,16 @@ class MultiStreamingViewModel @Inject constructor(
                 it.copy(preferredVideoQualities = currentPreferredVideoQuantities)
             }
         }
+    }
+}
+
+fun <T> CoroutineScope.safeLaunch(
+    error: (suspend CoroutineScope.(err: Throwable) -> T)? = null,
+    block: suspend CoroutineScope.() -> T,
+) = launch {
+    try {
+        block(this)
+    } catch (err: Throwable) {
+        error?.invoke(this, err)
     }
 }

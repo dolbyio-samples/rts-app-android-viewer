@@ -10,6 +10,7 @@ import androidx.compose.foundation.pager.HorizontalPager
 import androidx.compose.foundation.pager.rememberPagerState
 import androidx.compose.material.Scaffold
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.DisposableEffect
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
@@ -26,7 +27,10 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.viewinterop.AndroidView
 import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
+import com.millicast.Media
 import com.millicast.VideoRenderer
+import com.millicast.android.compose.TextureViewRenderer
+import com.millicast.android.compose.TextureViewRendererConfiguration
 import io.dolby.interactiveplayer.R
 import io.dolby.interactiveplayer.preferenceStore.MultiviewLayout
 import io.dolby.interactiveplayer.rts.data.MultiStreamingRepository
@@ -107,7 +111,13 @@ fun SingleStreamingScreen(
             }
 
             HorizontalPager(state = pagerState) { page ->
-                VideoView(page, uiState, viewModel, showSourceLabels.value)
+                VideoView(
+                    modifier = Modifier.fillMaxSize(),
+                    page = page,
+                    uiState = uiState,
+                    viewModel = viewModel,
+                    displayLabels = showSourceLabels.value
+                )
             }
 
             LiveIndicator(
@@ -175,37 +185,39 @@ private fun Statistics(
 
 @Composable
 private fun VideoView(
+    modifier: Modifier = Modifier,
     page: Int,
     uiState: MultiStreamingUiState,
     viewModel: MultiStreamingViewModel,
     displayLabels: Boolean
 ) {
-    Box(modifier = Modifier.fillMaxSize()) {
-        AndroidView(
-            modifier = Modifier
-                .aspectRatio(16F / 9)
-                .align(Alignment.Center),
-            factory = { context ->
-                val view = VideoRenderer(context)
-                view
-            },
-            update = { view ->
-                view.setScalingType(RendererCommon.ScalingType.SCALE_ASPECT_FIT)
-                uiState.videoTracks[page].videoTrack.setRenderer(view)
-                val isSelected =
-                    uiState.selectedVideoTrackId == uiState.videoTracks[page].sourceId
-                viewModel.playVideo(
-                    uiState.videoTracks[page],
-                    if (isSelected) {
-                        uiState.connectOptions?.primaryVideoQuality
-                            ?: VideoQuality.AUTO
-                    } else VideoQuality.LOW
-                )
-            },
-            onRelease = { view ->
-                viewModel.stopVideo(uiState.videoTracks[page])
-                view.release()
-            }
+    val video = uiState.videoTracks[page]
+    val isSelected = uiState.selectedVideoTrackId == uiState.videoTracks[page].sourceId
+
+    DisposableEffect(viewModel, video) {
+        log("single video view called ${video.id} ${video.trackId} ${video.sourceId}")
+        viewModel.playVideo(
+            video,
+            if (isSelected) {
+                uiState.connectOptions?.primaryVideoQuality
+                    ?: VideoQuality.AUTO
+            } else VideoQuality.LOW
+        )
+
+        onDispose {
+            log("onDispose called for single video view ${video.id} ${video.trackId} ${video.sourceId}")
+            viewModel.stopVideo(video)
+        }
+    }
+
+    Box(modifier = modifier) {
+        TextureViewRenderer(
+            configuration =
+            TextureViewRendererConfiguration(
+                eglBaseContext = Media.eglBaseContext
+            ),
+            scalingType = RendererCommon.ScalingType.SCALE_ASPECT_FIT,
+            videoTrack = video.videoTrack
         )
     }
 }

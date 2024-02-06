@@ -16,7 +16,6 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.viewinterop.AndroidView
 import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
-import com.millicast.VideoRenderer
 import io.dolby.rtscomponentkit.ui.DolbyBackgroundBox
 import io.dolby.rtsviewer.MainActivity
 import io.dolby.rtsviewer.R

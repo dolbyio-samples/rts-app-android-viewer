@@ -14,6 +14,7 @@ import io.dolby.interactiveplayer.preferenceStore.StreamSortOrder
 import io.dolby.interactiveplayer.rts.data.MultiStreamingRepository
 import io.dolby.interactiveplayer.rts.domain.MultiStreamingData
 import io.dolby.interactiveplayer.rts.domain.StreamingData
+import io.dolby.interactiveplayer.streaming.multiview.safeLaunch
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.update
@@ -46,32 +47,32 @@ class SettingsViewModel @Inject constructor(
     val audioSelection = _audioSelection.asStateFlow()
 
     init {
-        viewModelScope.launch {
+        viewModelScope.safeLaunch {
             multiStreamingRepository.data.collect { data ->
                 _audioTracks.update { data.audioTracks }
             }
         }
-        viewModelScope.launch {
+        viewModelScope.safeLaunch {
             preferencesStore.showDebugOptions().collect { enabled ->
                 _showDebugOptioins.update { enabled }
             }
         }
-        viewModelScope.launch {
+        viewModelScope.safeLaunch {
             preferencesStore.showSourceLabels(streamingData()).collect { enabled ->
                 _showSourceLabels.update { enabled }
             }
         }
-        viewModelScope.launch {
+        viewModelScope.safeLaunch {
             preferencesStore.multiviewLayout(streamingData()).collect { layout ->
                 _multiviewLayout.update { layout }
             }
         }
-        viewModelScope.launch {
+        viewModelScope.safeLaunch {
             preferencesStore.streamSourceOrder(streamingData()).collect { order ->
                 _streamSortOrder.update { order }
             }
         }
-        viewModelScope.launch {
+        viewModelScope.safeLaunch {
             preferencesStore.audioSelection(streamingData()).collect { audioSelection ->
                 _audioSelection.update { audioSelection }
             }
@@ -92,31 +93,31 @@ class SettingsViewModel @Inject constructor(
         }
 
     fun updateShowDebugOptions(show: Boolean) {
-        viewModelScope.launch {
+        viewModelScope.safeLaunch {
             preferencesStore.updateShowDebugOptions(show)
         }
     }
 
     fun updateShowSourceLabels(show: Boolean) {
-        viewModelScope.launch {
+        viewModelScope.safeLaunch {
             preferencesStore.updateShowSourceLabels(show, streamingData())
         }
     }
 
     fun updateMultiviewLayout(layout: MultiviewLayout) {
-        viewModelScope.launch {
+        viewModelScope.safeLaunch {
             preferencesStore.updateMultiviewLayout(layout, streamingData())
         }
     }
 
     fun updateSortOrder(sortOrder: StreamSortOrder) {
-        viewModelScope.launch {
+        viewModelScope.safeLaunch {
             preferencesStore.updateStreamSourceOrder(sortOrder, streamingData())
         }
     }
 
     fun updateAudioSelection(audioSelection: AudioSelection) {
-        viewModelScope.launch {
+        viewModelScope.safeLaunch {
             preferencesStore.updateAudioSelection(audioSelection, streamingData())
         }
     }

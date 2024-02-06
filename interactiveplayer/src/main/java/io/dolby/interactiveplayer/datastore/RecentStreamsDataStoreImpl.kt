@@ -6,6 +6,7 @@ import io.dolby.interactiveplayer.preferenceStore.PrefsStore
 import io.dolby.interactiveplayer.rts.domain.ConnectOptions
 import io.dolby.interactiveplayer.rts.domain.StreamingData
 import io.dolby.interactiveplayer.rts.utils.DispatcherProvider
+import io.dolby.interactiveplayer.streaming.multiview.safeLaunch
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.first
@@ -35,7 +36,7 @@ class RecentStreamsDataStoreImpl @Inject constructor(
     }
 
     override fun addStreamDetail(streamingData: StreamingData, connectOptions: ConnectOptions) {
-        val addStreamJob = appCoroutineScope.launch {
+        val addStreamJob = appCoroutineScope.safeLaunch {
             dataStore.updateData {
                 // Remove existing stream matching the new stream details
                 val matchingIndex = it.streamDetailList
@@ -73,7 +74,7 @@ class RecentStreamsDataStoreImpl @Inject constructor(
             }
         }
 
-        appCoroutineScope.launch {
+        appCoroutineScope.safeLaunch {
             addStreamJob.join()
 
             dataStore.updateData {

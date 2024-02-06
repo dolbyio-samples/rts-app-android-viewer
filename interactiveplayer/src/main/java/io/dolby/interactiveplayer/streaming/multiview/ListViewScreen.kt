@@ -1,6 +1,8 @@
 package io.dolby.interactiveplayer.streaming.multiview
 
 import android.content.res.Configuration
+import android.provider.MediaStore.Video
+import android.util.Log
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
@@ -22,6 +24,8 @@ import androidx.compose.foundation.lazy.items
 import androidx.compose.material.CircularProgressIndicator
 import androidx.compose.material.Scaffold
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.DisposableEffect
+import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.ui.Alignment
@@ -36,7 +40,9 @@ import androidx.compose.ui.semantics.semantics
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.viewinterop.AndroidView
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
-import com.millicast.VideoRenderer
+import com.millicast.Media
+import com.millicast.android.compose.TextureViewRenderer
+import com.millicast.android.compose.TextureViewRendererConfiguration
 import io.dolby.interactiveplayer.R
 import io.dolby.interactiveplayer.rts.data.VideoQuality
 import io.dolby.interactiveplayer.rts.domain.MultiStreamingData
@@ -47,6 +53,11 @@ import io.dolby.interactiveplayer.rts.ui.TopAppBar
 import io.dolby.interactiveplayer.streaming.ErrorView
 import io.dolby.rtsviewer.uikit.text.Text
 import org.webrtc.RendererCommon
+
+
+fun log(string: String) {
+    Log.d("ListViewScreen", string)
+}
 
 @Composable
 fun ListViewScreen(
@@ -83,7 +94,7 @@ fun ListViewScreen(
                 }
                 .padding(paddingValues)
         ) {
-            val context = LocalContext.current
+
             when {
                 uiState.error != null -> {
                     ErrorView(error = uiState.error!!)
@@ -104,7 +115,7 @@ fun ListViewScreen(
                             modifier = Modifier,
                             viewModel,
                             uiState,
-                            showSourceLabels.value,
+                            displayLabel = showSourceLabels.value,
                             onMainClick,
                             onOtherClick
                         )
@@ -125,13 +136,13 @@ fun ListViewScreen(
 }
 
 @Composable
-fun HorizontalEndListView(
+fun RenderTracksList(
     modifier: Modifier,
     viewModel: MultiStreamingViewModel,
     uiState: MultiStreamingUiState,
     displayLabel: Boolean,
     onMainClick: (String?) -> Unit,
-    onOtherClick: (MultiStreamingData.Video) -> Unit
+    renderActualList: @Composable (Modifier, List<MultiStreamingData.Video>) -> Unit
 ) {
     Box(
         modifier = modifier
@@ -143,35 +154,39 @@ fun HorizontalEndListView(
                 selectedVideo ?: uiState.videoTracks.firstOrNull()?.also {
                     viewModel.selectVideoTrack(it.sourceId)
                 }
+
+            DisposableEffect(mainVideo) {
+                log("Disposable effect for main video ${mainVideo?.id} ${mainVideo?.sourceId} ${mainVideo?.trackId}")
+                mainVideo?.play(
+                    viewModel = viewModel,
+                    videoQuality = uiState.connectOptions?.primaryVideoQuality
+                        ?: VideoQuality.AUTO
+                )
+                onDispose {
+                    log("onDispose for main video ${mainVideo?.id} ${mainVideo?.sourceId} ${mainVideo?.trackId}")
+                    mainVideo?.let {
+                        viewModel.stopVideo(it)
+                    }
+                }
+            }
+
             Box(
                 modifier = Modifier.clickable {
                     onMainClick(uiState.videoTracks.find { it.sourceId == uiState.selectedVideoTrackId }?.id)
                 }
             ) {
-                AndroidView(
-                    modifier = Modifier.aspectRatio(16F / 9),
-                    factory = { context ->
-                        val view = VideoRenderer(context)
-                        view.setZOrderOnTop(true)
-                        view.setZOrderMediaOverlay(true)
-                        view
-                    },
-                    update = { view ->
-                        view.setScalingType(RendererCommon.ScalingType.SCALE_ASPECT_FIT)
-                        mainVideo?.play(
-                            view = view,
-                            viewModel = viewModel,
-                            videoQuality = uiState.connectOptions?.primaryVideoQuality
-                                ?: VideoQuality.AUTO
+                Column(modifier = Modifier.aspectRatio(16F / 9)) {
+                    mainVideo?.let {
+                        TextureViewRenderer(
+                            configuration = TextureViewRendererConfiguration(
+                                eglBaseContext = Media.eglBaseContext
+                            ),
+                            scalingType = RendererCommon.ScalingType.SCALE_ASPECT_FIT,
+                            videoTrack = it.videoTrack
                         )
-                    },
-                    onRelease = {
-                        mainVideo?.let {
-                            viewModel.stopVideo(it)
-                        }
-                        it.release()
                     }
-                )
+                }
+
                 if (displayLabel) {
                     LabelIndicator(
                         modifier = Modifier.align(Alignment.BottomStart),
@@ -188,28 +203,51 @@ fun HorizontalEndListView(
             }
             val otherTracks =
                 uiState.videoTracks.filter { it.sourceId != mainVideo?.sourceId }
-            LazyColumn(
-                modifier = Modifier
+
+            renderActualList(
+                Modifier
                     .fillMaxHeight()
                     .padding(start = 5.dp),
-                verticalArrangement = Arrangement.spacedBy(5.dp)
-            ) {
-                items(otherTracks) { video ->
-                    VideoView(
-                        viewModel = viewModel,
-                        video = video,
-                        displayLabel = displayLabel,
-                        videoQuality = VideoQuality.LOW,
-                        onClick = onOtherClick,
-                        modifier = Modifier.aspectRatio(16F / 9)
-                    )
-                }
-            }
+                otherTracks
+            )
         }
         LiveIndicatorComponent(
             modifier = Modifier.align(Alignment.TopStart),
             on = uiState.videoTracks.isNotEmpty() || uiState.audioTracks.isNotEmpty()
         )
+    }
+}
+
+
+@Composable
+fun HorizontalEndListView(
+    modifier: Modifier,
+    viewModel: MultiStreamingViewModel,
+    uiState: MultiStreamingUiState,
+    displayLabel: Boolean,
+    onMainClick: (String?) -> Unit,
+    onOtherClick: (MultiStreamingData.Video) -> Unit
+) = RenderTracksList(
+    modifier = modifier,
+    viewModel,
+    uiState,
+    displayLabel = displayLabel,
+    onMainClick
+) { listModifier, videoTracks ->
+    LazyColumn(
+        modifier = listModifier,
+        verticalArrangement = Arrangement.spacedBy(5.dp)
+    ) {
+        items(videoTracks) { video ->
+            VideoView(
+                viewModel = viewModel,
+                video = video,
+                displayLabel = displayLabel,
+                videoQuality = VideoQuality.LOW,
+                onClick = onOtherClick,
+                modifier = Modifier.aspectRatio(16F / 9)
+            )
+        }
     }
 }
 
@@ -221,88 +259,31 @@ fun VerticalTopListView(
     displayLabel: Boolean,
     onMainClick: (String?) -> Unit,
     onOtherClick: (MultiStreamingData.Video) -> Unit
-) {
-    Box(
-        modifier = modifier
+) = RenderTracksList(
+    modifier = modifier,
+    viewModel,
+    uiState,
+    displayLabel = displayLabel,
+    onMainClick
+) { listModifier, videoTracks ->
+    val lazyVerticalGridState = rememberLazyGridState()
+    LazyVerticalGrid(
+        state = lazyVerticalGridState,
+        columns = GridCells.Fixed(count = 2),
+        modifier = listModifier,
+        verticalArrangement = Arrangement.spacedBy(5.dp),
+        horizontalArrangement = Arrangement.spacedBy(5.dp)
     ) {
-        Column {
-            val selectedVideo =
-                uiState.videoTracks.firstOrNull { it.sourceId == uiState.selectedVideoTrackId }
-            val mainVideo: MultiStreamingData.Video? =
-                selectedVideo ?: uiState.videoTracks.firstOrNull()?.also {
-                    viewModel.selectVideoTrack(it.sourceId)
-                }
-            Box(
-                modifier = Modifier.clickable {
-                    onMainClick(uiState.videoTracks.find { it.sourceId == uiState.selectedVideoTrackId }?.id)
-                }
-            ) {
-                AndroidView(
-                    modifier = Modifier.aspectRatio(16F / 9),
-                    factory = { context ->
-                        val view = VideoRenderer(context)
-                        view.setZOrderOnTop(true)
-                        view.setZOrderMediaOverlay(true)
-                        view
-                    },
-                    update = { view ->
-                        view.setScalingType(RendererCommon.ScalingType.SCALE_ASPECT_FIT)
-                        mainVideo?.play(
-                            view = view,
-                            viewModel = viewModel,
-                            videoQuality = uiState.connectOptions?.primaryVideoQuality
-                                ?: VideoQuality.AUTO
-                        )
-                    },
-                    onRelease = {
-                        mainVideo?.let {
-                            viewModel.stopVideo(mainVideo)
-                        }
-                        it.release()
-                    }
-                )
-                if (displayLabel) {
-                    LabelIndicator(
-                        modifier = Modifier.align(Alignment.BottomStart),
-                        label = mainVideo?.sourceId
-                    )
-                }
-//                QualityLabel(
-//                    viewModel = viewModel,
-//                    video = mainVideo,
-//                    modifier = Modifier.align(Alignment.BottomEnd)
-//                )
-            }
-            val otherTracks =
-                uiState.videoTracks.filter { it.sourceId != mainVideo?.sourceId }
-            val lazyVerticalGridState = rememberLazyGridState()
-            LazyVerticalGrid(
-                state = lazyVerticalGridState,
-                columns = GridCells.Fixed(count = 2),
-                modifier = Modifier
-                    .fillMaxHeight()
-                    .padding(top = 5.dp),
-                verticalArrangement = Arrangement.spacedBy(5.dp),
-                horizontalArrangement = Arrangement.spacedBy(5.dp)
-            ) {
-                items(items = otherTracks) { video ->
-                    VideoView(
-                        viewModel = viewModel,
-                        video = video,
-                        displayLabel = displayLabel,
-                        videoQuality = VideoQuality.LOW,
-                        onClick = onOtherClick,
-                        modifier = Modifier.aspectRatio(16F / 9)
-                    )
-                }
-            }
+        items(items = videoTracks) { video ->
+            VideoView(
+                viewModel = viewModel,
+                video = video,
+                displayLabel = displayLabel,
+                videoQuality = VideoQuality.LOW,
+                onClick = onOtherClick,
+                modifier = Modifier.aspectRatio(16F / 9)
+            )
         }
-        LiveIndicatorComponent(
-            modifier = Modifier.align(Alignment.TopStart),
-            on = uiState.videoTracks.isNotEmpty() || uiState.audioTracks.isNotEmpty()
-        )
-
-        QualitySelector(viewModel = viewModel)
     }
 }
 
@@ -319,19 +300,33 @@ fun VideoView(
     val updatedModifier = onClick?.let {
         modifier.clickable { onClick(video) }
     } ?: modifier
-    Box {
-        AndroidView(
-            modifier = updatedModifier,
-            factory = { context -> VideoRenderer(context) },
-            update = { view ->
-                view.setScalingType(RendererCommon.ScalingType.SCALE_ASPECT_FIT)
-                video.play(view, viewModel, videoQuality)
-            },
-            onRelease = {
-                viewModel.stopVideo(video)
-                it.release()
-            }
+
+    DisposableEffect(video) {
+        log("DisposableEffect called for video ${video.id} ${video.sourceId} ${video.trackId}")
+        video.play(
+            viewModel = viewModel,
+            videoQuality = videoQuality
         )
+
+        onDispose {
+            log("onDispose called for video ${video.id} ${video.sourceId} ${video.trackId}")
+            video.let {
+                viewModel.stopVideo(it)
+            }
+        }
+    }
+
+    Box {
+        Column(modifier = updatedModifier) {
+            TextureViewRenderer(
+                configuration = TextureViewRendererConfiguration(
+                    eglBaseContext = Media.eglBaseContext
+                ),
+                scalingType = RendererCommon.ScalingType.SCALE_ASPECT_FIT,
+                videoTrack = video.videoTrack
+            )
+        }
+
         if (displayLabel) {
             LabelIndicator(modifier = Modifier.align(Alignment.BottomStart), label = video.sourceId)
         }
@@ -414,11 +409,10 @@ fun LiveIndicatorComponent(modifier: Modifier, on: Boolean) {
 }
 
 fun MultiStreamingData.Video.play(
-    view: VideoRenderer,
     viewModel: MultiStreamingViewModel,
     videoQuality: VideoQuality = VideoQuality.AUTO
 ) {
-    videoTrack.setRenderer(view)
+    log("playing video for ${this.id} ${this.sourceId} ${this.trackId}")
     viewModel.playVideo(
         this,
         videoQuality

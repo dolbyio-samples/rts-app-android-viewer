@@ -14,6 +14,9 @@ import androidx.compose.foundation.lazy.grid.rememberLazyGridState
 import androidx.compose.material.CircularProgressIndicator
 import androidx.compose.material.Scaffold
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.DisposableEffect
+import androidx.compose.runtime.LaunchedEffect
+import androidx.compose.runtime.SideEffect
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.ui.Alignment
@@ -26,7 +29,10 @@ import androidx.compose.ui.semantics.semantics
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.viewinterop.AndroidView
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
+import com.millicast.Media
 import com.millicast.VideoRenderer
+import com.millicast.android.compose.TextureViewRenderer
+import com.millicast.android.compose.TextureViewRendererConfiguration
 import io.dolby.interactiveplayer.R
 import io.dolby.interactiveplayer.rts.data.VideoQuality
 import io.dolby.interactiveplayer.rts.domain.MultiStreamingData
@@ -152,18 +158,23 @@ private fun VideoView(
     val updatedModifier = onClick?.let {
         modifier.clickable { onClick(video.sourceId) }
     } ?: modifier
+
+    DisposableEffect(viewModel, video) {
+        viewModel.playVideo(
+            video,
+            videoQuality
+        )
+
+        onDispose {
+            viewModel.stopVideo(video)
+        }
+    }
     Box {
-        AndroidView(
-            modifier = updatedModifier,
-            factory = { context -> VideoRenderer(context) },
-            update = { view ->
-                view.setScalingType(RendererCommon.ScalingType.SCALE_ASPECT_FIT)
-                video.play(view, viewModel, videoQuality)
-            },
-            onRelease = {
-                viewModel.stopVideo(video)
-                it.release()
-            }
+//                view.setScalingType(RendererCommon.ScalingType.SCALE_ASPECT_FIT)
+        TextureViewRenderer(
+            configuration = TextureViewRendererConfiguration(
+                eglBaseContext = Media.eglBaseContext
+            ), videoTrack = video.videoTrack
         )
         if (displayLabel) {
             LabelIndicator(
