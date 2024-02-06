@@ -1,5 +1,10 @@
 package io.dolby.rtscomponentkit.data
 
+import com.millicast.clients.stats.Codecs
+import com.millicast.clients.stats.InboundRtpStream
+import com.millicast.clients.stats.RemoteOutboundRtpStream
+import com.millicast.clients.stats.RtsReport
+import com.millicast.clients.stats.StatsType
 import org.webrtc.RTCStatsReport
 import java.math.BigInteger
 
@@ -29,8 +34,8 @@ data class StatisticsData(
                         frameHeight = statsMembers["frameHeight"] as Long?,
                         fps = statsMembers.getOrDefault("framesPerSecond", null) as Double?,
                         bytesReceived = statsMembers.get("bytesReceived") as BigInteger,
-                        jitter = statsMembers["jitter"] as Double,
-                        packetsLost = statsMembers["packetsLost"] as Int,
+                        jitter = statsMembers["jitter"] as Double?,
+                        packetsLost = statsMembers["packetsLost"] as Long?,
                         codecName = codecName
                     )
                     if (statsInboundRtp.isVideo) {
@@ -46,6 +51,43 @@ data class StatisticsData(
                 audio = audio,
                 video = video,
                 timestamp = report.timestampUs
+            )
+        }
+
+        fun from(report: RtsReport): StatisticsData {
+            val rtt = getStatisticsRoundTripTime(report)
+            val bitrate = getBitrate(report)
+            var audio: StatsInboundRtp? = null
+            var video: StatsInboundRtp? = null
+            val inboundRtpStreams = report.stats()
+                .filter { it is InboundRtpStream && it.statsType() == StatsType.INBOUND_RTP }
+            val timestamp = inboundRtpStreams.firstOrNull()?.timestamp?.toDouble()
+            inboundRtpStreams.forEach { statsData ->
+                val inboundData = statsData as InboundRtpStream
+                val codecId = inboundData.codecId
+                val codecName = codecId?.let { getCodec(codecId, report) }
+                val statsInboundRtp = StatsInboundRtp(
+                    kind = inboundData.kind,
+                    frameWidth = inboundData.frameWidth?.toLong(),
+                    frameHeight = inboundData.frameHeight?.toLong(),
+                    fps = inboundData.framesPerSecond,
+                    bytesReceived = BigInteger.valueOf(inboundData.bytesReceived?.toLong() ?: 0),
+                    jitter = inboundData.jitter,
+                    packetsLost = inboundData.packetsLost,
+                    codecName = codecName
+                )
+                if (statsInboundRtp.isVideo) {
+                    video = statsInboundRtp
+                } else {
+                    audio = statsInboundRtp
+                }
+            }
+            return StatisticsData(
+                roundTripTime = rtt,
+                availableOutgoingBitrate = bitrate,
+                timestamp = timestamp,
+                audio = audio,
+                video = video
             )
         }
 
@@ -67,9 +109,32 @@ data class StatisticsData(
             }
             return null
         }
+        private fun getStatisticsRoundTripTime(report: RtsReport): Double? {
+            val remoteStream = report.stats()
+                .find { it is RemoteOutboundRtpStream && it.statsType() == StatsType.REMOTE_OUTBOUND_RTP }
+            remoteStream?.let {
+                return (it as RemoteOutboundRtpStream).roundTripTime
+            }
+            return null
+        }
+
+        private fun getBitrate(report: RtsReport): Double? {
+//            val remoteStream = report.stats()
+//                .find { it is RemoteOutboundRtpStream && it.statsType() == StatsType.REMOTE_OUTBOUND_RTP }
+//            remoteStream?.let {
+//                return (it as RemoteOutboundRtpStream).availableOutgoingBitrate
+//            }
+            return null
+        }
 
         private fun getCodec(codecId: String, report: RTCStatsReport): String =
             report.statsMap.getValue(codecId).members["mimeType"] as String
+
+        private fun getCodec(codecId: String, report: RtsReport): String? {
+            val codec: Codecs? = report.stats()
+                .firstOrNull { it is Codecs && it.id == codecId && it.statsType() == StatsType.CODEC } as Codecs?
+            return codec?.mimeType
+        }
     }
 }
 
@@ -79,8 +144,8 @@ data class StatsInboundRtp(
     val frameHeight: Long?,
     val fps: Double?,
     val bytesReceived: BigInteger,
-    val jitter: Double,
-    val packetsLost: Int,
+    val jitter: Double?,
+    val packetsLost: Long?,
     val codecName: String?
 ) {
 
