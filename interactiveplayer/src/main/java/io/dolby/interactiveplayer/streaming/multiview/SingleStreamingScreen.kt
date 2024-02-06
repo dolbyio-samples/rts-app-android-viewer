@@ -26,7 +26,8 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.viewinterop.AndroidView
 import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
-import com.millicast.VideoRenderer
+import com.millicast.Media
+import com.millicast.video.TextureViewRenderer
 import io.dolby.interactiveplayer.R
 import io.dolby.interactiveplayer.preferenceStore.MultiviewLayout
 import io.dolby.interactiveplayer.rts.data.MultiStreamingRepository
@@ -186,12 +187,13 @@ private fun VideoView(
                 .aspectRatio(16F / 9)
                 .align(Alignment.Center),
             factory = { context ->
-                val view = VideoRenderer(context)
+                val view = TextureViewRenderer(context)
+                view.init(Media.eglBaseContext, null)
                 view
             },
             update = { view ->
                 view.setScalingType(RendererCommon.ScalingType.SCALE_ASPECT_FIT)
-                uiState.videoTracks[page].videoTrack.setRenderer(view)
+                uiState.videoTracks[page].videoTrack.setVideoSink(view)
                 val isSelected =
                     uiState.selectedVideoTrackId == uiState.videoTracks[page].sourceId
                 viewModel.playVideo(
