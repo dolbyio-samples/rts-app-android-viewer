@@ -332,7 +332,7 @@ class Listener(
         )
         mid?.let {
             val filteredActiveLayers =
-                activeLayers.filter { it.temporalLayerId == 0 || it.temporalLayerId == 0xff }
+                activeLayers.filter { it.temporalLayerId == 0 || it.temporalLayerId == 0xff || it.temporalLayerId == null }
             val trackLayerDataList = when (filteredActiveLayers.count()) {
                 2 -> listOf(
                     LowLevelVideoQuality.Auto(),
