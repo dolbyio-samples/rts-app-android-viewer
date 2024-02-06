@@ -6,15 +6,15 @@ pluginManagement {
     }
 }
 
-def prop = { String key ->
-    Properties properties = new Properties()
-    properties.load(new File(rootDir.absolutePath + "/local.properties").newDataInputStream())
-    properties.containsKey(key) ? properties[key] as String : null
-}
+//def prop = { String key ->
+//    Properties properties = new Properties()
+//    properties.load(new File(rootDir.absolutePath + "/local.properties").newDataInputStream())
+//    properties.containsKey(key) ? properties[key] as String : null
+//}
 
-def internalRepo = prop("DOLBY_INTERNAL_MAVEN_URL")
-def internalUser = prop("DOLBY_INTERNAL_MAVEN_USER")
-def internalPassword = prop("DOLBY_INTERNAL_MAVEN_PASSWORD")
+//def internalRepo = prop("DOLBY_INTERNAL_MAVEN_URL")
+//def internalUser = prop("DOLBY_INTERNAL_MAVEN_USER")
+//def internalPassword = prop("DOLBY_INTERNAL_MAVEN_PASSWORD")
 
 def gitUserName = System.env.GIT_USERNAME ?: getGithubUsername()
 def gitPat = System.env.GIT_PAT ?: getGithubUserPassword()
@@ -36,19 +36,19 @@ dependencyResolutionManagement {
             }
         }
 
-        if (null != internalRepo && null != internalUser && null != internalPassword) {
-            maven {
-                name = "Snapshots"
-                url = uri(internalRepo)
-                credentials {
-                    username = internalUser
-                    password = internalPassword
-                }
-                authentication {
-                    digest(BasicAuthentication)
-                }
-            }
-        }
+//        if (null != internalRepo && null != internalUser && null != internalPassword) {
+//            maven {
+//                name = "Snapshots"
+//                url = uri(internalRepo)
+//                credentials {
+//                    username = internalUser
+//                    password = internalPassword
+//                }
+//                authentication {
+//                    digest(BasicAuthentication)
+//                }
+//            }
+//        }
     }
 }
 
