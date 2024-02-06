@@ -17,6 +17,8 @@ import io.dolby.interactiveplayer.rts.domain.StatsInboundRtp.Companion.inboundRt
 import io.dolby.interactiveplayer.rts.domain.StreamingData
 import io.dolby.interactiveplayer.rts.utils.DispatcherProvider
 import io.dolby.interactiveplayer.utils.NetworkStatusObserver
+import kotlinx.coroutines.CoroutineScope
+import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
@@ -50,7 +52,7 @@ class MultiStreamingViewModel @Inject constructor(
     val showSourceLabels = _showSourceLabels.asStateFlow()
 
     init {
-        viewModelScope.launch {
+        CoroutineScope(dispatcherProvider.io).launch {
             connect()
             repository.data.collect { data ->
                 update(data)
@@ -189,7 +191,7 @@ class MultiStreamingViewModel @Inject constructor(
             }
         }
 
-    fun disconnect() = viewModelScope.launch {
+    fun disconnect() = CoroutineScope(Dispatchers.IO).launch {
         repository.disconnect()
     }
 
@@ -200,7 +202,7 @@ class MultiStreamingViewModel @Inject constructor(
     fun playVideo(
         video: MultiStreamingData.Video,
         preferredVideoQuality: VideoQuality
-    ) = viewModelScope.launch {
+    ) = CoroutineScope(Dispatchers.IO).launch {
         repository.playVideo(
             video = video,
             preferredVideoQuality = preferredVideoQuality,
@@ -208,7 +210,7 @@ class MultiStreamingViewModel @Inject constructor(
         )
     }
 
-    fun stopVideo(video: MultiStreamingData.Video) = viewModelScope.launch {
+    fun stopVideo(video: MultiStreamingData.Video) = CoroutineScope(Dispatchers.IO).launch {
         repository.stopVideo(video)
     }
 
