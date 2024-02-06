@@ -36,7 +36,8 @@ import androidx.compose.ui.semantics.semantics
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.viewinterop.AndroidView
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
-import com.millicast.VideoRenderer
+import com.millicast.Media
+import com.millicast.video.TextureViewRenderer
 import io.dolby.interactiveplayer.R
 import io.dolby.interactiveplayer.rts.data.VideoQuality
 import io.dolby.interactiveplayer.rts.domain.MultiStreamingData
@@ -151,9 +152,10 @@ fun HorizontalEndListView(
                 AndroidView(
                     modifier = Modifier.aspectRatio(16F / 9),
                     factory = { context ->
-                        val view = VideoRenderer(context)
-                        view.setZOrderOnTop(true)
-                        view.setZOrderMediaOverlay(true)
+                        val view = TextureViewRenderer(context)
+                        view.init(Media.eglBaseContext, null)
+//                        view.setZOrderOnTop(true)
+//                        view.setZOrderMediaOverlay(true)
                         view
                     },
                     update = { view ->
@@ -240,9 +242,10 @@ fun VerticalTopListView(
                 AndroidView(
                     modifier = Modifier.aspectRatio(16F / 9),
                     factory = { context ->
-                        val view = VideoRenderer(context)
-                        view.setZOrderOnTop(true)
-                        view.setZOrderMediaOverlay(true)
+                        val view = TextureViewRenderer(context)
+                        view.init(Media.eglBaseContext, null)
+//                        view.setZOrderOnTop(true)
+//                        view.setZOrderMediaOverlay(true)
                         view
                     },
                     update = { view ->
@@ -322,7 +325,11 @@ fun VideoView(
     Box {
         AndroidView(
             modifier = updatedModifier,
-            factory = { context -> VideoRenderer(context) },
+            factory = { context ->
+                val view = TextureViewRenderer(context)
+                view.init(Media.eglBaseContext, null)
+                view
+            },
             update = { view ->
                 view.setScalingType(RendererCommon.ScalingType.SCALE_ASPECT_FIT)
                 video.play(view, viewModel, videoQuality)
@@ -414,13 +421,14 @@ fun LiveIndicatorComponent(modifier: Modifier, on: Boolean) {
 }
 
 fun MultiStreamingData.Video.play(
-    view: VideoRenderer,
+    view: TextureViewRenderer,
     viewModel: MultiStreamingViewModel,
     videoQuality: VideoQuality = VideoQuality.AUTO
 ) {
-    videoTrack.setRenderer(view)
+    videoTrack.setVideoSink(view)
     viewModel.playVideo(
         this,
         videoQuality
     )
 }
+

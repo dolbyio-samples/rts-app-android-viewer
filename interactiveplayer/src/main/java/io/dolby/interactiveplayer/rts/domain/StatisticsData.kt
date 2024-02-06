@@ -484,16 +484,12 @@ data class MultiStreamStatisticsData(
             val inboundRtpStreams = report.stats()
                 .filter { it is InboundRtpStream && it.statsType() == StatsType.INBOUND_RTP }
             val timestamp = inboundRtpStreams.firstOrNull()?.timestamp?.toDouble()
-            //val inboundRtpStreamStatsList = report.statsMap.values.filter { it.type == "inbound-rtp" }
             inboundRtpStreams.forEach { statsData ->
                 val inboundData = statsData as InboundRtpStream
                 val codecId = inboundData.codecId
                 val codecName = codecId?.let { StatisticsData.getCodec(codecId, report) }
                 val statsInboundRtp =
                     StatsInboundRtp.from(inboundData, codecName)
-
-//                val statsInboundRtp =
-//                    StatsInboundRtp.from(statsMembers, codecName, statsData.timestampUs)
                 if (statsInboundRtp.isVideo) {
                     video.add(statsInboundRtp)
                 } else {

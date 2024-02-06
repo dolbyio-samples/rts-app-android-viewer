@@ -26,7 +26,8 @@ import androidx.compose.ui.semantics.semantics
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.viewinterop.AndroidView
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
-import com.millicast.VideoRenderer
+import com.millicast.Media
+import com.millicast.video.TextureViewRenderer
 import io.dolby.interactiveplayer.R
 import io.dolby.interactiveplayer.rts.data.VideoQuality
 import io.dolby.interactiveplayer.rts.domain.MultiStreamingData
@@ -154,8 +155,12 @@ private fun VideoView(
     } ?: modifier
     Box {
         AndroidView(
-            modifier = updatedModifier,
-            factory = { context -> VideoRenderer(context) },
+            modifier =  updatedModifier,
+            factory = { context ->
+                val view = TextureViewRenderer(context)
+                view.init(Media.eglBaseContext, null)
+                view
+            },
             update = { view ->
                 view.setScalingType(RendererCommon.ScalingType.SCALE_ASPECT_FIT)
                 video.play(view, viewModel, videoQuality)

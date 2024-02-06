@@ -3,6 +3,7 @@ package io.dolby.rtscomponentkit.data
 import android.util.Log
 import com.millicast.Subscriber
 import com.millicast.clients.state.ConnectionState
+import com.millicast.clients.stats.RtsReport
 import com.millicast.devices.track.AudioTrack
 import com.millicast.devices.track.VideoTrack
 import com.millicast.subscribers.state.ActivityStream
@@ -124,7 +125,7 @@ class Listener(
 
         subscriber.rtcStatsReport.collectInLocalScope { report ->
             //TODO: update the report structure
-//            onStatsReport(report)
+            onStatsReport(report)
         }
 
         subscriber.signalingError.collectInLocalScope {
@@ -235,7 +236,7 @@ class Listener(
         }
     }
 
-    private fun onStatsReport(report: RTCStatsReport) {
+    private fun onStatsReport(report: RtsReport) {
         Log.d(TAG, "onStatsReport")
         statistics.value = StatisticsData.from(report)
     }
