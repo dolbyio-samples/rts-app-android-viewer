@@ -4,6 +4,7 @@ on:
   push:
     branches:
       - main
+      - feature/bump_to_1.7.0
     tags:
       - '*'
 env:
