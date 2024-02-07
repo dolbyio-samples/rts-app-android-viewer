@@ -47,8 +47,32 @@ class Listener(
         Log.d(TAG, "Listener start")
         coroutineScope = CoroutineScope(Dispatchers.IO)
 
-        subscriber.onTransformableFrame = { ssrc: Int, timestamp: Int, data: ByteArray ->
-            Log.d(TAG, "onFrameMetadata: $ssrc, $timestamp, ${data.size}")
+        subscriber.state.map { it.connectionState }.collectInLocalScope { state ->
+            when (state) {
+                ConnectionState.Default -> {}
+                ConnectionState.Connected -> {
+                    onConnected()
+                }
+
+                ConnectionState.Connecting -> {
+                    // nothing
+                }
+
+                ConnectionState.Disconnected -> {
+                    onDisconnected()
+                }
+
+                is ConnectionState.DisconnectedError -> {
+                    onConnectionError(state.httpCode, state.reason)
+                    data.update {
+                        it.copy(isSubscribed = true)
+                    }
+                }
+
+                ConnectionState.Disconnecting -> {
+                    // nothing
+                }
+            }
         }
 
         subscriber.activity.collectInLocalScope {
@@ -91,31 +115,6 @@ class Listener(
             onViewerCount(it)
         }
 
-        subscriber.state.map { it.connectionState }.collectInLocalScope { state ->
-            when (state) {
-                ConnectionState.Default -> {}
-                ConnectionState.Connected -> {
-                    onConnected()
-                }
-
-                ConnectionState.Connecting -> {
-                    // nothing
-                }
-
-                ConnectionState.Disconnected -> {
-                    onDisconnected()
-                }
-
-                is ConnectionState.DisconnectedError -> {
-                    onConnectionError(state.httpCode, state.reason)
-                }
-
-                ConnectionState.Disconnecting -> {
-                    // nothing
-                }
-            }
-        }
-
         subscriber.track.collectInLocalScope { holder ->
             Log.d(TAG, "onTrack, ${holder.track}, ${holder.mid}")
             when (holder.track) {
@@ -130,16 +129,20 @@ class Listener(
         }
 
         subscriber.rtcStatsReport.collectInLocalScope { report ->
-            //TODO: update the report structure
             onStatsReport(report)
         }
 
         subscriber.signalingError.collectInLocalScope {
             Log.d(TAG, "subscriber.signalingError: $it")
+            onSignalingError(it)
         }
 
         subscriber.vad.collectInLocalScope {
             Log.d(TAG, "subscriber.vad: $it")
+        }
+
+        subscriber.onTransformableFrame = { ssrc: Int, timestamp: Int, data: ByteArray ->
+            Log.d(TAG, "onFrameMetadata: $ssrc, $timestamp, ${data.size}")
         }
     }
 
@@ -172,12 +175,15 @@ class Listener(
     private fun onConnectionError(p0: Int, p1: String?) {
         Log.d(TAG, "onConnectionError: $p0, $p1")
         data.update {
-            it.populateError(error = p1 ?: "Unknown error")
+            it.populateError(error = p1 ?: "Connection error")
         }
     }
 
     private fun onSignalingError(p0: String?) {
         Log.d(TAG, "onSignalingError: $p0")
+        data.update {
+            it.populateError(error = p0 ?: "Signaling error")
+        }
     }
 
     private fun onStatsReport(p0: RtsReport?) {
@@ -313,6 +319,9 @@ class Listener(
 
     private fun onStopped() {
         Log.d(TAG, "onStopped")
+        data.update {
+            it.copy(isSubscribed = false)
+        }
     }
 
     private fun onVad(p0: String?, p1: Optional<String>?) {
