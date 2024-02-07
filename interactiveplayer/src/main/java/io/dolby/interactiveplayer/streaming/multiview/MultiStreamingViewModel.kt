@@ -52,12 +52,14 @@ class MultiStreamingViewModel @Inject constructor(
 
     init {
         viewModelScope.safeLaunch({
-            connect()
             repository.data.collect { data ->
                 update(data)
                 updateStatistics(data)
                 updateLayers(data)
             }
+        })
+        viewModelScope.safeLaunch({
+            connect()
         })
         viewModelScope.launch {
             networkStatusObserver.status.collect { networkStatus ->
