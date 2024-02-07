@@ -64,9 +64,6 @@ class Listener(
 
                 is ConnectionState.DisconnectedError -> {
                     onConnectionError(state.httpCode, state.reason)
-                    data.update {
-                        it.copy(isSubscribed = true)
-                    }
                 }
 
                 ConnectionState.Disconnecting -> {
