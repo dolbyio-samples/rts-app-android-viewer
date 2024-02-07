@@ -289,3 +289,15 @@ class MultiStreamingRepository(
         const val TAG = "io.dolby.interactiveplayer"
     }
 }
+
+fun <T> CoroutineScope.safeLaunch(
+    block: suspend CoroutineScope.() -> T,
+    error: (suspend CoroutineScope.(err: Throwable) -> T)? = null
+) =
+    this.launch {
+        try {
+            block(this)
+        } catch (err: Throwable) {
+            error?.invoke(this, err) ?: err.printStackTrace()
+        }
+    }

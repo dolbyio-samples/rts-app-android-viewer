@@ -11,14 +11,13 @@ import io.dolby.interactiveplayer.preferenceStore.PrefsStore
 import io.dolby.interactiveplayer.preferenceStore.StreamSortOrder
 import io.dolby.interactiveplayer.rts.data.MultiStreamingRepository
 import io.dolby.interactiveplayer.rts.data.VideoQuality
+import io.dolby.interactiveplayer.rts.data.safeLaunch
 import io.dolby.interactiveplayer.rts.domain.ConnectOptions
 import io.dolby.interactiveplayer.rts.domain.MultiStreamingData
 import io.dolby.interactiveplayer.rts.domain.StatsInboundRtp.Companion.inboundRtpAudioVideoDataToList
 import io.dolby.interactiveplayer.rts.domain.StreamingData
 import io.dolby.interactiveplayer.rts.utils.DispatcherProvider
 import io.dolby.interactiveplayer.utils.NetworkStatusObserver
-import kotlinx.coroutines.CoroutineScope
-import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
@@ -52,14 +51,14 @@ class MultiStreamingViewModel @Inject constructor(
     val showSourceLabels = _showSourceLabels.asStateFlow()
 
     init {
-        CoroutineScope(dispatcherProvider.io).launch {
+        viewModelScope.safeLaunch({
             connect()
             repository.data.collect { data ->
                 update(data)
                 updateStatistics(data)
                 updateLayers(data)
             }
-        }
+        })
         viewModelScope.launch {
             networkStatusObserver.status.collect { networkStatus ->
                 when (networkStatus) {
@@ -191,9 +190,7 @@ class MultiStreamingViewModel @Inject constructor(
             }
         }
 
-    fun disconnect() = CoroutineScope(Dispatchers.IO).launch {
-        repository.disconnect()
-    }
+    fun disconnect() = viewModelScope.safeLaunch({ repository.disconnect() })
 
     fun selectVideoTrack(sourceId: String?) {
         repository.updateSelectedVideoTrackId(sourceId)
@@ -202,17 +199,17 @@ class MultiStreamingViewModel @Inject constructor(
     fun playVideo(
         video: MultiStreamingData.Video,
         preferredVideoQuality: VideoQuality
-    ) = CoroutineScope(Dispatchers.IO).launch {
+    ) = viewModelScope.safeLaunch({
         repository.playVideo(
             video = video,
             preferredVideoQuality = preferredVideoQuality,
             preferredVideoQualities = _videoQualityState.value.preferredVideoQualities
         )
-    }
+    })
 
-    fun stopVideo(video: MultiStreamingData.Video) = CoroutineScope(Dispatchers.IO).launch {
+    fun stopVideo(video: MultiStreamingData.Video) = viewModelScope.safeLaunch({
         repository.stopVideo(video)
-    }
+    })
 
     fun updateStatistics(show: Boolean) {
         _statisticsState.update { it.copy(showStatistics = show) }

@@ -84,7 +84,6 @@ fun ListViewScreen(
                 }
                 .padding(paddingValues)
         ) {
-            val context = LocalContext.current
             when {
                 uiState.error != null -> {
                     ErrorView(error = uiState.error!!)
