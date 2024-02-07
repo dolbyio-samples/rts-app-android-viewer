@@ -329,7 +329,7 @@ class Listener(
     }
 
     private fun onLayers(
-        mid: String?,
+        mid: String,
         activeLayers: Array<out LayerData>,
         inactiveLayers: Array<String>
     ) {
@@ -339,32 +339,62 @@ class Listener(
                 inactiveLayers.contentToString()
             }"
         )
-        mid?.let {
-            val filteredActiveLayers =
-                activeLayers.filter { it.temporalLayerId == 0 || it.temporalLayerId == 0xff || it.temporalLayerId == null }
-            val trackLayerDataList = when (filteredActiveLayers.count()) {
-                2 -> listOf(
-                    LowLevelVideoQuality.Auto(),
-                    LowLevelVideoQuality.High(filteredActiveLayers[0]),
-                    LowLevelVideoQuality.Low(filteredActiveLayers[1])
-                )
-
-                3 -> listOf(
-                    LowLevelVideoQuality.Auto(),
-                    LowLevelVideoQuality.High(filteredActiveLayers[0]),
-                    LowLevelVideoQuality.Medium(filteredActiveLayers[1]),
-                    LowLevelVideoQuality.Low(filteredActiveLayers[2])
-                )
-
-                else -> listOf(
-                    LowLevelVideoQuality.Auto()
-                )
+        val filteredActiveLayers = mutableListOf<LayerData>()
+        var simulcastLayers = activeLayers.filter { it.encodingId.isNotEmpty() }
+        if (simulcastLayers.isNotEmpty()) {
+            val grouped = simulcastLayers.groupBy { it.encodingId }
+            grouped.values.forEach { layers ->
+                val layerWithBestFrameRate =
+                    layers.firstOrNull { it.temporalLayerId == it.maxTemporalLayerId }
+                        ?: layers.last()
+                filteredActiveLayers.add(layerWithBestFrameRate)
             }
-            data.update {
-                val mutableOldTrackLayerData = it.trackLayerData.toMutableMap()
-                mutableOldTrackLayerData[mid] = trackLayerDataList
-                it.copy(trackLayerData = mutableOldTrackLayerData.toMap())
+        } else {
+            simulcastLayers = activeLayers.filter { it.spatialLayerId != null }
+            val grouped = simulcastLayers.groupBy { it.spatialLayerId }
+            grouped.values.forEach { layers ->
+                val layerWithBestFrameRate =
+                    layers.firstOrNull { it.spatialLayerId == it.maxSpatialLayerId }
+                        ?: layers.last()
+                filteredActiveLayers.add(layerWithBestFrameRate)
             }
+        }
+
+        filteredActiveLayers.sortWith(object: Comparator<LayerData> {
+            override fun compare(o1: LayerData?, o2: LayerData?): Int {
+                if (o1 == null) return -1
+                if (o2 == null) return 1
+                return when (o2.encodingId.lowercase()) {
+                    "h" -> -1
+                    "l" -> if (o1.encodingId.lowercase() == "h") -1 else 1
+                    "m" -> if (o1.encodingId.lowercase() == "h" || o1.encodingId.lowercase() != "l") -1 else 1
+                    else -> 1
+                }
+            }
+        })
+
+        val trackLayerDataList = when (filteredActiveLayers.count()) {
+            2 -> listOf(
+                LowLevelVideoQuality.Auto(),
+                LowLevelVideoQuality.High(filteredActiveLayers[0]),
+                LowLevelVideoQuality.Low(filteredActiveLayers[1])
+            )
+
+            3 -> listOf(
+                LowLevelVideoQuality.Auto(),
+                LowLevelVideoQuality.High(filteredActiveLayers[0]),
+                LowLevelVideoQuality.Medium(filteredActiveLayers[1]),
+                LowLevelVideoQuality.Low(filteredActiveLayers[2])
+            )
+
+            else -> listOf(
+                LowLevelVideoQuality.Auto()
+            )
+        }
+        data.update {
+            val mutableOldTrackLayerData = it.trackLayerData.toMutableMap()
+            mutableOldTrackLayerData[mid] = trackLayerDataList
+            it.copy(trackLayerData = mutableOldTrackLayerData.toMap())
         }
     }
 
