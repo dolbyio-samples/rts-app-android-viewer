@@ -3,6 +3,7 @@ package io.dolby.rtscomponentkit.data
 import android.util.Log
 import com.millicast.Core
 import com.millicast.Media
+import com.millicast.clients.ConnectionOptions
 import com.millicast.devices.playback.AudioPlayback
 import com.millicast.devices.track.AudioTrack
 import com.millicast.devices.track.VideoTrack
@@ -75,7 +76,8 @@ class RTSViewerDataStore constructor(
         ).apply { start() }
 
         try {
-            subscriber.connect()
+            subscriber.connect(ConnectionOptions(true))
+            subscriber.subscribe()
         } catch (e: Exception) {
             Log.e(TAG, "${e.message}")
         }
