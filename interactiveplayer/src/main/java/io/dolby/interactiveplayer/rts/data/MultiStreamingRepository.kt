@@ -10,10 +10,10 @@ import android.os.HandlerThread
 import android.provider.Settings
 import android.util.Log
 import com.millicast.Core
+import com.millicast.clients.ConnectionOptions
 import com.millicast.devices.track.AudioTrack
 import com.millicast.subscribers.Credential
 import com.millicast.subscribers.Option
-import io.dolby.interactiveplayer.detailInput.ConnectionOptions
 import io.dolby.interactiveplayer.preferenceStore.AudioSelection
 import io.dolby.interactiveplayer.preferenceStore.PrefsStore
 import io.dolby.interactiveplayer.rts.domain.ConnectOptions
@@ -174,6 +174,19 @@ class MultiStreamingRepository(
         }
         val subscriber = Core.createSubscriber()
 
+        listener = Listener(_data, subscriber).apply {
+            start()
+        }
+        subscriber.enableStats(true)
+
+        subscriber.setCredentials(
+            credential(
+                subscriber.credentials,
+                streamingData,
+                connectOptions
+            )
+        )
+
         var options = Option(
             statsDelayMs = 10_000,
             disableAudio = connectOptions.disableAudio,
@@ -196,18 +209,12 @@ class MultiStreamingRepository(
             options = options.copy(rtcEventLogOutputPath = path + "/${timeStamp}_rtclogs.proto")
         }
 
-        listener = Listener(_data, subscriber, options).apply {
-            start()
-        }
-        subscriber.enableStats(true)
-
-        subscriber.setCredentials(credential(subscriber.credentials, streamingData, connectOptions))
-
         Log.d(TAG, "Connecting ...")
 
         try {
-            subscriber.connect(com.millicast.clients.ConnectionOptions(true))
-        } catch (e: Exception) {
+            subscriber.connect(ConnectionOptions(true))
+            subscriber.subscribe(options = options)
+        } catch (e: Throwable) {
             e.printStackTrace()
         }
         _data.update { data -> data.copy(streamingData = streamingData) }
@@ -240,16 +247,15 @@ class MultiStreamingRepository(
 
     fun updateSelectedVideoTrackId(sourceId: String?) {
         _data.update { data ->
-            val oldSelectedVideoTrackId = data.selectedVideoTrackId
-            val oldSelectedVideoTrack =
-                data.videoTracks.find { it.sourceId == oldSelectedVideoTrackId }
-            oldSelectedVideoTrack?.videoTrack?.removeRenderer()
+            data.videoTracks.forEach {
+                it.videoTrack.removeVideoSink()
+            }
 
             data.copy(selectedVideoTrackId = sourceId)
         }
     }
 
-    suspend fun playVideo(
+    fun playVideo(
         video: MultiStreamingData.Video,
         preferredVideoQuality: VideoQuality,
         preferredVideoQualities: Map<String, VideoQuality>
@@ -259,11 +265,11 @@ class MultiStreamingRepository(
         listener?.playVideo(video, priorityVideoPreference ?: preferredVideoQuality)
     }
 
-    suspend fun stopVideo(video: MultiStreamingData.Video) {
+    fun stopVideo(video: MultiStreamingData.Video) {
         listener?.stopVideo(video)
     }
 
-    private suspend fun playAudio(audio: MultiStreamingData.Audio) {
+    private fun playAudio(audio: MultiStreamingData.Audio) {
         listener?.playAudio(audio)
     }
 
@@ -301,3 +307,4 @@ fun <T> CoroutineScope.safeLaunch(
             error?.invoke(this, err) ?: err.printStackTrace()
         }
     }
+
