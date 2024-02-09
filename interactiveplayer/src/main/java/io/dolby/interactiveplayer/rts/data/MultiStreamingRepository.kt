@@ -57,7 +57,7 @@ class MultiStreamingRepository(
             if (
                 addedDevices.firstOrNull {
                     it.type == AudioDeviceInfo.TYPE_BLUETOOTH_A2DP ||
-                            it.type == AudioDeviceInfo.TYPE_BLUETOOTH_SCO
+                        it.type == AudioDeviceInfo.TYPE_BLUETOOTH_SCO
                 } != null
             ) {
                 turnBluetoothHeadset()
@@ -66,9 +66,9 @@ class MultiStreamingRepository(
 
         override fun onAudioDevicesRemoved(removedDevices: Array<out AudioDeviceInfo>) {
             if (removedDevices.firstOrNull {
-                    it.type == AudioDeviceInfo.TYPE_BLUETOOTH_A2DP ||
-                            it.type == AudioDeviceInfo.TYPE_BLUETOOTH_SCO
-                } != null
+                it.type == AudioDeviceInfo.TYPE_BLUETOOTH_A2DP ||
+                    it.type == AudioDeviceInfo.TYPE_BLUETOOTH_SCO
+            } != null
             ) {
                 turnSpeakerPhone()
             }
@@ -86,9 +86,9 @@ class MultiStreamingRepository(
             Handler(handlerThread.looper)
         )
         if (audioManager.getDevices(AudioManager.GET_DEVICES_OUTPUTS).firstOrNull {
-                it.type == AudioDeviceInfo.TYPE_BLUETOOTH_A2DP ||
-                        it.type == AudioDeviceInfo.TYPE_BLUETOOTH_SCO
-            } != null
+            it.type == AudioDeviceInfo.TYPE_BLUETOOTH_A2DP ||
+                it.type == AudioDeviceInfo.TYPE_BLUETOOTH_SCO
+        } != null
         ) {
             turnBluetoothHeadset()
         } else {
@@ -307,4 +307,3 @@ fun <T> CoroutineScope.safeLaunch(
             error?.invoke(this, err) ?: err.printStackTrace()
         }
     }
-

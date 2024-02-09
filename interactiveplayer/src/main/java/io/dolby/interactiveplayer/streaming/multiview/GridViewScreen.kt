@@ -155,7 +155,7 @@ private fun VideoView(
     } ?: modifier
     Box {
         AndroidView(
-            modifier =  updatedModifier,
+            modifier = updatedModifier,
             factory = { context ->
                 val view = TextureViewRenderer(context)
                 view.init(Media.eglBaseContext, null)

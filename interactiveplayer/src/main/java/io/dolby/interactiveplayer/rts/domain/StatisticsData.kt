@@ -409,10 +409,10 @@ data class StatsInboundRtp(
 
             audioStatistics?.codecName?.let { audioCodec ->
                 val codecs = audioCodec + (
-                        videoStatistics?.codecName?.let { videoCodec ->
-                            ", $videoCodec"
-                        } ?: ""
-                        )
+                    videoStatistics?.codecName?.let { videoCodec ->
+                        ", $videoCodec"
+                    } ?: ""
+                    )
                 statisticsValuesList.add(Pair(R.string.statisticsScreen_codecs, codecs))
             } ?: {
                 videoStatistics?.codecName?.let { videoCodec ->

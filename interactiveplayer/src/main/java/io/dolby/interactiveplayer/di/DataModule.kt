@@ -16,7 +16,6 @@
 package io.dolby.interactiveplayer.di
 
 import android.content.Context
-import com.millicast.Client
 import com.millicast.Core
 import com.millicast.Media
 import dagger.Module

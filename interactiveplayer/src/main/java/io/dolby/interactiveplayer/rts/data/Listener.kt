@@ -37,7 +37,6 @@ class Listener(
     private fun <T> Flow<T>.collectInLocalScope(collector: FlowCollector<T>) =
         coroutineScope.launch { distinctUntilChanged().collect(collector) }
 
-
     fun start() {
         Log.d(TAG, "Listener start")
         coroutineScope = CoroutineScope(Dispatchers.IO)
@@ -299,7 +298,7 @@ class Listener(
         Log.d(
             TAG,
             "onLayers: $mid, ${activeLayers.contentToString()}, ${
-                inactiveLayers.contentToString()
+            inactiveLayers.contentToString()
             }"
         )
         val filteredActiveLayers = mutableListOf<LayerData>()
