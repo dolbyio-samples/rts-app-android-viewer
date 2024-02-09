@@ -83,7 +83,7 @@ class RTSViewerDataStore constructor(
 
     private fun credential(
         credentials: Credential,
-        streamingData: StreamingData,
+        streamingData: StreamingData
     ) = credentials.copy(
         streamName = streamingData.streamName,
         accountId = streamingData.accountId,
@@ -193,8 +193,8 @@ class RTSViewerDataStore constructor(
 
 fun LayerData.isEqualTo(other: LayerData): Boolean {
     return other.spatialLayerId == this.spatialLayerId &&
-            other.temporalLayerId == this.temporalLayerId &&
-            other.encodingId == this.encodingId &&
-            other.maxSpatialLayerId == this.maxSpatialLayerId &&
-            other.maxTemporalLayerId == this.maxTemporalLayerId
+        other.temporalLayerId == this.temporalLayerId &&
+        other.encodingId == this.encodingId &&
+        other.maxSpatialLayerId == this.maxSpatialLayerId &&
+        other.maxTemporalLayerId == this.maxTemporalLayerId
 }

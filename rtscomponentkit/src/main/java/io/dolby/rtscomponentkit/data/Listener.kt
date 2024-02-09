@@ -19,7 +19,6 @@ import kotlinx.coroutines.flow.MutableSharedFlow
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.launch
-import org.webrtc.RTCStatsReport
 import java.util.Optional
 
 class Listener(
@@ -28,7 +27,7 @@ class Listener(
     private val statistics: MutableStateFlow<StatisticsData?>,
     private val streamQualityTypes: MutableStateFlow<List<RTSViewerDataStore.StreamQualityType>>,
     private val selectedStreamQualityType: MutableStateFlow<RTSViewerDataStore.StreamQualityType>
-    ) {
+) {
     private var coroutineScope = CoroutineScope(Dispatchers.IO)
 
     private fun <T> Flow<T>.collectInLocalScope(
@@ -124,7 +123,7 @@ class Listener(
         }
 
         subscriber.rtcStatsReport.collectInLocalScope { report ->
-            //TODO: update the report structure
+            // TODO: update the report structure
             onStatsReport(report)
         }
 
