@@ -366,10 +366,10 @@ class StreamingViewModel @Inject constructor(
         return null
     }
 
-    private fun getDateTime(timeStamp: Double): String? {
+    private fun getDateTime(timeStamp: Long): String? {
         return try {
             val dateFormat = SimpleDateFormat.getDateTimeInstance()
-            val netDate = Date((timeStamp / 1000).toLong())
+            val netDate = Date(timeStamp)
             dateFormat.format(netDate)
         } catch (e: Exception) {
             Log.e(TAG, e.toString())

@@ -11,7 +11,7 @@ import java.math.BigInteger
 data class StatisticsData(
     val roundTripTime: Double?,
     val availableOutgoingBitrate: Double?,
-    val timestamp: Double?,
+    val timestamp: Long?,
     val audio: StatsInboundRtp?,
     val video: StatsInboundRtp?
 ) {
@@ -50,7 +50,7 @@ data class StatisticsData(
                 availableOutgoingBitrate = bitrate,
                 audio = audio,
                 video = video,
-                timestamp = report.timestampUs
+                timestamp = report.timestampUs.toLong()
             )
         }
 
@@ -61,7 +61,7 @@ data class StatisticsData(
             var video: StatsInboundRtp? = null
             val inboundRtpStreams = report.stats()
                 .filter { it is InboundRtpStream && it.statsType() == StatsType.INBOUND_RTP }
-            val timestamp = inboundRtpStreams.firstOrNull()?.timestamp?.toDouble()
+            val timestamp = inboundRtpStreams.firstOrNull()?.timestamp?.toLong()
             inboundRtpStreams.forEach { statsData ->
                 val inboundData = statsData as InboundRtpStream
                 val codecId = inboundData.codecId
