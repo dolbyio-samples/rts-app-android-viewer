@@ -7,13 +7,10 @@ import com.millicast.clients.stats.RtsReport
 import com.millicast.devices.track.AudioTrack
 import com.millicast.devices.track.TrackType
 import com.millicast.devices.track.VideoTrack
-import com.millicast.subscribers.Option
 import com.millicast.subscribers.ProjectionData
 import com.millicast.subscribers.state.ActivityStream
 import com.millicast.subscribers.state.LayerData
 import com.millicast.subscribers.state.SubscriptionState
-import com.millicast.utils.MillicastOriginalCallingException
-import io.dolby.interactiveplayer.rts.data.MultiStreamingRepository.Companion.TAG
 import io.dolby.interactiveplayer.rts.domain.MultiStreamStatisticsData
 import io.dolby.interactiveplayer.rts.domain.MultiStreamingData
 import kotlinx.coroutines.CoroutineScope
@@ -23,6 +20,7 @@ import kotlinx.coroutines.cancelChildren
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.FlowCollector
 import kotlinx.coroutines.flow.MutableStateFlow
+import kotlinx.coroutines.flow.distinctUntilChanged
 import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.flow.updateAndGet
@@ -32,16 +30,13 @@ import kotlin.jvm.optionals.getOrNull
 
 class Listener(
     private val data: MutableStateFlow<MultiStreamingData>,
-    private var subscriber: Subscriber,
-    private val options: Option
+    private var subscriber: Subscriber
 ) {
-    private var coroutineScope = CoroutineScope(Dispatchers.IO)
+    private lateinit var coroutineScope: CoroutineScope
 
-    private fun <T> Flow<T>.collectInLocalScope(
-        collector: FlowCollector<T>
-    ) = this.let {
-        coroutineScope.launch { it.collect(collector) }
-    }
+    private fun <T> Flow<T>.collectInLocalScope(collector: FlowCollector<T>) =
+        coroutineScope.launch { distinctUntilChanged().collect(collector) }
+
 
     fun start() {
         Log.d(TAG, "Listener start")
@@ -113,7 +108,6 @@ class Listener(
         }
 
         subscriber.track.collectInLocalScope { holder ->
-            Log.d(TAG, "onTrack, ${holder.track}, ${holder.mid}")
             when (holder.track) {
                 is VideoTrack -> {
                     onVideoTrack(holder.track as VideoTrack, Optional.ofNullable(holder.mid))
@@ -153,13 +147,11 @@ class Listener(
         subscriber.disconnect()
     }
 
-    private suspend fun onConnected() {
+    private fun onConnected() {
         Log.d(
             TAG,
             "onConnected, this: $this, thread: ${Thread.currentThread().id}"
         )
-
-        subscriber.subscribe(options = options)
     }
 
     private fun onDisconnected() {
@@ -214,17 +206,11 @@ class Listener(
         }
     }
 
-    private fun onVideoTrack(p0: VideoTrack, p1: Optional<String>) {
+    private fun onVideoTrack(videoTrack: VideoTrack, p1: Optional<String>) {
         val mid = p1.getOrNull()
-        Log.d(TAG, "onVideoTrack: $mid, $p0")
+        Log.d(TAG, "onVideoTrack: $mid, $videoTrack")
         data.update { data ->
-            if (data.videoTracks.isEmpty()) {
-                data.addPendingMainVideoTrack(p0, mid)
-            } else {
-                data.getPendingVideoTrackInfoOrNull()?.let { trackInfo ->
-                    data.appendOtherVideoTrack(trackInfo, p0, mid, trackInfo.sourceId)
-                } ?: data
-            }
+            data.addVideoTrack(videoTrack, mid)
         }
     }
 
@@ -242,31 +228,16 @@ class Listener(
         }
     }
 
-    private fun onFrameMetadata(p0: Int, p1: Int, p2: ByteArray?) {
-        Log.d(TAG, "onFrameMetadata: $p0, $p1")
-        TODO("Not yet implemented")
-    }
-
     private suspend fun onActive(
         stream: String,
         tracksInfo: Array<out String>,
         sourceId: String?
     ) {
-        Log.d(
-            TAG,
-            "onActive: $stream, ${tracksInfo.toList()}, $sourceId"
-        )
+        Log.d(TAG, "onActive: $stream, ${tracksInfo.toList()}, $sourceId")
         val pendingTracks = MultiStreamingData.parseTracksInfo(tracksInfo, sourceId)
-        if (data.value.videoTracks.isEmpty()) {
-            data.update { data ->
-                data.addPendingMainVideoTrack(pendingTracks.videoTracks.firstOrNull())
-            }
-        } else {
+        if (pendingTracks.videoTracks.isNotEmpty()) {
             val newData = data.updateAndGet { data ->
-                data.addPendingTracks(
-                    pendingTracks,
-                    processAudio = false
-                )
+                data.addVideoTrack(pendingTracks.videoTracks)
             }
             processPendingTracks(newData, processAudio = false)
         }
@@ -285,12 +256,11 @@ class Listener(
         }
     }
 
-    private fun onInactive(p0: String, p1: String?) {
-        Log.d(TAG, "onInactive $p0, $p1")
-        val sourceId = p1
+    private fun onInactive(p0: String, sourceId: String?) {
+        Log.d(TAG, "onInactive $p0, $sourceId")
         data.update { data ->
             data.videoTracks.filter { it.sourceId == sourceId }
-                .forEach { it.videoTrack.removeRenderer() }
+                .forEach { it.videoTrack.removeVideoSink() }
             val inactiveVideo = data.videoTracks.firstOrNull { it.sourceId == sourceId }
             var selectedVideoTrack = data.selectedVideoTrackId
             val tempVideos = data.videoTracks.toMutableList()
@@ -319,10 +289,6 @@ class Listener(
         data.update {
             it.copy(isSubscribed = false)
         }
-    }
-
-    private fun onVad(p0: String?, p1: Optional<String>?) {
-        TODO("Not yet implemented")
     }
 
     private fun onLayers(
@@ -357,7 +323,7 @@ class Listener(
             }
         }
 
-        filteredActiveLayers.sortWith(object: Comparator<LayerData> {
+        filteredActiveLayers.sortWith(object : Comparator<LayerData> {
             override fun compare(o1: LayerData?, o2: LayerData?): Int {
                 if (o1 == null) return -1
                 if (o2 == null) return 1
@@ -395,7 +361,7 @@ class Listener(
         }
     }
 
-    suspend fun playVideo(
+    fun playVideo(
         video: MultiStreamingData.Video,
         preferredVideoQuality: VideoQuality
     ) {
@@ -412,21 +378,19 @@ class Listener(
                     video,
                     availablePreferredVideoQuality
                 )
-            try {
+            CoroutineScope(Dispatchers.Main).safeLaunch({
                 subscriber.project(video.sourceId ?: "", arrayListOf(projectionData))
-                data.update {
-                    val mutableOldProjectedData = it.trackProjectedData.toMutableMap()
-                    mutableOldProjectedData[projectionData.mid] =
-                        projectedDataFrom(
-                            video.sourceId,
-                            availablePreferredVideoQuality?.videoQuality()
-                                ?: VideoQuality.AUTO,
-                            projectionData.mid
-                        )
-                    it.copy(trackProjectedData = mutableOldProjectedData.toMap())
-                }
-            } catch (e: MillicastOriginalCallingException) {
-                e.printStackTrace()
+            })
+            data.update {
+                val mutableOldProjectedData = it.trackProjectedData.toMutableMap()
+                mutableOldProjectedData[projectionData.mid] =
+                    projectedDataFrom(
+                        video.sourceId,
+                        availablePreferredVideoQuality?.videoQuality()
+                            ?: VideoQuality.AUTO,
+                        projectionData.mid
+                    )
+                it.copy(trackProjectedData = mutableOldProjectedData.toMap())
             }
         }
     }
@@ -446,8 +410,10 @@ class Listener(
             }
     }
 
-    suspend fun stopVideo(video: MultiStreamingData.Video) {
-        subscriber.unproject(arrayListOf(video.id))
+    fun stopVideo(video: MultiStreamingData.Video) {
+        CoroutineScope(Dispatchers.Main).safeLaunch({
+            subscriber.unproject(arrayListOf(video.id))
+        })
         data.update {
             val mutableOldProjectedData = it.trackProjectedData.toMutableMap()
             mutableOldProjectedData.remove(video.id)
@@ -455,45 +421,54 @@ class Listener(
         }
     }
 
-    suspend fun playAudio(audioTrack: MultiStreamingData.Audio) {
+    fun playAudio(audioTrack: MultiStreamingData.Audio) {
         val audioTrackIds = ArrayList(data.value.allAudioTrackIds)
-        subscriber.unproject(audioTrackIds)
+        CoroutineScope(Dispatchers.Main).safeLaunch({ subscriber.unproject(audioTrackIds) })
 
         val projectionData = ProjectionData(
             mid = audioTrack.id!!,
             trackId = MultiStreamingData.audio,
             media = MultiStreamingData.audio
         )
-        subscriber.project(audioTrack.sourceId ?: "", arrayListOf(projectionData))
+        CoroutineScope(Dispatchers.Main).safeLaunch({
+            subscriber.project(
+                audioTrack.sourceId ?: "",
+                arrayListOf(projectionData)
+            )
+        })
         data.update {
             it.copy(selectedAudioTrackId = audioTrack.sourceId)
         }
     }
 
     private suspend fun processPendingTracks(
-        data: MultiStreamingData,
+        multiStreamingData: MultiStreamingData,
         processVideo: Boolean = true,
         processAudio: Boolean = true
     ) {
-        if (data.isSubscribed) {
+        coroutineScope.safeLaunch({
             if (processVideo) {
-                val pendingVideoTracks = data.pendingVideoTracks.count { !it.added }
+                val pendingVideoTracks = multiStreamingData.pendingVideoTracks.count { !it.added }
                 repeat(pendingVideoTracks) {
                     subscriber.addRemoteTrack(TrackType.Video)
                 }
             }
             if (processAudio) {
-                val pendingAudioTracks = data.pendingAudioTracks.count { !it.added }
+                val pendingAudioTracks = multiStreamingData.pendingAudioTracks.count { !it.added }
                 repeat(pendingAudioTracks) {
                     subscriber.addRemoteTrack(TrackType.Audio)
                 }
             }
-            this.data.update {
+            data.update {
                 it.markPendingTracksAsAdded(
                     processVideo = processVideo,
                     processAudio = processAudio
                 )
             }
-        }
+        })
+    }
+
+    companion object {
+        const val TAG = "io.dolby.interactiveplayer.listener"
     }
 }

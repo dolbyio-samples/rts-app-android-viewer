@@ -51,13 +51,13 @@ class MultiStreamingViewModel @Inject constructor(
     val showSourceLabels = _showSourceLabels.asStateFlow()
 
     init {
-        viewModelScope.safeLaunch({
+        viewModelScope.launch {
             repository.data.collect { data ->
                 update(data)
                 updateStatistics(data)
                 updateLayers(data)
             }
-        })
+        }
         viewModelScope.safeLaunch({
             connect()
         })
@@ -128,14 +128,12 @@ class MultiStreamingViewModel @Inject constructor(
             }
         }
 
-        if (!repository.data.value.isSubscribed) {
-            _uiState.update {
-                it.copy(
-                    inProgress = true
-                )
-            }
-            repository.connect(streamingData, connectOptions)
+        _uiState.update {
+            it.copy(
+                inProgress = true
+            )
         }
+        repository.connect(streamingData, connectOptions)
     }
 
     private suspend fun update(data: MultiStreamingData) = withContext(dispatcherProvider.main) {
@@ -192,7 +190,7 @@ class MultiStreamingViewModel @Inject constructor(
             }
         }
 
-    fun disconnect() = viewModelScope.safeLaunch({ repository.disconnect() })
+    fun disconnect() = viewModelScope.launch { repository.disconnect() }
 
     fun selectVideoTrack(sourceId: String?) {
         repository.updateSelectedVideoTrackId(sourceId)
@@ -201,17 +199,15 @@ class MultiStreamingViewModel @Inject constructor(
     fun playVideo(
         video: MultiStreamingData.Video,
         preferredVideoQuality: VideoQuality
-    ) = viewModelScope.safeLaunch({
-        repository.playVideo(
-            video = video,
-            preferredVideoQuality = preferredVideoQuality,
-            preferredVideoQualities = _videoQualityState.value.preferredVideoQualities
-        )
-    })
+    ) = repository.playVideo(
+        video = video,
+        preferredVideoQuality = preferredVideoQuality,
+        preferredVideoQualities = _videoQualityState.value.preferredVideoQualities
+    )
 
-    fun stopVideo(video: MultiStreamingData.Video) = viewModelScope.safeLaunch({
+    fun stopVideo(video: MultiStreamingData.Video) = viewModelScope.launch {
         repository.stopVideo(video)
-    })
+    }
 
     fun updateStatistics(show: Boolean) {
         _statisticsState.update { it.copy(showStatistics = show) }
