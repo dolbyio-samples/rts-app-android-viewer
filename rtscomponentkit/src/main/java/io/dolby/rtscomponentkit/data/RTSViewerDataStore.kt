@@ -75,6 +75,8 @@ class RTSViewerDataStore constructor(
             selectedStreamQualityType = _selectedStreamQualityType
         ).apply { start() }
 
+        subscriber.enableStats(true)
+
         try {
             subscriber.connect(ConnectionOptions(true))
             subscriber.subscribe()
