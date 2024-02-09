@@ -28,7 +28,7 @@ class Listener(
     private val streamQualityTypes: MutableStateFlow<List<RTSViewerDataStore.StreamQualityType>>,
     private val selectedStreamQualityType: MutableStateFlow<RTSViewerDataStore.StreamQualityType>
 ) {
-    private var coroutineScope = CoroutineScope(Dispatchers.IO)
+    private lateinit var coroutineScope: CoroutineScope
 
     private fun <T> Flow<T>.collectInLocalScope(
         collector: FlowCollector<T>
@@ -39,50 +39,6 @@ class Listener(
     fun start() {
         Log.d(TAG, "Listener start")
         coroutineScope = CoroutineScope(Dispatchers.IO)
-
-        subscriber.onTransformableFrame = { ssrc: Int, timestamp: Int, data: ByteArray ->
-            Log.d(TAG, "onFrameMetadata: $ssrc, $timestamp, ${data.size}")
-        }
-
-        subscriber.activity.collectInLocalScope {
-            when (it) {
-                is ActivityStream.Active -> onActive(
-                    it.streamId,
-                    it.track,
-                    it.sourceId
-                )
-
-                is ActivityStream.Inactive -> onInactive(
-                    it.streamId,
-                    it.sourceId
-                )
-            }
-        }
-
-        subscriber.layers.collectInLocalScope {
-            onLayers(it.mid, it.activeLayers, it.inactiveLayersEncodingIds)
-        }
-
-        subscriber.state.map { it.subscriptionState }.collectInLocalScope { state ->
-            when (state) {
-                SubscriptionState.Default -> {}
-                is SubscriptionState.Error -> {
-                    onSubscribedError(state.reason)
-                }
-
-                SubscriptionState.Stopped -> {
-                    onStopped()
-                }
-
-                SubscriptionState.Subscribed -> {
-                    onSubscribed()
-                }
-            }
-        }
-
-        subscriber.state.map { it.viewers }.collectInLocalScope {
-            onViewerCount(it)
-        }
 
         subscriber.state.map { it.connectionState }.collectInLocalScope { state ->
             when (state) {
@@ -109,6 +65,50 @@ class Listener(
             }
         }
 
+        subscriber.state.map { it.subscriptionState }.collectInLocalScope { state ->
+            when (state) {
+                SubscriptionState.Default -> {}
+                is SubscriptionState.Error -> {
+                    onSubscribedError(state.reason)
+                }
+
+                SubscriptionState.Stopped -> {
+                    onStopped()
+                }
+
+                SubscriptionState.Subscribed -> {
+                    onSubscribed()
+                }
+            }
+        }
+
+        subscriber.onTransformableFrame = { ssrc: Int, timestamp: Int, data: ByteArray ->
+            Log.d(TAG, "onFrameMetadata: $ssrc, $timestamp, ${data.size}")
+        }
+
+        subscriber.activity.collectInLocalScope {
+            when (it) {
+                is ActivityStream.Active -> onActive(
+                    it.streamId,
+                    it.track,
+                    it.sourceId
+                )
+
+                is ActivityStream.Inactive -> onInactive(
+                    it.streamId,
+                    it.sourceId
+                )
+            }
+        }
+
+        subscriber.layers.collectInLocalScope {
+            onLayers(it.mid, it.activeLayers, it.inactiveLayersEncodingIds)
+        }
+
+        subscriber.state.map { it.viewers }.collectInLocalScope {
+            onViewerCount(it)
+        }
+
         subscriber.track.collectInLocalScope { holder ->
             Log.d(TAG, "onTrack, ${holder.track}, ${holder.mid}")
             when (holder.track) {
@@ -128,7 +128,7 @@ class Listener(
         }
 
         subscriber.signalingError.collectInLocalScope {
-            Log.d(TAG, "subscriber.signalingError: $it")
+            onSignalingError(it)
         }
 
         subscriber.vad.collectInLocalScope {
@@ -193,11 +193,11 @@ class Listener(
     }
 
     suspend fun selectLayer(layer: LayerData?): Boolean {
-        try {
+        return try {
             subscriber.select(layer)
-            return true
+            true
         } catch (e: MillicastException) {
-            return false
+            false
         }
     }
 
@@ -246,7 +246,6 @@ class Listener(
 
     private suspend fun onConnected() {
         Log.d(TAG, "onConnected")
-        startSubscribe()
     }
 
     private fun onActive(p0: String?, p1: Array<out String>?, p2: String?) {
@@ -269,10 +268,6 @@ class Listener(
             state.emit(RTSViewerDataStore.State.StreamInactive)
         }
         statistics.value = null
-    }
-
-    private fun onVad(p0: String?, p1: Optional<String>?) {
-        Log.d(TAG, "onVad")
     }
 
     private fun onConnectionError(reason: String) {
@@ -299,44 +294,74 @@ class Listener(
         activeLayers: Array<out LayerData>?,
         inactiveLayers: Array<String>?
     ) {
-        Log.d(TAG, "onLayers: $activeLayers")
-        val filteredActiveLayers = activeLayers?.filter {
-            // For H.264 there are no temporal layers and the id is set to 255. For VP8 use the first temporal layer.
-            it.temporalLayerId == 0 || it.temporalLayerId == 255
+        Log.d(
+            TAG,
+            "onLayers: $mid, ${activeLayers.contentToString()}, ${
+            inactiveLayers.contentToString()
+            }"
+        )
+        val filteredActiveLayers = mutableListOf<LayerData>()
+        var simulcastLayers = activeLayers?.filter { it.encodingId.isNotEmpty() }
+        if (!simulcastLayers.isNullOrEmpty()) {
+            val grouped = simulcastLayers.groupBy { it.encodingId }
+            grouped.values.forEach { layers ->
+                val layerWithBestFrameRate =
+                    layers.firstOrNull { it.temporalLayerId == it.maxTemporalLayerId }
+                        ?: layers.last()
+                filteredActiveLayers.add(layerWithBestFrameRate)
+            }
+        } else {
+            simulcastLayers = activeLayers?.filter { it.spatialLayerId != null }
+            val grouped = simulcastLayers?.groupBy { it.spatialLayerId }
+            grouped?.values?.forEach { layers ->
+                val layerWithBestFrameRate =
+                    layers.firstOrNull { it.spatialLayerId == it.maxSpatialLayerId }
+                        ?: layers.last()
+                filteredActiveLayers.add(layerWithBestFrameRate)
+            }
         }
 
-        filteredActiveLayers?.let { activeLayers ->
-            val newActiveLayers = when (activeLayers?.count()) {
-                2 -> {
-                    listOf(
-                        RTSViewerDataStore.StreamQualityType.Auto,
-                        RTSViewerDataStore.StreamQualityType.High(activeLayers[0]),
-                        RTSViewerDataStore.StreamQualityType.Low(activeLayers[1])
-                    )
+        filteredActiveLayers.sortWith(object : Comparator<LayerData> {
+            override fun compare(o1: LayerData?, o2: LayerData?): Int {
+                if (o1 == null) return -1
+                if (o2 == null) return 1
+                return when (o2.encodingId.lowercase()) {
+                    "h" -> -1
+                    "l" -> if (o1.encodingId.lowercase() == "h") -1 else 1
+                    "m" -> if (o1.encodingId.lowercase() == "h" || o1.encodingId.lowercase() != "l") -1 else 1
+                    else -> 1
                 }
-
-                3 -> {
-                    listOf(
-                        RTSViewerDataStore.StreamQualityType.Auto,
-                        RTSViewerDataStore.StreamQualityType.High(activeLayers[0]),
-                        RTSViewerDataStore.StreamQualityType.Medium(activeLayers[1]),
-                        RTSViewerDataStore.StreamQualityType.Low(activeLayers[2])
-                    )
-                }
-
-                else -> emptyList()
             }
+        })
 
-            if (streamQualityTypes.value != newActiveLayers) {
-                streamQualityTypes.value = newActiveLayers
-                // Update selected stream quality type everytime the `streamQualityTypes` change
-                // It preserves the current selected type if the new list has a stream matching the type `selectedStreamQualityType`
-                val updatedStreamQualityType = streamQualityTypes.value.firstOrNull { type ->
-                    selectedStreamQualityType.value::class == type::class
-                } ?: RTSViewerDataStore.StreamQualityType.Auto
+        val trackLayerDataList = when (filteredActiveLayers.count()) {
+            2 -> listOf(
+                RTSViewerDataStore.StreamQualityType.Auto,
+                RTSViewerDataStore.StreamQualityType.High(filteredActiveLayers[0]),
+                RTSViewerDataStore.StreamQualityType.Low(filteredActiveLayers[1])
+            )
 
-                selectedStreamQualityType.value = updatedStreamQualityType
-            }
+            3 -> listOf(
+                RTSViewerDataStore.StreamQualityType.Auto,
+                RTSViewerDataStore.StreamQualityType.High(filteredActiveLayers[0]),
+                RTSViewerDataStore.StreamQualityType.Medium(filteredActiveLayers[1]),
+                RTSViewerDataStore.StreamQualityType.Low(filteredActiveLayers[2])
+            )
+
+            else -> listOf(
+                RTSViewerDataStore.StreamQualityType.Auto
+            )
+        }
+
+        if (streamQualityTypes.value != trackLayerDataList) {
+            streamQualityTypes.value = trackLayerDataList
+            // Update selected stream quality type everytime the `streamQualityTypes` change
+            // It preserves the current selected type if the new list has a stream matching the type `selectedStreamQualityType`
+            val updatedStreamQualityType = streamQualityTypes.value.firstOrNull { type ->
+                selectedStreamQualityType.value::class == type::class
+            } ?: RTSViewerDataStore.StreamQualityType.Auto
+
+            selectedStreamQualityType.value = updatedStreamQualityType
         }
     }
 }
