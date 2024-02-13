@@ -16,7 +16,6 @@ import androidx.compose.ui.text.input.ImeAction
 import androidx.compose.ui.unit.dp
 import io.dolby.rtsviewer.R
 import io.dolby.rtsviewer.uikit.input.TextInput
-import io.dolby.rtsviewer.uikit.input.TvTextInput
 
 private const val MAXIMUM_CHARACTERS: Int = 64
 
@@ -29,7 +28,7 @@ fun DetailInput(
     focusRequester: FocusRequester,
     playStream: () -> Unit
 ) {
-    TvTextInput(
+    TextInput(
         value = streamName.value,
         label = stringResource(id = R.string.stream_name_placeholder),
         onValueChange = {
@@ -45,7 +44,7 @@ fun DetailInput(
 
     Spacer(modifier = Modifier.height(8.dp))
 
-    TvTextInput(
+    TextInput(
         value = accountId.value,
         label = stringResource(id = R.string.account_id_placeholder),
         onValueChange = {
