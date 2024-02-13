@@ -29,13 +29,15 @@ data class MultiStreamingData(
         val videoTrack: VideoTrack,
         val sourceId: String?,
         val mediaType: String,
-        val trackId: String
+        val trackId: String,
+        val active: Boolean
     )
 
     data class Audio(
         val id: String?,
         val audioTrack: AudioTrack,
-        val sourceId: String?
+        val sourceId: String?,
+        val active: Boolean
     )
 
     data class PendingTrack(
@@ -74,7 +76,7 @@ data class MultiStreamingData(
     ): MultiStreamingData {
         val pendingAudioTracks = pendingAudioTracks.toMutableList().apply { remove(pendingTrack) }
         val audioTracks = audioTracks.toMutableList().apply {
-            add(Audio(mid, audioTrack, sourceId))
+            add(Audio(mid, audioTrack, sourceId, true))
         }
         val allAudioTracks = allAudioTrackIds.toMutableList().apply {
             add(mid)
@@ -86,10 +88,10 @@ data class MultiStreamingData(
         )
     }
 
-    internal fun getPendingVideoTrackInfoOrNull(): PendingTrack? = pendingVideoTracks.firstOrNull()
+    private fun getPendingVideoTrackInfoOrNull(): PendingTrack? = pendingVideoTracks.firstOrNull()
     internal fun getPendingAudioTrackInfoOrNull(): PendingTrack? = pendingAudioTracks.firstOrNull()
 
-    internal fun appendOtherVideoTrack(
+    private fun appendOtherVideoTrack(
         pendingTrack: PendingTrack,
         videoTrack: VideoTrack,
         mid: String?,
@@ -98,7 +100,7 @@ data class MultiStreamingData(
         val pendingVideoTracks = pendingVideoTracks.toMutableList().apply { remove(pendingTrack) }
 
         val videoTracks = videoTracks.toMutableList().apply {
-            add(Video(mid, videoTrack, sourceId, pendingTrack.mediaType, pendingTrack.trackId))
+            add(Video(mid, videoTrack, sourceId, pendingTrack.mediaType, pendingTrack.trackId, true))
         }
         return copy(videoTracks = videoTracks, pendingVideoTracks = pendingVideoTracks)
     }
@@ -165,7 +167,8 @@ data class MultiStreamingData(
                         mainVideoTrackVideoTrack.videoTrack,
                         pendingTrack.sourceId,
                         pendingTrack.mediaType,
-                        pendingTrack.trackId
+                        pendingTrack.trackId,
+                        true
                     )
                 )
             }
@@ -183,7 +186,8 @@ data class MultiStreamingData(
                         videoTrack,
                         mainVideoTrackPendingTrack.sourceId,
                         mainVideoTrackPendingTrack.mediaType,
-                        mainVideoTrackPendingTrack.trackId
+                        mainVideoTrackPendingTrack.trackId,
+                        true
                     )
                 )
             }
@@ -200,7 +204,8 @@ data class MultiStreamingData(
                 Audio(
                     pendingMainAudioTrack.mid,
                     pendingMainAudioTrack.audioTrack,
-                    pendingTrack.sourceId
+                    pendingTrack.sourceId,
+                    true
                 )
             )
         }
