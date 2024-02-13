@@ -324,7 +324,9 @@ class Listener(
     ) {
         Log.d(
             TAG,
-            "onLayers: $mid, ${activeLayers.contentToString()}, ${inactiveLayers.contentToString()}"
+            "onLayers: $mid, ${activeLayers.contentToString()}, ${
+                inactiveLayers.contentToString()
+            }"
         )
         val filteredActiveLayers = mutableListOf<LayerData>()
         var simulcastLayers = activeLayers.filter { it.encodingId.isNotEmpty() }
