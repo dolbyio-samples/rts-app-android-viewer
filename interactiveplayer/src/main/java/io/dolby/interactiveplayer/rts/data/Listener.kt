@@ -233,6 +233,28 @@ class Listener(
         sourceId: String?
     ) {
         Log.d(TAG, "onActive: $stream, ${tracksInfo.toList()}, $sourceId")
+
+        val activeAudio = data.value.audioTracks.firstOrNull { it.sourceId == sourceId }
+        val activeVideo = data.value.videoTracks.firstOrNull { it.sourceId == sourceId }
+        val tempVideos = data.value.videoTracks.toMutableList()
+        var reactivated = false
+        activeVideo?.let {
+            val toActivate = activeVideo.copy(active = true)
+            tempVideos.remove(activeVideo)
+            tempVideos.add(toActivate)
+            data.update { data -> data.copy(videoTracks = tempVideos) }
+            reactivated = true
+        }
+        val tempAudios = data.value.audioTracks.toMutableList()
+        activeAudio?.let {
+            val toActivate = activeAudio.copy(active = true)
+            tempAudios.remove(activeAudio)
+            tempAudios.add(toActivate)
+            data.update { data -> data.copy(audioTracks = tempAudios) }
+            reactivated = true
+        }
+        if (reactivated) return
+
         val pendingTracks = MultiStreamingData.parseTracksInfo(tracksInfo, sourceId)
         if (pendingTracks.videoTracks.isNotEmpty()) {
             val newData = data.updateAndGet { data ->
@@ -264,7 +286,10 @@ class Listener(
             var selectedVideoTrack = data.selectedVideoTrackId
             val tempVideos = data.videoTracks.toMutableList()
             inactiveVideo?.let {
+                val toInactivate = inactiveVideo.copy(active = false)
                 tempVideos.remove(inactiveVideo)
+                tempVideos.add(toInactivate)
+
                 if (data.selectedVideoTrackId == sourceId && tempVideos.isNotEmpty()) {
                     selectedVideoTrack = tempVideos[0].sourceId
                 }
@@ -272,7 +297,9 @@ class Listener(
             val inactiveAudio = data.audioTracks.firstOrNull { it.sourceId == sourceId }
             val tempAudios = data.audioTracks.toMutableList()
             inactiveAudio?.let {
+                val toInactivate = inactiveAudio.copy(active = false)
                 tempAudios.remove(inactiveAudio)
+                tempAudios.add(toInactivate)
             }
 
             return@update data.copy(
@@ -297,9 +324,7 @@ class Listener(
     ) {
         Log.d(
             TAG,
-            "onLayers: $mid, ${activeLayers.contentToString()}, ${
-            inactiveLayers.contentToString()
-            }"
+            "onLayers: $mid, ${activeLayers.contentToString()}, ${inactiveLayers.contentToString()}"
         )
         val filteredActiveLayers = mutableListOf<LayerData>()
         var simulcastLayers = activeLayers.filter { it.encodingId.isNotEmpty() }
@@ -377,9 +402,9 @@ class Listener(
                     video,
                     availablePreferredVideoQuality
                 )
-            CoroutineScope(Dispatchers.Main).safeLaunch({
+            CoroutineScope(Dispatchers.Main).launch {
                 subscriber.project(video.sourceId ?: "", arrayListOf(projectionData))
-            })
+            }
             data.update {
                 val mutableOldProjectedData = it.trackProjectedData.toMutableMap()
                 mutableOldProjectedData[projectionData.mid] =
