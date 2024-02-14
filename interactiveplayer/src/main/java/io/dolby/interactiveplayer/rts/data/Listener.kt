@@ -25,6 +25,7 @@ import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.flow.updateAndGet
 import kotlinx.coroutines.launch
+import kotlinx.coroutines.runBlocking
 import java.util.Optional
 import kotlin.jvm.optionals.getOrNull
 
@@ -138,12 +139,12 @@ class Listener(
 
     fun connected(): Boolean = subscriber.isSubscribed
 
-    suspend fun disconnect() {
+    fun disconnect() {
         Log.d(TAG, "Cancelling coroutines...")
         coroutineScope.coroutineContext.cancelChildren()
         coroutineScope.coroutineContext.cancel()
         Log.d(TAG, "Disconnecting subscriber...")
-        subscriber.disconnect()
+        runBlocking { subscriber.disconnect() }
     }
 
     private fun onConnected() {

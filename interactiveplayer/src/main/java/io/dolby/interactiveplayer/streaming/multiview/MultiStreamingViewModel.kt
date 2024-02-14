@@ -11,7 +11,6 @@ import io.dolby.interactiveplayer.preferenceStore.PrefsStore
 import io.dolby.interactiveplayer.preferenceStore.StreamSortOrder
 import io.dolby.interactiveplayer.rts.data.MultiStreamingRepository
 import io.dolby.interactiveplayer.rts.data.VideoQuality
-import io.dolby.interactiveplayer.rts.data.safeLaunch
 import io.dolby.interactiveplayer.rts.domain.ConnectOptions
 import io.dolby.interactiveplayer.rts.domain.MultiStreamingData
 import io.dolby.interactiveplayer.rts.domain.StatsInboundRtp.Companion.inboundRtpAudioVideoDataToList
@@ -58,9 +57,9 @@ class MultiStreamingViewModel @Inject constructor(
                 updateLayers(data)
             }
         }
-        viewModelScope.safeLaunch({
+        viewModelScope.launch {
             connect()
-        })
+        }
         viewModelScope.launch {
             networkStatusObserver.status.collect { networkStatus ->
                 when (networkStatus) {
@@ -190,7 +189,7 @@ class MultiStreamingViewModel @Inject constructor(
             }
         }
 
-    fun disconnect() = viewModelScope.launch { repository.disconnect() }
+    fun disconnect() = repository.disconnect()
 
     fun selectVideoTrack(sourceId: String?) {
         repository.updateSelectedVideoTrackId(sourceId)

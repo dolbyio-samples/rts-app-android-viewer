@@ -222,7 +222,7 @@ class MultiStreamingRepository(
         listenForAudioDevices()
     }
 
-    suspend fun disconnect() {
+    fun disconnect() {
         val listener = listener
         this.listener = null
         listener?.disconnect()
