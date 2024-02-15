@@ -36,11 +36,11 @@ import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import androidx.hilt.navigation.compose.hiltViewModel
 import io.dolby.interactiveplayer.R
-import io.dolby.interactiveplayer.preferenceStore.AudioSelection
-import io.dolby.interactiveplayer.preferenceStore.MultiviewLayout
-import io.dolby.interactiveplayer.preferenceStore.StreamSortOrder
 import io.dolby.interactiveplayer.rts.ui.TopAppBar
 import io.dolby.interactiveplayer.utils.horizontalPaddingDp
+import io.dolby.rtscomponentkit.data.multistream.prefs.AudioSelection
+import io.dolby.rtscomponentkit.data.multistream.prefs.MultiviewLayout
+import io.dolby.rtscomponentkit.data.multistream.prefs.StreamSortOrder
 import io.dolby.rtsviewer.uikit.text.Text
 import io.dolby.rtsviewer.uikit.theme.fontColor
 
@@ -332,7 +332,7 @@ fun selectionItems(
                             null,
                             audioSelection is AudioSelection.CustomAudioSelection && audioSelection.sourceId == it.sourceId
                         ) {
-                            viewModel.updateAudioSelection(AudioSelection.CustomAudioSelection(it.sourceId))
+                            viewModel.updateAudioSelection(AudioSelection.CustomAudioSelection(it.sourceId.toString()))
                         }
                     }
                 )

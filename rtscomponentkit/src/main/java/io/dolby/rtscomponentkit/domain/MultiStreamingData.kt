@@ -1,9 +1,9 @@
-package io.dolby.interactiveplayer.rts.domain
+package io.dolby.rtscomponentkit.domain
 
 import com.millicast.devices.track.AudioTrack
 import com.millicast.devices.track.VideoTrack
-import io.dolby.interactiveplayer.rts.data.LowLevelVideoQuality
-import io.dolby.interactiveplayer.rts.data.VideoQuality
+import io.dolby.rtscomponentkit.data.multistream.LowLevelVideoQuality
+import io.dolby.rtscomponentkit.data.multistream.VideoQuality
 
 data class MultiStreamingData(
     val videoTracks: List<Video> = emptyList(),

@@ -1,9 +1,9 @@
-package io.dolby.interactiveplayer.preferenceStore
+package io.dolby.rtscomponentkit.data.multistream.prefs
 
-import io.dolby.interactiveplayer.rts.domain.StreamingData
+import io.dolby.rtscomponentkit.domain.StreamingData
 import kotlinx.coroutines.flow.Flow
 
-interface PrefsStore {
+interface MultiStreamPrefsStore {
     fun showSourceLabels(streamingData: StreamingData? = null): Flow<Boolean>
     fun multiviewLayout(streamingData: StreamingData? = null): Flow<MultiviewLayout>
     fun streamSourceOrder(streamingData: StreamingData? = null): Flow<StreamSortOrder>

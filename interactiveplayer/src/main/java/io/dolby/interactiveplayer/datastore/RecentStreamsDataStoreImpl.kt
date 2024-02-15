@@ -2,10 +2,10 @@ package io.dolby.interactiveplayer.datastore
 
 import android.content.Context
 import dagger.hilt.android.qualifiers.ApplicationContext
-import io.dolby.interactiveplayer.preferenceStore.PrefsStore
-import io.dolby.interactiveplayer.rts.domain.ConnectOptions
-import io.dolby.interactiveplayer.rts.domain.StreamingData
-import io.dolby.interactiveplayer.rts.utils.DispatcherProvider
+import io.dolby.rtscomponentkit.data.multistream.prefs.MultiStreamPrefsStore
+import io.dolby.rtscomponentkit.domain.ConnectOptions
+import io.dolby.rtscomponentkit.domain.StreamingData
+import io.dolby.rtscomponentkit.utils.DispatcherProvider
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.first
@@ -17,7 +17,7 @@ private const val MAX_SAVED_STREAMS_LIMIT = 25
 
 class RecentStreamsDataStoreImpl @Inject constructor(
     @ApplicationContext private val context: Context,
-    private val prefsStore: PrefsStore,
+    private val prefsStore: MultiStreamPrefsStore,
     dispatcherProvider: DispatcherProvider
 ) : RecentStreamsDataStore {
     private val dataStore = context.recentStreamsDataStore

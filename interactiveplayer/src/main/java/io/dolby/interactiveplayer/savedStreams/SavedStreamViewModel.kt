@@ -5,9 +5,9 @@ import androidx.lifecycle.viewModelScope
 import dagger.hilt.android.lifecycle.HiltViewModel
 import io.dolby.interactiveplayer.datastore.RecentStreamsDataStore
 import io.dolby.interactiveplayer.datastore.StreamDetail
-import io.dolby.interactiveplayer.preferenceStore.PrefsStore
-import io.dolby.interactiveplayer.rts.domain.ConnectOptions
-import io.dolby.interactiveplayer.rts.domain.StreamingData
+import io.dolby.rtscomponentkit.data.multistream.prefs.MultiStreamPrefsStore
+import io.dolby.rtscomponentkit.domain.ConnectOptions
+import io.dolby.rtscomponentkit.domain.StreamingData
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
@@ -19,7 +19,7 @@ import javax.inject.Inject
 @HiltViewModel
 class SavedStreamViewModel @Inject constructor(
     private val recentStreamsDataStore: RecentStreamsDataStore,
-    private val preferencesStore: PrefsStore
+    private val preferencesStore: MultiStreamPrefsStore
 ) : ViewModel() {
 
     private val _uiState = MutableStateFlow(SavedStreamScreenUiState())
@@ -71,7 +71,14 @@ class SavedStreamViewModel @Inject constructor(
                     streamDetail.accountID,
                     streamDetail.streamName
                 ),
-                ConnectOptions.from(streamDetail)
+                ConnectOptions.from(
+                    useDevEnv = streamDetail.useDevEnv,
+                    forcePlayOutDelay = streamDetail.forcePlayOutDelay,
+                    disableAudio = streamDetail.disableAudio,
+                    rtcLogs = streamDetail.rtcLogs,
+                    primaryVideoQuality = streamDetail.primaryVideoQuality,
+                    videoJitterMinimumDelayMs = streamDetail.videoJitterMinimumDelayMs
+                )
             )
         }
     }

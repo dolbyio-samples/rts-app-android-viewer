@@ -53,13 +53,13 @@ import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import io.dolby.interactiveplayer.R
 import io.dolby.interactiveplayer.alert.ClearStreamConfirmationAlert
 import io.dolby.interactiveplayer.alert.DetailInputValidationAlert
-import io.dolby.interactiveplayer.rts.domain.ConnectOptions
-import io.dolby.interactiveplayer.rts.domain.StreamingData
 import io.dolby.interactiveplayer.rts.ui.DolbyCopyrightFooterView
 import io.dolby.interactiveplayer.rts.ui.TopActionBar
 import io.dolby.interactiveplayer.rts.ui.TopAppBar
 import io.dolby.interactiveplayer.savedStreams.SavedStreamViewModel
 import io.dolby.interactiveplayer.utils.horizontalPaddingDp
+import io.dolby.rtscomponentkit.domain.ConnectOptions
+import io.dolby.rtscomponentkit.domain.StreamingData
 import io.dolby.rtsviewer.uikit.button.ButtonType
 import io.dolby.rtsviewer.uikit.button.StyledButton
 import io.dolby.rtsviewer.uikit.text.Text
@@ -242,7 +242,16 @@ fun DetailInputScreen(
                     val recentDemoStream =
                         recentStreams.value.recentStreams.firstOrNull { it.accountID == DEMO_ACCOUNT_ID && it.streamName == DEMO_STREAM_NAME }
                     val connectOptions =
-                        recentDemoStream?.let { ConnectOptions.from(it) } ?: ConnectOptions()
+                        recentDemoStream?.let {
+                            ConnectOptions.from(
+                                it.useDevEnv,
+                                it.forcePlayOutDelay,
+                                it.disableAudio,
+                                it.rtcLogs,
+                                it.primaryVideoQuality,
+                                it.videoJitterMinimumDelayMs
+                            )
+                        } ?: ConnectOptions()
                     connectionOptionsText(connectOptions)
                 } else null
                 StyledButton(

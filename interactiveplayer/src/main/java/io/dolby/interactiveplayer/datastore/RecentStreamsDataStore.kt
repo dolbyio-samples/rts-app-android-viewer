@@ -1,7 +1,7 @@
 package io.dolby.interactiveplayer.datastore
 
-import io.dolby.interactiveplayer.rts.domain.ConnectOptions
-import io.dolby.interactiveplayer.rts.domain.StreamingData
+import io.dolby.rtscomponentkit.domain.ConnectOptions
+import io.dolby.rtscomponentkit.domain.StreamingData
 import kotlinx.coroutines.flow.Flow
 
 interface RecentStreamsDataStore {

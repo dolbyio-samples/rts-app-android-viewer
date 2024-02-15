@@ -1,4 +1,4 @@
-package io.dolby.interactiveplayer.rts.domain
+package io.dolby.rtscomponentkit.domain
 
 import android.icu.text.SimpleDateFormat
 import android.util.Log
@@ -7,7 +7,7 @@ import com.millicast.clients.stats.InboundRtpStream
 import com.millicast.clients.stats.RemoteOutboundRtpStream
 import com.millicast.clients.stats.RtsReport
 import com.millicast.clients.stats.StatsType
-import io.dolby.interactiveplayer.R
+import io.dolby.rtscomponentkit.R
 import org.webrtc.RTCStatsReport
 import java.math.BigInteger
 import java.text.CharacterIterator
@@ -52,7 +52,7 @@ data class StatisticsData(
             )
         }
 
-        internal fun getStatisticsRoundTripTime(report: RTCStatsReport): Double? {
+        private fun getStatisticsRoundTripTime(report: RTCStatsReport): Double? {
             report.statsMap.values.firstOrNull { it.type == "candidate-pair" && it.members["state"] == "succeeded" }
                 ?.let {
                     return it.members["currentRoundTripTime"] as Double
@@ -78,7 +78,7 @@ data class StatisticsData(
             return null
         }
 
-        internal fun getBitrate(report: RTCStatsReport): Double? {
+        private fun getBitrate(report: RTCStatsReport): Double? {
             report.statsMap.values.firstOrNull {
                 it.type == "candidate-pair" && it.members.containsKey(
                     "availableOutgoingBitrate"
@@ -89,7 +89,7 @@ data class StatisticsData(
             return null
         }
 
-        internal fun getCodec(codecId: String, report: RTCStatsReport): String =
+        private fun getCodec(codecId: String, report: RTCStatsReport): String =
             report.statsMap.getValue(codecId).members["mimeType"] as String
 
         internal fun getCodec(codecId: String, report: RtsReport): String? {

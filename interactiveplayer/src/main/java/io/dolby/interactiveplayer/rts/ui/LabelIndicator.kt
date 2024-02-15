@@ -23,7 +23,8 @@ fun LabelIndicator(modifier: Modifier, label: String?) {
             .padding(horizontal = 8.dp, vertical = 2.dp)
     ) {
         Text(
-            text = label?.uppercase() ?: stringResource(id = R.string.main_source_name),
+            text = label?.uppercase()
+                ?: stringResource(id = io.dolby.rtscomponentkit.R.string.main_source_name),
             color = Color.White
         )
     }

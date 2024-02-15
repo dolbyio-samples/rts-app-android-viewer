@@ -1,4 +1,4 @@
-package io.dolby.interactiveplayer.rts.data
+package io.dolby.rtscomponentkit.data.multistream
 
 enum class VideoQuality {
     AUTO, LOW, MEDIUM, HIGH;

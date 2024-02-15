@@ -30,8 +30,8 @@ class RTSViewerDataStore constructor(
     private val _state: MutableSharedFlow<State> = MutableSharedFlow()
     val state: Flow<State> = _state.asSharedFlow()
 
-    private val _statistics: MutableStateFlow<StatisticsData?> = MutableStateFlow(null)
-    val statisticsData: Flow<StatisticsData?> = _statistics.asStateFlow()
+    private val _statistics: MutableStateFlow<SingleStreamStatisticsData?> = MutableStateFlow(null)
+    val statisticsData: Flow<SingleStreamStatisticsData?> = _statistics.asStateFlow()
 
     private var media: Media
     private var audioPlayback: List<AudioPlayback>? = null
@@ -45,7 +45,7 @@ class RTSViewerDataStore constructor(
     val selectedStreamQualityType: Flow<StreamQualityType> =
         _selectedStreamQualityType.asStateFlow()
 
-    private var listener: Listener? = null
+    private var listener: SingleStreamListener? = null
 
     init {
         media = millicastSdk.getMedia()
@@ -67,7 +67,7 @@ class RTSViewerDataStore constructor(
                 StreamingData(accountId = accountId, streamName = streamName)
             )
         )
-        listener = Listener(
+        listener = SingleStreamListener(
             subscriber = subscriber,
             state = _state,
             statistics = _statistics,

@@ -35,12 +35,12 @@ import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import io.dolby.interactiveplayer.R
 import io.dolby.interactiveplayer.detailInput.connectionOptionsText
-import io.dolby.interactiveplayer.rts.domain.ConnectOptions
-import io.dolby.interactiveplayer.rts.domain.StreamingData
 import io.dolby.interactiveplayer.rts.ui.DolbyCopyrightFooterView
 import io.dolby.interactiveplayer.rts.ui.TopActionBar
 import io.dolby.interactiveplayer.utils.horizontalPaddingDp
 import io.dolby.interactiveplayer.utils.streamingDataFrom
+import io.dolby.rtscomponentkit.domain.ConnectOptions
+import io.dolby.rtscomponentkit.domain.StreamingData
 import io.dolby.rtsviewer.uikit.button.ButtonType
 import io.dolby.rtsviewer.uikit.button.StyledButton
 import io.dolby.rtsviewer.uikit.text.Text
@@ -148,7 +148,14 @@ fun RecentStreamsScreen(
                             .forEach { streamDetail ->
                                 val connectionOptionsText = if (showDebugOptions.value) {
                                     connectionOptionsText(
-                                        connectOptions = ConnectOptions.from(streamDetail)
+                                        connectOptions = ConnectOptions.from(
+                                            streamDetail.useDevEnv,
+                                            streamDetail.forcePlayOutDelay,
+                                            streamDetail.disableAudio,
+                                            streamDetail.rtcLogs,
+                                            streamDetail.primaryVideoQuality,
+                                            streamDetail.videoJitterMinimumDelayMs
+                                        )
                                     )
                                 } else null
                                 StyledButton(

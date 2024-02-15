@@ -6,17 +6,17 @@ import androidx.lifecycle.viewModelScope
 import dagger.hilt.android.lifecycle.HiltViewModel
 import io.dolby.interactiveplayer.datastore.RecentStreamsDataStore
 import io.dolby.interactiveplayer.navigation.Screen
-import io.dolby.interactiveplayer.preferenceStore.MultiviewLayout
-import io.dolby.interactiveplayer.preferenceStore.PrefsStore
-import io.dolby.interactiveplayer.preferenceStore.StreamSortOrder
-import io.dolby.interactiveplayer.rts.data.MultiStreamingRepository
-import io.dolby.interactiveplayer.rts.data.VideoQuality
-import io.dolby.interactiveplayer.rts.domain.ConnectOptions
-import io.dolby.interactiveplayer.rts.domain.MultiStreamingData
-import io.dolby.interactiveplayer.rts.domain.StatsInboundRtp.Companion.inboundRtpAudioVideoDataToList
-import io.dolby.interactiveplayer.rts.domain.StreamingData
-import io.dolby.interactiveplayer.rts.utils.DispatcherProvider
 import io.dolby.interactiveplayer.utils.NetworkStatusObserver
+import io.dolby.rtscomponentkit.data.multistream.MultiStreamingRepository
+import io.dolby.rtscomponentkit.data.multistream.VideoQuality
+import io.dolby.rtscomponentkit.data.multistream.prefs.MultiStreamPrefsStore
+import io.dolby.rtscomponentkit.data.multistream.prefs.MultiviewLayout
+import io.dolby.rtscomponentkit.data.multistream.prefs.StreamSortOrder
+import io.dolby.rtscomponentkit.domain.ConnectOptions
+import io.dolby.rtscomponentkit.domain.MultiStreamingData
+import io.dolby.rtscomponentkit.domain.StatsInboundRtp.Companion.inboundRtpAudioVideoDataToList
+import io.dolby.rtscomponentkit.domain.StreamingData
+import io.dolby.rtscomponentkit.utils.DispatcherProvider
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
@@ -32,7 +32,7 @@ class MultiStreamingViewModel @Inject constructor(
     private val recentStreamsDataStore: RecentStreamsDataStore,
     private val dispatcherProvider: DispatcherProvider,
     private val networkStatusObserver: NetworkStatusObserver,
-    private val prefsStore: PrefsStore
+    private val prefsStore: MultiStreamPrefsStore
 ) : ViewModel() {
 
     private val _uiState = MutableStateFlow(MultiStreamingUiState())
@@ -116,7 +116,16 @@ class MultiStreamingViewModel @Inject constructor(
             )
         }
         val connectOptions =
-            streamDetail?.let { ConnectOptions.from(streamDetail) } ?: ConnectOptions()
+            streamDetail?.let {
+                ConnectOptions.from(
+                    streamDetail.useDevEnv,
+                    streamDetail.forcePlayOutDelay,
+                    streamDetail.disableAudio,
+                    streamDetail.rtcLogs,
+                    streamDetail.primaryVideoQuality,
+                    streamDetail.videoJitterMinimumDelayMs
+                )
+            } ?: ConnectOptions()
         withContext(dispatcherProvider.main) {
             _uiState.update {
                 it.copy(
@@ -138,10 +147,12 @@ class MultiStreamingViewModel @Inject constructor(
     private suspend fun update(data: MultiStreamingData) = withContext(dispatcherProvider.main) {
         val videoTracks = data.videoTracks.filter { it.active }
         val alphaNumericComparator = Comparator<MultiStreamingData.Video> { source1, source2 ->
+            val source1Id = source1.sourceId
+            val source2Id = source2.sourceId
             when {
-                source1.sourceId == null -> 1
-                source2.sourceId == null -> -1
-                else -> source1.sourceId.compareTo(source2.sourceId)
+                source1Id == null -> 1
+                source2Id == null -> -1
+                else -> source1Id.compareTo(source2Id)
             }
         }
         when {

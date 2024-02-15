@@ -29,13 +29,13 @@ import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import com.millicast.Media
 import com.millicast.video.TextureViewRenderer
 import io.dolby.interactiveplayer.R
-import io.dolby.interactiveplayer.preferenceStore.MultiviewLayout
-import io.dolby.interactiveplayer.rts.data.VideoQuality
-import io.dolby.interactiveplayer.rts.domain.StreamingData
 import io.dolby.interactiveplayer.rts.ui.DolbyBackgroundBox
 import io.dolby.interactiveplayer.rts.ui.LiveIndicator
 import io.dolby.interactiveplayer.rts.ui.TopAppBar
 import io.dolby.interactiveplayer.streaming.StatisticsView
+import io.dolby.rtscomponentkit.data.multistream.VideoQuality
+import io.dolby.rtscomponentkit.data.multistream.prefs.MultiviewLayout
+import io.dolby.rtscomponentkit.domain.StreamingData
 import io.dolby.rtsviewer.uikit.button.StyledIconButton
 import org.webrtc.RendererCommon
 
@@ -51,7 +51,7 @@ fun SingleStreamingScreen(
     val screenContentDescription = stringResource(id = R.string.streaming_screen_contentDescription)
     val selectedItem =
         uiState.videoTracks.firstOrNull { it.sourceId == uiState.selectedVideoTrackId }
-    val mainSourceName = stringResource(id = R.string.main_source_name)
+    val mainSourceName = stringResource(id = io.dolby.rtscomponentkit.R.string.main_source_name)
     val (title, setTitle) = remember { mutableStateOf(selectedItem?.sourceId ?: mainSourceName) }
     val defaultLayout = viewModel.multiviewLayout.collectAsState()
     val showSourceLabels = viewModel.showSourceLabels.collectAsState()

@@ -52,37 +52,6 @@
     <string name="statisticsScreen_value">Value</string>
     <string name="statisticsScreen_no_data">No data</string>
 
-    <string name="statisticsScreen_rtt">RTT</string>
-    <string name="statisticsScreen_mid">MID</string>
-    <string name="statisticsScreen_videoResolution">Video Resolution</string>
-    <string name="statisticsScreen_fps">FPS</string>
-    <string name="statisticsScreen_outgoingBitrate">Outgoing Bitrate</string>
-    <string name="statisticsScreen_videoBitrate">Video Bitrate</string>
-    <string name="statisticsScreen_audioBitrate">Audio Bitrate</string>
-    <string name="statisticsScreen_videoTotal">Video Total Received</string>
-    <string name="statisticsScreen_audioTotal">Audio Total Received</string>
-    <string name="statisticsScreen_videoLoss">Video Packet Loss</string>
-    <string name="statisticsScreen_audioLoss">Audio Packet Loss</string>
-    <string name="statisticsScreen_videoJitter">Video Jitter</string>
-    <string name="statisticsScreen_audioJitter">Audio Jitter</string>
-    <string name="statisticsScreen_codecs">Codecs</string>
-    <string name="statisticsScreen_timestamp">Timestamp</string>
-    <string name="statisticsScreen_server">Server</string>
-    <string name="statisticsScreen_cluster">Cluster</string>
-    <string name="statisticsScreen_decoder_impl">Decoder Impl</string>
-    <string name="statisticsScreen_processing_delay">Processing delay</string>
-    <string name="statisticsScreen_decode_time">Decode time</string>
-    <string name="statisticsScreen_video_packets_received">Video Packets rec.</string>
-    <string name="statisticsScreen_audio_packets_received">Audio Packets rec.</string>
-    <string name="statisticsScreen_frames_decoded">Frames dec.</string>
-    <string name="statisticsScreen_video_packets_dropped">Video Packets dropped</string>
-    <string name="statisticsScreen_audio_packets_dropped">Audio Packets dropped</string>
-    <string name="statisticsScreen_jitter_bufffer_ec">Jitter buffer est count</string>
-    <string name="statisticsScreen_audio_jitter_bufffer_delay">Audio Jitter buffer delay</string>
-    <string name="statisticsScreen_video_jitter_bufffer_target_delay">Video Jitter buffer target delay</string>
-    <string name="statisticsScreen_jitter_bufffer_min_delay">Jitter buffer min delay</string>
-    <string name="main_source_name">Main</string>
-
     <!-- Settings -->
     <string name="global_settings_screen_name">Global settings</string>
     <string name="stream_settings_screen_name">Stream settings</string>
@@ -92,18 +61,8 @@
     <string name="settings_stream_sort_order">Stream sort order</string>
     <string name="settings_audio_selection">Audio selection</string>
 
-    <string name="settings_multiview_layout_list_view">List view</string>
-    <string name="settings_multiview_layout_single_view">Single stream view</string>
-    <string name="settings_multiview_layout_grid_view">Grid view</string>
     <string name="settings_multiview_layout_footer">List view: Display one large source as the main view with smaller titles for additional feeds.</string>
-
-    <string name="settings_stream_sort_order_connection">Connection order</string>
-    <string name="settings_stream_sort_order_alphanumeric">AlphaNumeric</string>
     <string name="settings_stream_sort_order_footer">Connection order: Display the streams in the order that they connected to the source.\n\nAlphaNumeric: Sort the streams alphanumerically by their sourceId.</string>
-
-    <string name="settings_audio_selection_first_source">First source</string>
-    <string name="settings_audio_selection_follow_video">Follow video</string>
-    <string name="settings_audio_selection_main_source">Main source</string>
     <string name="settings_audio_selection_footer">First source: Use the audio from the first audio source that is streamed to the service.\n\nFollow video: Switch audio source when a video is selected. If the selected video does not contain an audio source, use the last selected audio source.</string>
 
     <!--  -->
