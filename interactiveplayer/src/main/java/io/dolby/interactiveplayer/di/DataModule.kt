@@ -25,14 +25,14 @@ import dagger.hilt.android.qualifiers.ApplicationContext
 import dagger.hilt.components.SingletonComponent
 import io.dolby.interactiveplayer.datastore.RecentStreamsDataStore
 import io.dolby.interactiveplayer.datastore.RecentStreamsDataStoreImpl
-import io.dolby.interactiveplayer.preferenceStore.PrefsStore
 import io.dolby.interactiveplayer.preferenceStore.PrefsStoreImpl
-import io.dolby.interactiveplayer.rts.data.MillicastSdk
-import io.dolby.interactiveplayer.rts.data.MultiStreamingRepository
-import io.dolby.interactiveplayer.rts.utils.DispatcherProvider
-import io.dolby.interactiveplayer.rts.utils.DispatcherProviderImpl
 import io.dolby.interactiveplayer.utils.NetworkStatusObserver
 import io.dolby.interactiveplayer.utils.NetworkStatusObserverImpl
+import io.dolby.rtscomponentkit.data.MillicastSdk
+import io.dolby.rtscomponentkit.data.multistream.MultiStreamingRepository
+import io.dolby.rtscomponentkit.data.multistream.prefs.MultiStreamPrefsStore
+import io.dolby.rtscomponentkit.utils.DispatcherProvider
+import io.dolby.rtscomponentkit.utils.DispatcherProviderImpl
 import javax.inject.Singleton
 
 @Module
@@ -55,7 +55,7 @@ object DataModule {
     fun provideMultiStreamingDataStore(
         @ApplicationContext context: Context,
         millicastSdk: MillicastSdk,
-        prefsStore: PrefsStore,
+        prefsStore: MultiStreamPrefsStore,
         dispatcherProvider: DispatcherProvider
     ): MultiStreamingRepository {
         millicastSdk.getMedia()
@@ -64,14 +64,14 @@ object DataModule {
 
     @Provides
     @Singleton
-    fun providePreferencesDataStore(@ApplicationContext context: Context): PrefsStore {
+    fun providePreferencesDataStore(@ApplicationContext context: Context): MultiStreamPrefsStore {
         return PrefsStoreImpl(context)
     }
 
     @Provides
     fun provideRecentStreamsDataStore(
         @ApplicationContext context: Context,
-        prefsStore: PrefsStore,
+        prefsStore: MultiStreamPrefsStore,
         dispatcherProvider: DispatcherProvider
     ): RecentStreamsDataStore {
         return RecentStreamsDataStoreImpl(context, prefsStore, dispatcherProvider)

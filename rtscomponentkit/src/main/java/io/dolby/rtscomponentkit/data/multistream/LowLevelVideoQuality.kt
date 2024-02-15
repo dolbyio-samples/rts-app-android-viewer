@@ -1,4 +1,4 @@
-package io.dolby.interactiveplayer.rts.data
+package io.dolby.rtscomponentkit.data.multistream
 
 import com.millicast.subscribers.state.LayerData
 

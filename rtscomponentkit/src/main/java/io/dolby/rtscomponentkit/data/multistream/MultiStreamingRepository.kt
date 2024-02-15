@@ -1,4 +1,4 @@
-package io.dolby.interactiveplayer.rts.data
+package io.dolby.rtscomponentkit.data.multistream
 
 import android.content.Context
 import android.media.AudioDeviceCallback
@@ -14,15 +14,14 @@ import com.millicast.clients.ConnectionOptions
 import com.millicast.devices.track.AudioTrack
 import com.millicast.subscribers.Credential
 import com.millicast.subscribers.Option
-import io.dolby.interactiveplayer.preferenceStore.AudioSelection
-import io.dolby.interactiveplayer.preferenceStore.PrefsStore
-import io.dolby.interactiveplayer.rts.domain.ConnectOptions
-import io.dolby.interactiveplayer.rts.domain.MultiStreamingData
-import io.dolby.interactiveplayer.rts.domain.StreamingData
-import io.dolby.interactiveplayer.rts.utils.DispatcherProvider
-import io.dolby.interactiveplayer.utils.VolumeObserver
-import io.dolby.interactiveplayer.utils.adjustTrackVolume
-import io.dolby.interactiveplayer.utils.createDirectoryIfNotExists
+import io.dolby.rtscomponentkit.data.multistream.MultiStreamListener.Companion.TAG
+import io.dolby.rtscomponentkit.data.multistream.prefs.AudioSelection
+import io.dolby.rtscomponentkit.data.multistream.prefs.MultiStreamPrefsStore
+import io.dolby.rtscomponentkit.domain.ConnectOptions
+import io.dolby.rtscomponentkit.domain.MultiStreamingData
+import io.dolby.rtscomponentkit.domain.StreamingData
+import io.dolby.rtscomponentkit.utils.DispatcherProvider
+import io.dolby.rtscomponentkit.utils.adjustTrackVolume
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Job
 import kotlinx.coroutines.flow.MutableStateFlow
@@ -31,6 +30,7 @@ import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.combine
 import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
+import java.io.File
 import java.time.Instant
 import java.time.ZoneId
 import java.time.ZoneOffset
@@ -39,17 +39,17 @@ import java.time.temporal.ChronoUnit
 
 class MultiStreamingRepository(
     private val context: Context,
-    private val prefsStore: PrefsStore,
+    private val prefsStore: MultiStreamPrefsStore,
     private val dispatcherProvider: DispatcherProvider
 ) {
     private val _data = MutableStateFlow(MultiStreamingData())
     val data: StateFlow<MultiStreamingData> = _data.asStateFlow()
-    private var listener: Listener? = null
+    private var listener: MultiStreamListener? = null
 
     private val _audioSelection = MutableStateFlow(AudioSelection.default)
     private var audioSelectionListenerJob: Job? = null
 
-    private var volumeObserver: VolumeObserver? = null
+    private var volumeObserver: io.dolby.rtscomponentkit.utils.VolumeObserver? = null
     private val audioManager = context.getSystemService(AudioManager::class.java) as AudioManager
     private val handlerThread = HandlerThread("Audio Device Listener")
     private val audioDeviceCallback = object : AudioDeviceCallback() {
@@ -174,7 +174,7 @@ class MultiStreamingRepository(
         }
         val subscriber = Core.createSubscriber()
 
-        listener = Listener(_data, subscriber).apply {
+        listener = MultiStreamListener(_data, subscriber).apply {
             start()
         }
         subscriber.enableStats(true)
@@ -275,7 +275,11 @@ class MultiStreamingRepository(
 
     private fun addVolumeObserver(audioTrack: AudioTrack) {
         unregisterVolumeObserver()
-        val volumeObserver = VolumeObserver(context, Handler(handlerThread.looper), audioTrack)
+        val volumeObserver = io.dolby.rtscomponentkit.utils.VolumeObserver(
+            context,
+            Handler(handlerThread.looper),
+            audioTrack
+        )
         context.contentResolver.registerContentObserver(
             Settings.System.CONTENT_URI,
             true,
@@ -292,7 +296,21 @@ class MultiStreamingRepository(
     }
 
     companion object {
-        const val TAG = "io.dolby.interactiveplayer"
+        const val TAG = "MultiStreamingRepository"
+    }
+}
+
+fun createDirectoryIfNotExists(directoryPath: String) {
+    val directory = File(directoryPath)
+    if (!directory.exists()) {
+        val isDirectoryCreated = directory.mkdirs()
+        if (isDirectoryCreated) {
+            Log.d(TAG, "Directory was successfully created")
+        } else {
+            Log.d(TAG, "Directory creation failed")
+        }
+    } else {
+        Log.d(TAG, "Directory already exists")
     }
 }
 

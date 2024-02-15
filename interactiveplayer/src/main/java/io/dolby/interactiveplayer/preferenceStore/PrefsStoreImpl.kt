@@ -4,7 +4,11 @@ import android.content.Context
 import androidx.datastore.preferences.core.booleanPreferencesKey
 import androidx.datastore.preferences.core.intPreferencesKey
 import androidx.datastore.preferences.core.stringPreferencesKey
-import io.dolby.interactiveplayer.rts.domain.StreamingData
+import io.dolby.rtscomponentkit.data.multistream.prefs.AudioSelection
+import io.dolby.rtscomponentkit.data.multistream.prefs.MultiStreamPrefsStore
+import io.dolby.rtscomponentkit.data.multistream.prefs.MultiviewLayout
+import io.dolby.rtscomponentkit.data.multistream.prefs.StreamSortOrder
+import io.dolby.rtscomponentkit.domain.StreamingData
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.flow.Flow
@@ -13,7 +17,7 @@ import kotlinx.coroutines.launch
 
 private const val GLOBAL_PREFERENCES_NAME = "global_preferences"
 
-class PrefsStoreImpl constructor(private val context: Context) : PrefsStore {
+class PrefsStoreImpl constructor(private val context: Context) : MultiStreamPrefsStore {
     private val coroutineScope = CoroutineScope(Dispatchers.IO)
 
     private val preferences = mutableMapOf<String, PrefsImpl>()

@@ -113,6 +113,7 @@ dependencies {
 
     implementation(libs.millicast.sdk)
     implementation project(path: ':uikit')
+    implementation project(path: ':rtscomponentkit')
 
     testImplementation libs.junit.junit
     androidTestImplementation libs.androidx.test.ext.junit

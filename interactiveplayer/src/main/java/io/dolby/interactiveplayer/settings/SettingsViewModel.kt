@@ -7,13 +7,13 @@ import androidx.lifecycle.viewModelScope
 import dagger.hilt.android.lifecycle.HiltViewModel
 import io.dolby.interactiveplayer.R
 import io.dolby.interactiveplayer.navigation.Screen
-import io.dolby.interactiveplayer.preferenceStore.AudioSelection
-import io.dolby.interactiveplayer.preferenceStore.MultiviewLayout
-import io.dolby.interactiveplayer.preferenceStore.PrefsStore
-import io.dolby.interactiveplayer.preferenceStore.StreamSortOrder
-import io.dolby.interactiveplayer.rts.data.MultiStreamingRepository
-import io.dolby.interactiveplayer.rts.domain.MultiStreamingData
-import io.dolby.interactiveplayer.rts.domain.StreamingData
+import io.dolby.rtscomponentkit.data.multistream.MultiStreamingRepository
+import io.dolby.rtscomponentkit.data.multistream.prefs.AudioSelection
+import io.dolby.rtscomponentkit.data.multistream.prefs.MultiStreamPrefsStore
+import io.dolby.rtscomponentkit.data.multistream.prefs.MultiviewLayout
+import io.dolby.rtscomponentkit.data.multistream.prefs.StreamSortOrder
+import io.dolby.rtscomponentkit.domain.MultiStreamingData
+import io.dolby.rtscomponentkit.domain.StreamingData
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.update
@@ -24,7 +24,7 @@ import javax.inject.Inject
 class SettingsViewModel @Inject constructor(
     private val savedStateHandle: SavedStateHandle,
     private val multiStreamingRepository: MultiStreamingRepository,
-    private val preferencesStore: PrefsStore
+    private val preferencesStore: MultiStreamPrefsStore
 ) : ViewModel() {
 
     private val _audioTracks = MutableStateFlow<List<MultiStreamingData.Audio>>(emptyList())

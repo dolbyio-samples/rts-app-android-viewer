@@ -4,8 +4,8 @@ import androidx.activity.compose.BackHandler
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.collectAsState
 import androidx.hilt.navigation.compose.hiltViewModel
-import io.dolby.interactiveplayer.preferenceStore.MultiviewLayout
-import io.dolby.interactiveplayer.rts.domain.StreamingData
+import io.dolby.rtscomponentkit.data.multistream.prefs.MultiviewLayout
+import io.dolby.rtscomponentkit.domain.StreamingData
 
 @Composable
 fun MultiStreamingScreen(

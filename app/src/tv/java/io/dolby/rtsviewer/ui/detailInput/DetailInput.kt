@@ -15,7 +15,6 @@ import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.input.ImeAction
 import androidx.compose.ui.unit.dp
 import io.dolby.rtsviewer.R
-import io.dolby.rtsviewer.uikit.input.TextInput
 import io.dolby.rtsviewer.uikit.input.TvTextInput
 
 private const val MAXIMUM_CHARACTERS: Int = 64

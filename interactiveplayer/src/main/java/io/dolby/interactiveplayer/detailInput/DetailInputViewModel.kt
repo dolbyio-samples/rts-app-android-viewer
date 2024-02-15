@@ -4,10 +4,10 @@ import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import dagger.hilt.android.lifecycle.HiltViewModel
 import io.dolby.interactiveplayer.datastore.RecentStreamsDataStore
-import io.dolby.interactiveplayer.preferenceStore.PrefsStore
-import io.dolby.interactiveplayer.rts.data.VideoQuality
-import io.dolby.interactiveplayer.rts.domain.ConnectOptions
-import io.dolby.interactiveplayer.rts.domain.StreamingData
+import io.dolby.rtscomponentkit.data.multistream.VideoQuality
+import io.dolby.rtscomponentkit.data.multistream.prefs.MultiStreamPrefsStore
+import io.dolby.rtscomponentkit.domain.ConnectOptions
+import io.dolby.rtscomponentkit.domain.StreamingData
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
@@ -19,7 +19,7 @@ import javax.inject.Inject
 @HiltViewModel
 class DetailInputViewModel @Inject constructor(
     private val recentStreamsDataStore: RecentStreamsDataStore,
-    private val preferencesStore: PrefsStore
+    private val preferencesStore: MultiStreamPrefsStore
 ) : ViewModel() {
     private val _uiState = MutableStateFlow(DetailInputScreenUiState())
     val uiState: StateFlow<DetailInputScreenUiState> = _uiState.asStateFlow()

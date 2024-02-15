@@ -1,6 +1,9 @@
 package io.dolby.interactiveplayer.preferenceStore
 
 import androidx.datastore.preferences.core.Preferences
+import io.dolby.rtscomponentkit.data.multistream.prefs.AudioSelection
+import io.dolby.rtscomponentkit.data.multistream.prefs.MultiviewLayout
+import io.dolby.rtscomponentkit.data.multistream.prefs.StreamSortOrder
 import kotlinx.coroutines.flow.Flow
 
 interface Prefs {

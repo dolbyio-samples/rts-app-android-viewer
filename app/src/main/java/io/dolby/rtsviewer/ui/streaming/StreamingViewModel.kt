@@ -7,7 +7,7 @@ import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import dagger.hilt.android.lifecycle.HiltViewModel
 import io.dolby.rtscomponentkit.data.RTSViewerDataStore
-import io.dolby.rtscomponentkit.data.StatisticsData
+import io.dolby.rtscomponentkit.data.SingleStreamStatisticsData
 import io.dolby.rtscomponentkit.utils.DispatcherProvider
 import io.dolby.rtsviewer.R
 import io.dolby.rtsviewer.preferenceStore.PrefsStore
@@ -282,7 +282,7 @@ class StreamingViewModel @Inject constructor(
     private fun streamingStatistics(): Flow<List<Pair<Int, String>>?> =
         repository.statisticsData.map { statisticsData -> getStatisticsValuesList(statisticsData) }
 
-    private fun getStatisticsValuesList(statisticsData: StatisticsData?): List<Pair<Int, String>>? {
+    private fun getStatisticsValuesList(statisticsData: SingleStreamStatisticsData?): List<Pair<Int, String>>? {
         statisticsData?.let { statistics ->
             val statisticsValuesList = mutableListOf<Pair<Int, String>>()
             statistics.roundTripTime?.let {

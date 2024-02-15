@@ -8,7 +8,7 @@ import com.millicast.clients.stats.StatsType
 import org.webrtc.RTCStatsReport
 import java.math.BigInteger
 
-data class StatisticsData(
+data class SingleStreamStatisticsData(
     val roundTripTime: Double?,
     val availableOutgoingBitrate: Double?,
     val timestamp: Long?,
@@ -16,7 +16,7 @@ data class StatisticsData(
     val video: StatsInboundRtp?
 ) {
     companion object {
-        fun from(report: RTCStatsReport): StatisticsData {
+        fun from(report: RTCStatsReport): SingleStreamStatisticsData {
             val rtt = getStatisticsRoundTripTime(report)
             val bitrate = getBitrate(report)
             var audio: StatsInboundRtp? = null
@@ -45,7 +45,7 @@ data class StatisticsData(
                     }
                 }
             }
-            return StatisticsData(
+            return SingleStreamStatisticsData(
                 roundTripTime = rtt,
                 availableOutgoingBitrate = bitrate,
                 audio = audio,
@@ -54,7 +54,7 @@ data class StatisticsData(
             )
         }
 
-        fun from(report: RtsReport): StatisticsData {
+        fun from(report: RtsReport): SingleStreamStatisticsData {
             val rtt = getStatisticsRoundTripTime(report)
             val bitrate = getBitrate(report)
             var audio: StatsInboundRtp? = null
@@ -82,7 +82,7 @@ data class StatisticsData(
                     audio = statsInboundRtp
                 }
             }
-            return StatisticsData(
+            return SingleStreamStatisticsData(
                 roundTripTime = rtt,
                 availableOutgoingBitrate = bitrate,
                 timestamp = timestamp,

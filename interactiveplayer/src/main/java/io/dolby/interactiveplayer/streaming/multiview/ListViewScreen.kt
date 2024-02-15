@@ -38,13 +38,13 @@ import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import com.millicast.Media
 import com.millicast.video.TextureViewRenderer
 import io.dolby.interactiveplayer.R
-import io.dolby.interactiveplayer.rts.data.VideoQuality
-import io.dolby.interactiveplayer.rts.domain.MultiStreamingData
 import io.dolby.interactiveplayer.rts.ui.DolbyBackgroundBox
 import io.dolby.interactiveplayer.rts.ui.LabelIndicator
 import io.dolby.interactiveplayer.rts.ui.LiveIndicator
 import io.dolby.interactiveplayer.rts.ui.TopAppBar
 import io.dolby.interactiveplayer.streaming.ErrorView
+import io.dolby.rtscomponentkit.data.multistream.VideoQuality
+import io.dolby.rtscomponentkit.domain.MultiStreamingData
 import io.dolby.rtsviewer.uikit.text.Text
 import org.webrtc.RendererCommon
 

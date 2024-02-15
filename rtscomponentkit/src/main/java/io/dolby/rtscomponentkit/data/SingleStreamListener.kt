@@ -21,10 +21,10 @@ import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.launch
 import java.util.Optional
 
-class Listener(
+class SingleStreamListener(
     private val subscriber: Subscriber,
     private val state: MutableSharedFlow<RTSViewerDataStore.State>,
-    private val statistics: MutableStateFlow<StatisticsData?>,
+    private val statistics: MutableStateFlow<SingleStreamStatisticsData?>,
     private val streamQualityTypes: MutableStateFlow<List<RTSViewerDataStore.StreamQualityType>>,
     private val selectedStreamQualityType: MutableStateFlow<RTSViewerDataStore.StreamQualityType>
 ) {
@@ -237,7 +237,7 @@ class Listener(
 
     private fun onStatsReport(report: RtsReport) {
         Log.d(TAG, "onStatsReport")
-        statistics.value = StatisticsData.from(report)
+        statistics.value = SingleStreamStatisticsData.from(report)
     }
 
     private fun onViewerCount(p0: Int) {
@@ -284,15 +284,15 @@ class Listener(
         }
     }
 
-    private fun onSignalingError(reason: String?) {
+    private fun onSignalingError(reason: String) {
         Log.d(TAG, "onSignalingError: $reason")
         statistics.value = null
     }
 
     private fun onLayers(
         mid: String?,
-        activeLayers: Array<out LayerData>?,
-        inactiveLayers: Array<String>?
+        activeLayers: Array<out LayerData>,
+        inactiveLayers: Array<String>
     ) {
         Log.d(
             TAG,
@@ -301,8 +301,8 @@ class Listener(
             }"
         )
         val filteredActiveLayers = mutableListOf<LayerData>()
-        var simulcastLayers = activeLayers?.filter { it.encodingId.isNotEmpty() }
-        if (!simulcastLayers.isNullOrEmpty()) {
+        var simulcastLayers = activeLayers.filter { it.encodingId.isNotEmpty() }
+        if (simulcastLayers.isNotEmpty()) {
             val grouped = simulcastLayers.groupBy { it.encodingId }
             grouped.values.forEach { layers ->
                 val layerWithBestFrameRate =
@@ -311,9 +311,9 @@ class Listener(
                 filteredActiveLayers.add(layerWithBestFrameRate)
             }
         } else {
-            simulcastLayers = activeLayers?.filter { it.spatialLayerId != null }
-            val grouped = simulcastLayers?.groupBy { it.spatialLayerId }
-            grouped?.values?.forEach { layers ->
+            simulcastLayers = activeLayers.filter { it.spatialLayerId != null }
+            val grouped = simulcastLayers.groupBy { it.spatialLayerId }
+            grouped.values.forEach { layers ->
                 val layerWithBestFrameRate =
                     layers.firstOrNull { it.spatialLayerId == it.maxSpatialLayerId }
                         ?: layers.last()

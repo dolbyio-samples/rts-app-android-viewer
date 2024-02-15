@@ -1,6 +1,6 @@
 package io.dolby.interactiveplayer.navigation
 
-import io.dolby.interactiveplayer.rts.domain.StreamingData
+import io.dolby.rtscomponentkit.domain.StreamingData
 
 sealed class Screen(val route: String) {
     object DetailInputScreen : Screen(route = "login")

@@ -1,4 +1,4 @@
-package io.dolby.interactiveplayer.rts.data
+package io.dolby.rtscomponentkit.data.multistream
 
 import android.util.Log
 import com.millicast.Subscriber
@@ -11,8 +11,8 @@ import com.millicast.subscribers.ProjectionData
 import com.millicast.subscribers.state.ActivityStream
 import com.millicast.subscribers.state.LayerData
 import com.millicast.subscribers.state.SubscriptionState
-import io.dolby.interactiveplayer.rts.domain.MultiStreamStatisticsData
-import io.dolby.interactiveplayer.rts.domain.MultiStreamingData
+import io.dolby.rtscomponentkit.domain.MultiStreamStatisticsData
+import io.dolby.rtscomponentkit.domain.MultiStreamingData
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.cancel
@@ -29,7 +29,7 @@ import kotlinx.coroutines.runBlocking
 import java.util.Optional
 import kotlin.jvm.optionals.getOrNull
 
-class Listener(
+class MultiStreamListener(
     private val data: MutableStateFlow<MultiStreamingData>,
     private var subscriber: Subscriber
 ) {
@@ -326,7 +326,7 @@ class Listener(
         Log.d(
             TAG,
             "onLayers: $mid, ${activeLayers.contentToString()}, ${
-                inactiveLayers.contentToString()
+            inactiveLayers.contentToString()
             }"
         )
         val filteredActiveLayers = mutableListOf<LayerData>()
@@ -497,5 +497,24 @@ class Listener(
 
     companion object {
         const val TAG = "io.dolby.interactiveplayer.listener"
+        private fun createProjectionData(
+            video: MultiStreamingData.Video,
+            availablePreferredVideoQuality: LowLevelVideoQuality?
+        ) = ProjectionData(
+            mid = video.id ?: "",
+            trackId = video.trackId,
+            media = video.mediaType,
+            layer = availablePreferredVideoQuality?.layerData
+        )
+
+        private fun projectedDataFrom(
+            sourceId: String?,
+            videoQuality: VideoQuality,
+            mid: String
+        ) = MultiStreamingData.ProjectedData(
+            mid = mid,
+            sourceId = sourceId,
+            videoQuality = videoQuality
+        )
     }
 }

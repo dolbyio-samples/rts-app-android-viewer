@@ -1,10 +1,10 @@
 package io.dolby.interactiveplayer.streaming.multiview
 
-import io.dolby.interactiveplayer.rts.data.LowLevelVideoQuality
-import io.dolby.interactiveplayer.rts.data.VideoQuality
-import io.dolby.interactiveplayer.rts.domain.ConnectOptions
-import io.dolby.interactiveplayer.rts.domain.MultiStreamStatisticsData
-import io.dolby.interactiveplayer.rts.domain.MultiStreamingData
+import io.dolby.rtscomponentkit.data.multistream.LowLevelVideoQuality
+import io.dolby.rtscomponentkit.data.multistream.VideoQuality
+import io.dolby.rtscomponentkit.domain.ConnectOptions
+import io.dolby.rtscomponentkit.domain.MultiStreamStatisticsData
+import io.dolby.rtscomponentkit.domain.MultiStreamingData
 
 enum class Error {
     NO_INTERNET_CONNECTION, STREAM_NOT_ACTIVE
