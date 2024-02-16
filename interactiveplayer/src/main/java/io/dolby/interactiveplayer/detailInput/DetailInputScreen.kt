@@ -75,8 +75,7 @@ fun DetailInputScreen(
     onBack: () -> Unit,
     modifier: Modifier = Modifier,
     streamingData: StreamingData? = null,
-    viewModel: DetailInputViewModel = hiltViewModel(),
-    savedStreamViewModel: SavedStreamViewModel = hiltViewModel()
+    viewModel: DetailInputViewModel = hiltViewModel()
 ) {
     var showMissingStreamDetailDialog by remember { mutableStateOf(false) }
     var showClearStreamsConfirmationDialog by remember { mutableStateOf(false) }
