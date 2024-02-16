@@ -265,7 +265,7 @@ class MultiStreamingRepository(
         listener?.playVideo(video, priorityVideoPreference ?: preferredVideoQuality)
     }
 
-    fun stopVideo(video: MultiStreamingData.Video) {
+    suspend fun stopVideo(video: MultiStreamingData.Video) {
         listener?.stopVideo(video)
     }
 

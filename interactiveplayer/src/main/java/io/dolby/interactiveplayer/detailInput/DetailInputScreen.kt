@@ -56,7 +56,6 @@ import io.dolby.interactiveplayer.alert.DetailInputValidationAlert
 import io.dolby.interactiveplayer.rts.ui.DolbyCopyrightFooterView
 import io.dolby.interactiveplayer.rts.ui.TopActionBar
 import io.dolby.interactiveplayer.rts.ui.TopAppBar
-import io.dolby.interactiveplayer.savedStreams.SavedStreamViewModel
 import io.dolby.interactiveplayer.utils.horizontalPaddingDp
 import io.dolby.rtscomponentkit.domain.ConnectOptions
 import io.dolby.rtscomponentkit.domain.StreamingData

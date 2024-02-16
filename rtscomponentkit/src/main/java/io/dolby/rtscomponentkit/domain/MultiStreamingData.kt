@@ -53,7 +53,8 @@ data class MultiStreamingData(
     data class ProjectedData(
         val mid: String,
         val sourceId: String?,
-        val videoQuality: VideoQuality
+        val videoQuality: VideoQuality,
+        val released: Boolean
     )
 
     data class MainVideoTrack(
