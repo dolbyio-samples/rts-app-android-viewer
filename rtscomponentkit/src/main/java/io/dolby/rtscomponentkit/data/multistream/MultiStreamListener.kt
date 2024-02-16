@@ -405,7 +405,7 @@ class MultiStreamListener(
                     video,
                     availablePreferredVideoQuality
                 )
-            CoroutineScope(Dispatchers.Main).launch {
+            CoroutineScope(Dispatchers.IO).launch {
                 subscriber.project(video.sourceId ?: "", arrayListOf(projectionData))
             }
             data.update {
@@ -438,7 +438,7 @@ class MultiStreamListener(
     }
 
     fun stopVideo(video: MultiStreamingData.Video) {
-        CoroutineScope(Dispatchers.Main).safeLaunch({
+        CoroutineScope(Dispatchers.IO).safeLaunch({
             subscriber.unproject(arrayListOf(video.id))
         })
         data.update {
