@@ -17,6 +17,7 @@ import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.cancel
 import kotlinx.coroutines.cancelChildren
+import kotlinx.coroutines.delay
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.FlowCollector
 import kotlinx.coroutines.flow.MutableStateFlow
@@ -237,7 +238,7 @@ class MultiStreamListener(
                 data.addPendingMainAudioTrack(pendingTracks.audioTracks.firstOrNull())
             }
         } else {
-            processPendingTracks(pendingAudioTracks = pendingTracks.audioTracks.filter { !it.added })
+            processPendingTracks(pendingAudioTracks = pendingTracks.audioTracks)
         }
     }
 
@@ -254,11 +255,13 @@ class MultiStreamListener(
             reactivated = true
         }
         val tempAudios = data.value.audioTracks.toMutableList()
+        val tempAllAudios = data.value.allAudioTrackIds.toMutableList()
         activeAudio?.let {
             val toActivate = activeAudio.copy(active = true)
             tempAudios.remove(activeAudio)
             tempAudios.add(toActivate)
-            data.update { data -> data.copy(audioTracks = tempAudios) }
+            tempAllAudios.add(toActivate.id)
+            data.update { data -> data.copy(audioTracks = tempAudios, allAudioTrackIds = tempAllAudios) }
             reactivated = true
         }
         return reactivated
@@ -283,16 +286,19 @@ class MultiStreamListener(
             }
             val inactiveAudio = data.audioTracks.firstOrNull { it.sourceId == sourceId }
             val tempAudios = data.audioTracks.toMutableList()
+            val tempAllAudioIds = data.allAudioTrackIds.toMutableList()
             inactiveAudio?.let {
                 val toInactivate = inactiveAudio.copy(active = false)
                 tempAudios.remove(inactiveAudio)
                 tempAudios.add(toInactivate)
+                tempAllAudioIds.remove(toInactivate.id)
             }
 
             return@update data.copy(
                 selectedVideoTrackId = selectedVideoTrack,
                 videoTracks = tempVideos.toList(),
-                audioTracks = tempAudios.toList()
+                audioTracks = tempAudios.toList(),
+                allAudioTrackIds = tempAllAudioIds
             )
         }
     }
@@ -405,6 +411,42 @@ class MultiStreamListener(
                     )
                 it.copy(trackProjectedData = mutableOldProjectedData.toMap())
             }
+        } else if (projected.released) {
+            Log.d(TAG, "unscheduled stop video for ${video.id}")
+            data.update {
+                val mutableOldProjectedData = it.trackProjectedData.toMutableMap()
+                mutableOldProjectedData[projected.mid] = projected.copy(released = false)
+                it.copy(trackProjectedData = mutableOldProjectedData.toMap())
+            }
+        }
+    }
+
+    suspend fun stopVideo(video: MultiStreamingData.Video) {
+        data.update {
+            val mutableOldProjectedData = it.trackProjectedData.toMutableMap()
+            val toRelease =
+                mutableOldProjectedData.filter { it.key == video.id }.values.firstOrNull()
+                    ?.copy(released = true)
+            toRelease?.let {
+                video.id?.let {
+                    mutableOldProjectedData[video.id] = toRelease
+                }
+            }
+            it.copy(trackProjectedData = mutableOldProjectedData.toMap())
+        }
+        Log.d(TAG, "scheduled stop video for ${video.id}")
+        delay(3_000)
+        val toUnproject = data.value.trackProjectedData.get(video.id)
+        if (toUnproject == null || toUnproject.released) {
+            CoroutineScope(Dispatchers.IO).safeLaunch({
+                Log.d(TAG, "stop video for ${video.id}")
+                subscriber.unproject(arrayListOf(video.id))
+            })
+            data.update {
+                val mutableOldProjectedData = it.trackProjectedData.toMutableMap()
+                mutableOldProjectedData.remove(video.id)
+                it.copy(trackProjectedData = mutableOldProjectedData.toMap())
+            }
         }
     }
 
@@ -421,17 +463,6 @@ class MultiStreamListener(
             ) else {
                 null
             }
-    }
-
-    fun stopVideo(video: MultiStreamingData.Video) {
-        CoroutineScope(Dispatchers.IO).safeLaunch({
-            subscriber.unproject(arrayListOf(video.id))
-        })
-        data.update {
-            val mutableOldProjectedData = it.trackProjectedData.toMutableMap()
-            mutableOldProjectedData.remove(video.id)
-            it.copy(trackProjectedData = mutableOldProjectedData.toMap())
-        }
     }
 
     fun playAudio(audioTrack: MultiStreamingData.Audio) {
@@ -497,7 +528,8 @@ class MultiStreamListener(
         ) = MultiStreamingData.ProjectedData(
             mid = mid,
             sourceId = sourceId,
-            videoQuality = videoQuality
+            videoQuality = videoQuality,
+            released = false
         )
     }
 }
