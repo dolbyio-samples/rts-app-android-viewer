@@ -248,7 +248,7 @@ class SingleStreamListener(
         Log.d(TAG, "onConnected")
     }
 
-    private fun onActive(p0: String?, p1: Array<out String>?, p2: String?) {
+    private fun onActive(p0: String?, p1: Array<out String>, p2: String?) {
         Log.d(TAG, "onActive")
         coroutineScope.launch {
             state.emit(RTSViewerDataStore.State.StreamActive)
