@@ -16,7 +16,8 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.viewinterop.AndroidView
 import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
-import com.millicast.VideoRenderer
+import com.millicast.Media
+import com.millicast.video.TextureViewRenderer
 import io.dolby.rtscomponentkit.ui.DolbyBackgroundBox
 import io.dolby.rtsviewer.MainActivity
 import io.dolby.rtsviewer.R
@@ -48,10 +49,14 @@ fun StreamingScreen(viewModel: StreamingViewModel = hiltViewModel(), onBack: () 
                     modifier = Modifier.align(Alignment.Center)
                 ) {
                     AndroidView(
-                        factory = { context -> VideoRenderer(context) },
+                        factory = { context ->
+                            val view = TextureViewRenderer(context)
+                            view.init(Media.eglBaseContext, null)
+                            view
+                        },
                         update = { view ->
                             view.setScalingType(RendererCommon.ScalingType.SCALE_ASPECT_FIT)
-                            uiState.videoTrack?.setRenderer(view)
+                            uiState.videoTrack?.setVideoSink(view)
                         }
                     )
                     SetupVolumeControlAudioStream()
