@@ -241,7 +241,7 @@ class SingleStreamListener(
     }
 
     private fun onViewerCount(p0: Int) {
-        Log.d("Subscriber", "onViewerCount")
+        Log.d("Subscriber", "onViewerCount $p0")
     }
 
     private suspend fun onConnected() {
