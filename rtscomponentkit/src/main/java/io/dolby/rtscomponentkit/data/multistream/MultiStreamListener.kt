@@ -270,12 +270,11 @@ class MultiStreamListener(
     private fun onInactive(p0: String, sourceId: String?) {
         Log.d(TAG, "onInactive $p0, $sourceId")
         data.update { data ->
-            data.videoTracks.filter { it.sourceId == sourceId }
-                .forEach { it.videoTrack.removeVideoSink() }
             val inactiveVideo = data.videoTracks.firstOrNull { it.sourceId == sourceId }
             var selectedVideoTrack = data.selectedVideoTrackId
             val tempVideos = data.videoTracks.toMutableList()
             inactiveVideo?.let {
+                tempVideos.forEach { it.videoTrack.removeVideoSink() }
                 val toInactivate = inactiveVideo.copy(active = false)
                 tempVideos.remove(inactiveVideo)
                 tempVideos.add(toInactivate)
