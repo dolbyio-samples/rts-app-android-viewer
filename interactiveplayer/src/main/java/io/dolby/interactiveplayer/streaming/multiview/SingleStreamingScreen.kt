@@ -192,6 +192,7 @@ private fun VideoView(
             },
             update = { view ->
                 view.setScalingType(RendererCommon.ScalingType.SCALE_ASPECT_FIT)
+                uiState.videoTracks[page].videoTrack.removeVideoSink()
                 uiState.videoTracks[page].videoTrack.setVideoSink(view)
                 val isSelected =
                     uiState.selectedVideoTrackId == uiState.videoTracks[page].sourceId

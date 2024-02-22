@@ -423,6 +423,7 @@ fun MultiStreamingData.Video.play(
     viewModel: MultiStreamingViewModel,
     videoQuality: VideoQuality = VideoQuality.AUTO
 ) {
+    videoTrack.removeVideoSink()
     videoTrack.setVideoSink(view)
     viewModel.playVideo(
         this,
