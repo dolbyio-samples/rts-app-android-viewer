@@ -233,6 +233,7 @@ class MultiStreamListener(
         if (pendingTracks.videoTracks.isNotEmpty()) {
             processPendingTracks(pendingVideoTracks = pendingTracks.videoTracks.filter { !it.added })
         }
+        data.value.videoTracks.forEach { it.videoTrack.removeVideoSink() }
         if (data.value.audioTracks.isEmpty()) {
             data.update { data ->
                 data.addPendingMainAudioTrack(pendingTracks.audioTracks.firstOrNull())
