@@ -106,6 +106,9 @@ private fun Grid(
     uiState: MultiStreamingUiState,
     onMainClick: (String?) -> Unit
 ) {
+    if (uiState.videoTracks.firstOrNull { it.sourceId == uiState.selectedVideoTrackId } == null) {
+        uiState.videoTracks.firstOrNull()?.let { viewModel.selectVideoTrack(it.sourceId) }
+    }
     Box(
         modifier = modifier
     ) {
