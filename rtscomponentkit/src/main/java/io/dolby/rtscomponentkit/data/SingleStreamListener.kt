@@ -168,7 +168,7 @@ class SingleStreamListener(
         // Disconnect from Millicast.
         try {
             Log.d(TAG, "release Millicast")
-            subscriber.release()
+            subscriber.disconnect()
         } catch (e: java.lang.Exception) {
             success = false
             Log.d(TAG, "${e.message}")
