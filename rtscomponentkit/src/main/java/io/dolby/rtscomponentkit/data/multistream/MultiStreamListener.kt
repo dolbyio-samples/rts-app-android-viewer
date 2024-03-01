@@ -142,7 +142,7 @@ class MultiStreamListener(
         coroutineScope.coroutineContext.cancelChildren()
         coroutineScope.coroutineContext.cancel()
         Log.d(TAG, "Disconnecting subscriber...")
-        runBlocking { subscriber.disconnect() }
+        subscriber.release()
     }
 
     private fun onConnected() {
@@ -397,9 +397,9 @@ class MultiStreamListener(
                     video,
                     availablePreferredVideoQuality
                 )
-            CoroutineScope(Dispatchers.IO).launch {
+            CoroutineScope(Dispatchers.IO).safeLaunch({
                 subscriber.project(video.sourceId ?: "", arrayListOf(projectionData))
-            }
+            })
             data.update {
                 val mutableOldProjectedData = it.trackProjectedData.toMutableMap()
                 mutableOldProjectedData[projectionData.mid] =

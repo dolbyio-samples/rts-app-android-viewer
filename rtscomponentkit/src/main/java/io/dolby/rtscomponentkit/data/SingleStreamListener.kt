@@ -19,7 +19,6 @@ import kotlinx.coroutines.flow.MutableSharedFlow
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.launch
-import kotlinx.coroutines.runBlocking
 import java.util.Optional
 
 class SingleStreamListener(
@@ -143,6 +142,19 @@ class SingleStreamListener(
         // nothing
     }
 
+    private suspend fun startSubscribe(): Boolean {
+        // Subscribe to Millicast
+        var success = true
+        try {
+            subscriber.subscribe()
+        } catch (e: Exception) {
+            success = false
+            Log.d(TAG, "${e.message}")
+        }
+        enableStatsSub(10000)
+        return success
+    }
+
     suspend fun stopSubscribe(): Boolean {
         // Stop subscribing to Millicast.
         var success = true
@@ -155,7 +167,8 @@ class SingleStreamListener(
 
         // Disconnect from Millicast.
         try {
-            runBlocking { subscriber.disconnect() }
+            Log.d(TAG, "release Millicast")
+            subscriber.release()
         } catch (e: java.lang.Exception) {
             success = false
             Log.d(TAG, "${e.message}")
