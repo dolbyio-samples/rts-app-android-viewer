@@ -30,7 +30,10 @@ fun MultiStreamingScreen(
             GridViewScreen(
                 viewModel = viewModel,
                 onBack = onBack,
-                onMainClick = onMainClick,
+                onMainClick = {
+                    viewModel.selectVideoTrack(it)
+                    onMainClick(it)
+                },
                 onSettingsClick = { onSettingsClick(streamingData) }
             )
         }
