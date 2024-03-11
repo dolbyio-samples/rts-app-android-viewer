@@ -38,7 +38,11 @@ fun SimulcastScreen(viewModel: StreamingViewModel) {
     val screenContentDescription = stringResource(id = R.string.simulcastScreen_contentDescription)
 
     LaunchedEffect(uiState.streamQualityTypes) {
-        focusRequester.requestFocus()
+        try {
+            focusRequester.requestFocus()
+        } catch (e: IllegalStateException) {
+            e.printStackTrace()
+        }
     }
 
     Box(
