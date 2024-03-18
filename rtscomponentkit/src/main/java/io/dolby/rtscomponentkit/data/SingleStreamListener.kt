@@ -2,13 +2,12 @@ package io.dolby.rtscomponentkit.data
 
 import android.util.Log
 import com.millicast.Subscriber
-import com.millicast.clients.state.ConnectionState
 import com.millicast.clients.stats.RtsReport
 import com.millicast.devices.track.AudioTrack
 import com.millicast.devices.track.VideoTrack
 import com.millicast.subscribers.state.ActivityStream
 import com.millicast.subscribers.state.LayerData
-import com.millicast.subscribers.state.SubscriptionState
+import com.millicast.subscribers.state.SubscriberConnectionState
 import com.millicast.utils.MillicastException
 import io.dolby.rtscomponentkit.data.RTSViewerDataStore.Companion.TAG
 import kotlinx.coroutines.CoroutineScope
@@ -42,41 +41,35 @@ class SingleStreamListener(
 
         subscriber.state.map { it.connectionState }.collectInLocalScope { state ->
             when (state) {
-                ConnectionState.Default -> {}
-                ConnectionState.Connected -> {
+                SubscriberConnectionState.Connected -> {
                     onConnected()
                 }
 
-                ConnectionState.Connecting -> {
+                SubscriberConnectionState.Connecting -> {
                     // nothing
                 }
 
-                ConnectionState.Disconnected -> {
+                SubscriberConnectionState.Disconnected -> {
                     onDisconnected()
                 }
 
-                is ConnectionState.DisconnectedError -> {
+                is SubscriberConnectionState.DisconnectedError -> {
                     onConnectionError(state.reason)
                 }
 
-                ConnectionState.Disconnecting -> {
+                SubscriberConnectionState.Disconnecting -> {
                     // nothing
                 }
-            }
-        }
 
-        subscriber.state.map { it.subscriptionState }.collectInLocalScope { state ->
-            when (state) {
-                SubscriptionState.Default -> {}
-                is SubscriptionState.Error -> {
+                is SubscriberConnectionState.Error -> {
                     onSubscribedError(state.reason)
                 }
 
-                SubscriptionState.Stopped -> {
+                SubscriberConnectionState.Stopped -> {
                     onStopped()
                 }
 
-                SubscriptionState.Subscribed -> {
+                SubscriberConnectionState.Subscribed -> {
                     onSubscribed()
                 }
             }
@@ -109,7 +102,7 @@ class SingleStreamListener(
             onViewerCount(it)
         }
 
-        subscriber.track.collectInLocalScope { holder ->
+        subscriber.tracks.collectInLocalScope { holder ->
             Log.d(TAG, "onTrack, ${holder.track}, ${holder.mid}")
             when (holder.track) {
                 is VideoTrack -> {
