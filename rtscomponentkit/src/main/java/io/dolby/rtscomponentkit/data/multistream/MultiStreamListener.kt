@@ -2,7 +2,6 @@ package io.dolby.rtscomponentkit.data.multistream
 
 import android.util.Log
 import com.millicast.Subscriber
-import com.millicast.clients.state.ConnectionState
 import com.millicast.clients.stats.RtsReport
 import com.millicast.devices.track.AudioTrack
 import com.millicast.devices.track.TrackType
@@ -10,7 +9,7 @@ import com.millicast.devices.track.VideoTrack
 import com.millicast.subscribers.ProjectionData
 import com.millicast.subscribers.state.ActivityStream
 import com.millicast.subscribers.state.LayerData
-import com.millicast.subscribers.state.SubscriptionState
+import com.millicast.subscribers.state.SubscriberConnectionState
 import io.dolby.rtscomponentkit.domain.MultiStreamStatisticsData
 import io.dolby.rtscomponentkit.domain.MultiStreamingData
 import kotlinx.coroutines.CoroutineScope
@@ -41,25 +40,36 @@ class MultiStreamListener(
 
         subscriber.state.map { it.connectionState }.collectInLocalScope { state ->
             when (state) {
-                ConnectionState.Default -> {}
-                ConnectionState.Connected -> {
+                SubscriberConnectionState.Connected -> {
                     onConnected()
                 }
 
-                ConnectionState.Connecting -> {
+                SubscriberConnectionState.Connecting -> {
                     // nothing
                 }
 
-                ConnectionState.Disconnected -> {
+                SubscriberConnectionState.Disconnected -> {
                     onDisconnected()
                 }
 
-                is ConnectionState.DisconnectedError -> {
+                is SubscriberConnectionState.DisconnectedError -> {
                     onConnectionError(state.httpCode, state.reason)
                 }
 
-                ConnectionState.Disconnecting -> {
+                SubscriberConnectionState.Disconnecting -> {
                     // nothing
+                }
+
+                is SubscriberConnectionState.Error -> {
+                    onSubscribedError(state.reason)
+                }
+
+                SubscriberConnectionState.Stopped -> {
+                    onStopped()
+                }
+
+                SubscriberConnectionState.Subscribed -> {
+                    onSubscribed()
                 }
             }
         }
@@ -83,28 +93,11 @@ class MultiStreamListener(
             onLayers(it.mid, it.activeLayers, it.inactiveLayersEncodingIds)
         }
 
-        subscriber.state.map { it.subscriptionState }.collectInLocalScope { state ->
-            when (state) {
-                SubscriptionState.Default -> {}
-                is SubscriptionState.Error -> {
-                    onSubscribedError(state.reason)
-                }
-
-                SubscriptionState.Stopped -> {
-                    onStopped()
-                }
-
-                SubscriptionState.Subscribed -> {
-                    onSubscribed()
-                }
-            }
-        }
-
         subscriber.state.map { it.viewers }.collectInLocalScope {
             onViewerCount(it)
         }
 
-        subscriber.track.collectInLocalScope { holder ->
+        subscriber.tracks.collectInLocalScope { holder ->
             when (holder.track) {
                 is VideoTrack -> {
                     onVideoTrack(holder.track as VideoTrack, holder.mid)
