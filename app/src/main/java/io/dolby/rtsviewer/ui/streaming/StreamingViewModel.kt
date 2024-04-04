@@ -130,7 +130,7 @@ class StreamingViewModel @Inject constructor(
                             }
                             RTSViewerDataStore.State.StreamInactive -> {
                                 Log.d(TAG, "StreamInactive")
-                                repository.stopSubscribe()
+                                repository.disconnect()
                                 withContext(dispatcherProvider.main) {
                                     _uiState.update { state ->
                                         state.copy(
@@ -160,8 +160,14 @@ class StreamingViewModel @Inject constructor(
                                     }
                                 }
                             }
+                            RTSViewerDataStore.State.Disconnecting,
                             RTSViewerDataStore.State.Disconnected -> {
-                                Log.d(TAG, "Disconnected")
+                                Log.d(
+                                    TAG,
+                                    if (dataStoreState == RTSViewerDataStore.State.Disconnecting) {
+                                        "Disconnecting"
+                                    } else "Disconnected"
+                                )
                                 withContext(dispatcherProvider.main) {
                                     _uiState.update { state ->
                                         state.copy(
@@ -221,7 +227,11 @@ class StreamingViewModel @Inject constructor(
     }
 
     override fun onCleared() {
-        repository.stopSubscribe()
+        repository.disconnect()
+    }
+
+    fun disconnect() {
+        repository.disconnect()
     }
 
     private suspend fun connect() {

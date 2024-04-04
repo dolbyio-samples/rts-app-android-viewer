@@ -135,20 +135,7 @@ class SingleStreamListener(
         // nothing
     }
 
-    private suspend fun startSubscribe(): Boolean {
-        // Subscribe to Millicast
-        var success = true
-        try {
-            subscriber.subscribe()
-        } catch (e: Exception) {
-            success = false
-            Log.d(TAG, "${e.message}")
-        }
-        enableStatsSub(10000)
-        return success
-    }
-
-    suspend fun stopSubscribe(): Boolean {
+    suspend fun stopSubscribeAndDisconnect(): Boolean {
         // Stop subscribing to Millicast.
         var success = true
         try {
@@ -159,14 +146,10 @@ class SingleStreamListener(
         }
 
         // Disconnect from Millicast.
-        try {
-            Log.d(TAG, "release Millicast")
-            subscriber.disconnect()
-        } catch (e: java.lang.Exception) {
-            success = false
-            Log.d(TAG, "${e.message}")
-        }
+        Log.d(TAG, "release Millicast")
+        subscriber.disconnect()
         enableStatsSub(0)
+        state.emit(RTSViewerDataStore.State.Disconnected)
         return success
     }
 
@@ -230,8 +213,8 @@ class SingleStreamListener(
     }
 
     private fun onStatsReport(report: RtsReport) {
-        Log.d(TAG, "onStatsReport")
         statistics.value = SingleStreamStatisticsData.from(report)
+        Log.d(TAG, "onStatsReport, ${statistics.value}, $subscriber, $this")
     }
 
     private fun onViewerCount(p0: Int) {

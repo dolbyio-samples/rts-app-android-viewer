@@ -8,6 +8,7 @@ import com.millicast.devices.playback.AudioPlayback
 import com.millicast.devices.track.AudioTrack
 import com.millicast.devices.track.VideoTrack
 import com.millicast.subscribers.Credential
+import com.millicast.subscribers.Option
 import com.millicast.subscribers.state.LayerData
 import io.dolby.rtscomponentkit.domain.StreamingData
 import io.dolby.rtscomponentkit.utils.DispatcherProvider
@@ -58,6 +59,7 @@ class RTSViewerDataStore constructor(
         }
 
         _state.emit(State.Connecting)
+        Core.initialize()
 
         val subscriber = Core.createSubscriber()
 
@@ -79,7 +81,7 @@ class RTSViewerDataStore constructor(
 
         try {
             subscriber.connect(ConnectionOptions(true))
-            subscriber.subscribe()
+            subscriber.subscribe(Option(statsDelayMs = 1_000))
         } catch (e: Exception) {
             Log.e(TAG, "${e.message}")
         }
@@ -94,8 +96,8 @@ class RTSViewerDataStore constructor(
         apiUrl = "https://director.millicast.com/api/director/subscribe"
     )
 
-    fun stopSubscribe() = apiScope.launch {
-        listener?.stopSubscribe()
+    fun disconnect() = apiScope.launch {
+        listener?.stopSubscribeAndDisconnect()
 
         resetStreamQualityTypes()
     }
@@ -141,6 +143,7 @@ class RTSViewerDataStore constructor(
         object Subscribed : State()
         object StreamActive : State()
         object StreamInactive : State()
+        object Disconnecting : State()
         object Disconnected : State()
         class Error(val error: SubscriptionError) : State()
         class AudioTrackReady(val audioTrack: AudioTrack) : State()

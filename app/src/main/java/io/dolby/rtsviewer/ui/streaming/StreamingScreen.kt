@@ -44,7 +44,7 @@ fun StreamingScreen(viewModel: StreamingViewModel = hiltViewModel(), onBack: () 
             uiState.error != null -> {
                 ErrorView(error = uiState.error!!)
             }
-            uiState.subscribed -> {
+            uiState.subscribed && uiState.error == null -> {
                 Box(
                     modifier = Modifier.align(Alignment.Center)
                 ) {
@@ -100,6 +100,7 @@ fun StreamingScreen(viewModel: StreamingViewModel = hiltViewModel(), onBack: () 
             } else if (showSettings.value) {
                 viewModel.settingsVisibility(false)
             } else {
+                viewModel.disconnect()
                 onBack.invoke()
             }
         }
