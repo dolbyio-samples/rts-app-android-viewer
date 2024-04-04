@@ -136,6 +136,10 @@ data class SingleStreamStatisticsData(
             return codec?.mimeType
         }
     }
+
+    override fun toString(): String {
+        return "rtt: $roundTripTime, availableOutgoigBitrate: $availableOutgoingBitrate, video: $video"
+    }
 }
 
 data class StatsInboundRtp(
@@ -155,4 +159,8 @@ data class StatsInboundRtp(
         }
     }
     val isVideo: Boolean = kind == "video"
+
+    override fun toString(): String {
+        return "frameWidth: $frameWidth, frameHeight: $frameHeight, fps: $fps, bytesReceived: $bytesReceived, $jitter, $packetsLost, $codecName"
+    }
 }
