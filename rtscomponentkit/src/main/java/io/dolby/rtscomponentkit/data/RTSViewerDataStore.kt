@@ -9,6 +9,7 @@ import com.millicast.subscribers.Credential
 import com.millicast.subscribers.remote.RemoteAudioTrack
 import com.millicast.subscribers.remote.RemoteVideoTrack
 import com.millicast.subscribers.state.LayerData
+import io.dolby.rtscomponentkit.domain.MultiStreamStatisticsData
 import io.dolby.rtscomponentkit.domain.StreamingData
 import io.dolby.rtscomponentkit.utils.DispatcherProvider
 import io.dolby.rtscomponentkit.utils.DispatcherProviderImpl
@@ -30,8 +31,8 @@ class RTSViewerDataStore constructor(
     private val _state: MutableSharedFlow<State> = MutableSharedFlow()
     val state: Flow<State> = _state.asSharedFlow()
 
-    private val _statistics: MutableStateFlow<SingleStreamStatisticsData?> = MutableStateFlow(null)
-    val statisticsData: Flow<SingleStreamStatisticsData?> = _statistics.asStateFlow()
+    private val _statistics: MutableStateFlow<MultiStreamStatisticsData?> = MutableStateFlow(null)
+    val statisticsData: Flow<MultiStreamStatisticsData?> = _statistics.asStateFlow()
 
     private var media: Media
     private var audioPlayback: List<AudioPlayback>? = null

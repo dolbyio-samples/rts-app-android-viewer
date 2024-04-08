@@ -6,7 +6,7 @@ import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import dagger.hilt.android.lifecycle.HiltViewModel
 import io.dolby.rtscomponentkit.data.RTSViewerDataStore
-import io.dolby.rtscomponentkit.data.SingleStreamStatisticsData
+import io.dolby.rtscomponentkit.domain.MultiStreamStatisticsData
 import io.dolby.rtscomponentkit.utils.DispatcherProvider
 import io.dolby.rtsviewer.R
 import io.dolby.rtsviewer.preferenceStore.PrefsStore
@@ -126,17 +126,17 @@ class StreamingViewModel @Inject constructor(
                                 if (_uiState.value.audioTrack == null || _uiState.value.audioTrack?.isActive == false) {
                                     Log.d(TAG, "AudioTrackReady")
                                     withContext(dispatcherProvider.main) {
+                                        dataStoreState.audioTrack.enable()
                                         _uiState.update { state ->
                                             state.copy(
                                                 audioTrack = dataStoreState.audioTrack
                                             )
                                         }
-                                        dataStoreState.audioTrack.enable()
                                     }
                                 }
                             }
                             is RTSViewerDataStore.State.VideoTrackReady -> {
-                                if (_uiState.value.videoTrack == null) {
+                                if (_uiState.value.videoTrack == null || _uiState.value.audioTrack?.isActive == false) {
                                     Log.d(TAG, "VideoTrackReady")
                                     withContext(dispatcherProvider.main) {
                                         _uiState.update { state ->
@@ -259,7 +259,9 @@ class StreamingViewModel @Inject constructor(
     private fun streamingStatistics(): Flow<List<Pair<Int, String>>?> =
         repository.statisticsData.map { statisticsData -> getStatisticsValuesList(statisticsData) }
 
-    private fun getStatisticsValuesList(statisticsData: SingleStreamStatisticsData?): List<Pair<Int, String>>? {
+    private fun getStatisticsValuesList(statisticsData: MultiStreamStatisticsData?): List<Pair<Int, String>>? {
+        val currentVideoMid = _uiState.value.videoTrack?.currentMid
+        val currentAudioMid = _uiState.value.audioTrack?.currentMid
         statisticsData?.let { statistics ->
             val statisticsValuesList = mutableListOf<Pair<Int, String>>()
             statistics.roundTripTime?.let {
@@ -278,13 +280,15 @@ class StreamingViewModel @Inject constructor(
                     )
                 )
             }
-            statistics.video?.videoResolution?.let {
+            val currentVideo = statistics.video?.firstOrNull{ it.mid == currentVideoMid }
+            val currentAudio = statistics.audio?.firstOrNull{ it.mid == currentAudioMid }
+            currentVideo?.videoResolution?.let {
                 statisticsValuesList.add(Pair(R.string.statisticsScreen_videoResolution, it))
             }
-            statistics.video?.fps?.let {
+            currentVideo?.fps?.let {
                 statisticsValuesList.add(Pair(R.string.statisticsScreen_fps, "${it.toLong()}"))
             }
-            statistics.video?.bytesReceived?.let {
+            currentVideo?.bytesReceived?.let {
                 statisticsValuesList.add(
                     Pair(
                         R.string.statisticsScreen_videoTotal,
@@ -292,7 +296,7 @@ class StreamingViewModel @Inject constructor(
                     )
                 )
             }
-            statistics.audio?.bytesReceived?.let {
+            currentAudio?.bytesReceived?.let {
                 statisticsValuesList.add(
                     Pair(
                         R.string.statisticsScreen_audioTotal,
@@ -300,13 +304,13 @@ class StreamingViewModel @Inject constructor(
                     )
                 )
             }
-            statistics.video?.packetsLost?.let {
+            currentVideo?.packetsLost?.let {
                 statisticsValuesList.add(Pair(R.string.statisticsScreen_videoLoss, "$it"))
             }
-            statistics.audio?.packetsLost?.let {
+            currentAudio?.packetsLost?.let {
                 statisticsValuesList.add(Pair(R.string.statisticsScreen_audioLoss, "$it"))
             }
-            statistics.video?.jitter?.let {
+            currentVideo?.jitter?.let {
                 statisticsValuesList.add(
                     Pair(
                         R.string.statisticsScreen_videoJitter,
@@ -314,7 +318,7 @@ class StreamingViewModel @Inject constructor(
                     )
                 )
             }
-            statistics.audio?.jitter?.let {
+            currentAudio?.jitter?.let {
                 statisticsValuesList.add(
                     Pair(
                         R.string.statisticsScreen_audioJitter,
@@ -323,18 +327,18 @@ class StreamingViewModel @Inject constructor(
                 )
             }
             var codecNames = ""
-            statistics.video?.codecName?.let {
+            currentVideo?.codecName?.let {
                 codecNames += it
             }
-            statistics.audio?.codecName?.let {
+            currentAudio?.codecName?.let {
                 if (codecNames.isNotEmpty()) codecNames += ", "
                 codecNames += it
             }
             if (codecNames.isNotEmpty()) {
                 statisticsValuesList.add(Pair(R.string.statisticsScreen_codecs, codecNames))
             }
-            statistics.timestamp?.let {
-                getDateTime(it)?.let { dateTime ->
+            statistics.timestamp?.let { doubleTime ->
+                getDateTime(doubleTime.toLong())?.let { dateTime ->
                     statisticsValuesList.add(Pair(R.string.statisticsScreen_timestamp, dateTime))
                 }
             }

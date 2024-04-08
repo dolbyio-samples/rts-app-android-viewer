@@ -9,6 +9,7 @@ import com.millicast.subscribers.state.LayerData
 import com.millicast.subscribers.state.SubscriberConnectionState
 import com.millicast.utils.MillicastException
 import io.dolby.rtscomponentkit.data.RTSViewerDataStore.Companion.TAG
+import io.dolby.rtscomponentkit.domain.MultiStreamStatisticsData
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.cancel
@@ -23,7 +24,7 @@ import kotlinx.coroutines.launch
 class SingleStreamListener(
     private val subscriber: Subscriber,
     private val state: MutableSharedFlow<RTSViewerDataStore.State>,
-    private val statistics: MutableStateFlow<SingleStreamStatisticsData?>,
+    private val statistics: MutableStateFlow<MultiStreamStatisticsData?>,
     private val streamQualityTypes: MutableStateFlow<List<RTSViewerDataStore.StreamQualityType>>,
     private val selectedStreamQualityType: MutableStateFlow<RTSViewerDataStore.StreamQualityType>
 ) {
@@ -109,11 +110,11 @@ class SingleStreamListener(
             Log.d(TAG, "onTrack, ${holder}, ${holder.currentMid}")
             when (holder) {
                 is RemoteVideoTrack -> {
-                    onTrack(holder, holder.currentMid)
+                    onTrack(holder)
                 }
 
                 is RemoteAudioTrack -> {
-                    onTrack(holder, holder.currentMid)
+                    onTrack(holder)
                 }
             }
         }
@@ -132,7 +133,6 @@ class SingleStreamListener(
 //        }
 
         subscriber.rtcStatsReport.collectInLocalScope { report ->
-            // TODO: update the report structure
             onStatsReport(report)
         }
 
@@ -186,14 +186,14 @@ class SingleStreamListener(
         statistics.value = null
     }
 
-    private fun onTrack(track: RemoteVideoTrack, p1: String?) {
+    private fun onTrack(track: RemoteVideoTrack) {
         Log.d(TAG, "onVideoTrack")
         coroutineScope.launch {
             state.emit(RTSViewerDataStore.State.VideoTrackReady(track))
         }
     }
 
-    private fun onTrack(track: RemoteAudioTrack, p1: String?) {
+    private fun onTrack(track: RemoteAudioTrack) {
         Log.d(TAG, "onAudioTrack")
         coroutineScope.launch {
             state.emit(RTSViewerDataStore.State.AudioTrackReady(track))
@@ -201,7 +201,7 @@ class SingleStreamListener(
     }
 
     private fun onStatsReport(report: RtsReport) {
-        statistics.value = SingleStreamStatisticsData.from(report)
+        statistics.value = MultiStreamStatisticsData.from(report)
         Log.d(TAG, "onStatsReport, ${statistics.value}, $subscriber, $this")
     }
 
