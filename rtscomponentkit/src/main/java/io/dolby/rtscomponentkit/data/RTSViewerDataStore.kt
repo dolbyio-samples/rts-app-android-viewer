@@ -97,7 +97,9 @@ class RTSViewerDataStore constructor(
     )
 
     fun disconnect() = apiScope.launch {
-        listener?.stopSubscribeAndDisconnect()
+        val previousValue = listener
+        listener = null
+        previousValue?.stopSubscribeAndDisconnect()
 
         resetStreamQualityTypes()
     }
