@@ -5,22 +5,19 @@ import android.database.ContentObserver
 import android.media.AudioManager
 import android.os.Build
 import android.os.Handler
-import com.millicast.devices.track.AudioTrack
 import com.millicast.subscribers.remote.RemoteAudioTrack
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.launch
-import kotlinx.coroutines.withContext
 
 class RemoteVolumeObserver(
-    var context: Context,
+    val context: Context,
     handler: Handler?,
-    private val audioTrack: RemoteAudioTrack,
-    private val dispatcherProvider: DispatcherProvider
+    private val audioTrack: RemoteAudioTrack
 ) : ContentObserver(handler) {
 
     override fun onChange(selfChange: Boolean) {
         super.onChange(selfChange)
-        CoroutineScope(dispatcherProvider.default).launch {
+        CoroutineScope(DispatcherProviderImpl.default).launch {
             adjustTrackVolume(context, audioTrack)
         }
     }
