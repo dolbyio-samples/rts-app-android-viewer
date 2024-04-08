@@ -5,9 +5,9 @@ import com.millicast.Core
 import com.millicast.Media
 import com.millicast.clients.ConnectionOptions
 import com.millicast.devices.playback.AudioPlayback
-import com.millicast.devices.track.AudioTrack
-import com.millicast.devices.track.VideoTrack
 import com.millicast.subscribers.Credential
+import com.millicast.subscribers.remote.RemoteAudioTrack
+import com.millicast.subscribers.remote.RemoteVideoTrack
 import com.millicast.subscribers.state.LayerData
 import io.dolby.rtscomponentkit.domain.StreamingData
 import io.dolby.rtscomponentkit.utils.DispatcherProvider
@@ -145,8 +145,8 @@ class RTSViewerDataStore constructor(
         object Disconnecting : State()
         object Disconnected : State()
         class Error(val error: SubscriptionError) : State()
-        class AudioTrackReady(val audioTrack: AudioTrack) : State()
-        class VideoTrackReady(val videoTrack: VideoTrack) : State()
+        class AudioTrackReady(val audioTrack: RemoteAudioTrack) : State()
+        class VideoTrackReady(val videoTrack: RemoteVideoTrack) : State()
     }
 
     sealed class StreamQualityType {

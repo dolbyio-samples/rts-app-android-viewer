@@ -123,22 +123,27 @@ class StreamingViewModel @Inject constructor(
                                 }
                             }
                             is RTSViewerDataStore.State.AudioTrackReady -> {
-                                Log.d(TAG, "AudioTrackReady")
-                                withContext(dispatcherProvider.main) {
-                                    _uiState.update { state ->
-                                        state.copy(
-                                            audioTrack = dataStoreState.audioTrack
-                                        )
+                                if (_uiState.value.audioTrack == null || _uiState.value.audioTrack?.isActive == false) {
+                                    Log.d(TAG, "AudioTrackReady")
+                                    withContext(dispatcherProvider.main) {
+                                        _uiState.update { state ->
+                                            state.copy(
+                                                audioTrack = dataStoreState.audioTrack
+                                            )
+                                        }
+                                        dataStoreState.audioTrack.enable()
                                     }
                                 }
                             }
                             is RTSViewerDataStore.State.VideoTrackReady -> {
-                                Log.d(TAG, "VideoTrackReady")
-                                withContext(dispatcherProvider.main) {
-                                    _uiState.update { state ->
-                                        state.copy(
-                                            videoTrack = dataStoreState.videoTrack
-                                        )
+                                if (_uiState.value.videoTrack == null) {
+                                    Log.d(TAG, "VideoTrackReady")
+                                    withContext(dispatcherProvider.main) {
+                                        _uiState.update { state ->
+                                            state.copy(
+                                                videoTrack = dataStoreState.videoTrack
+                                            )
+                                        }
                                     }
                                 }
                             }

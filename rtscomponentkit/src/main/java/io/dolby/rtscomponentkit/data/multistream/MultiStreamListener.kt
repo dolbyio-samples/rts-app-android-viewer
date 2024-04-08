@@ -4,10 +4,7 @@ import android.util.Log
 import com.millicast.Subscriber
 import com.millicast.clients.stats.RtsReport
 import com.millicast.devices.track.AudioTrack
-import com.millicast.devices.track.TrackType
 import com.millicast.devices.track.VideoTrack
-import com.millicast.subscribers.ProjectionData
-import com.millicast.subscribers.state.ActivityStream
 import com.millicast.subscribers.state.LayerData
 import com.millicast.subscribers.state.SubscriberConnectionState
 import io.dolby.rtscomponentkit.domain.MultiStreamStatisticsData
@@ -53,7 +50,7 @@ class MultiStreamListener(
                 }
 
                 is SubscriberConnectionState.DisconnectedError -> {
-                    onConnectionError(state.httpCode, state.reason)
+//                    onConnectionError(state.httpCode, state.reason)
                 }
 
                 SubscriberConnectionState.Disconnecting -> {
@@ -74,40 +71,40 @@ class MultiStreamListener(
             }
         }
 
-        subscriber.activity.collectInLocalScope {
-            when (it) {
-                is ActivityStream.Active -> onActive(
-                    it.streamId,
-                    it.track,
-                    it.sourceId
-                )
+//        subscriber.activity.collectInLocalScope {
+//            when (it) {
+//                is ActivityStream.Active -> onActive(
+//                    it.streamId,
+//                    it.track,
+//                    it.sourceId
+//                )
+//
+//                is ActivityStream.Inactive -> onInactive(
+//                    it.streamId,
+//                    it.sourceId
+//                )
+//            }
+//        }
 
-                is ActivityStream.Inactive -> onInactive(
-                    it.streamId,
-                    it.sourceId
-                )
-            }
-        }
-
-        subscriber.layers.collectInLocalScope {
-            onLayers(it.mid, it.activeLayers, it.inactiveLayersEncodingIds)
-        }
+//        subscriber.layers.collectInLocalScope {
+//            onLayers(it.mid, it.activeLayers, it.inactiveLayersEncodingIds)
+//        }
 
         subscriber.state.map { it.viewers }.collectInLocalScope {
             onViewerCount(it)
         }
 
-        subscriber.tracks.collectInLocalScope { holder ->
-            when (holder.track) {
-                is VideoTrack -> {
-                    onVideoTrack(holder.track as VideoTrack, holder.mid)
-                }
-
-                is AudioTrack -> {
-                    onAudioTrack(holder.track as AudioTrack, holder.mid)
-                }
-            }
-        }
+//        subscriber.tracks.collectInLocalScope { holder ->
+//            when (holder.track) {
+//                is VideoTrack -> {
+//                    onVideoTrack(holder.track as VideoTrack, holder.mid)
+//                }
+//
+//                is AudioTrack -> {
+//                    onAudioTrack(holder.track as AudioTrack, holder.mid)
+//                }
+//            }
+//        }
 
         subscriber.rtcStatsReport.collectInLocalScope { report ->
             onStatsReport(report)
@@ -384,23 +381,23 @@ class MultiStreamListener(
                 TAG,
                 "project video ${video.id}, quality = $availablePreferredVideoQuality, already projected: ${data.value.trackLayerData.keys}, projected = $projected"
             )
-            val projectionData =
-                createProjectionData(
-                    video,
-                    availablePreferredVideoQuality
-                )
+//            val projectionData =
+//                createProjectionData(
+//                    video,
+//                    availablePreferredVideoQuality
+//                )
             CoroutineScope(Dispatchers.IO).safeLaunch({
-                subscriber.project(video.sourceId ?: "", arrayListOf(projectionData))
+//                subscriber.project(video.sourceId ?: "", arrayListOf(projectionData))
             })
             data.update {
                 val mutableOldProjectedData = it.trackProjectedData.toMutableMap()
-                mutableOldProjectedData[projectionData.mid] =
-                    projectedDataFrom(
-                        video.sourceId,
-                        availablePreferredVideoQuality?.videoQuality()
-                            ?: VideoQuality.AUTO,
-                        projectionData.mid
-                    )
+//                mutableOldProjectedData[projectionData.mid] =
+//                    projectedDataFrom(
+//                        video.sourceId,
+//                        availablePreferredVideoQuality?.videoQuality()
+//                            ?: VideoQuality.AUTO,
+//                        projectionData.mid
+//                    )
                 it.copy(trackProjectedData = mutableOldProjectedData.toMap())
             }
         } else if (projected.released) {
@@ -432,7 +429,7 @@ class MultiStreamListener(
         if (toUnproject == null || toUnproject.released) {
             CoroutineScope(Dispatchers.IO).safeLaunch({
                 Log.d(TAG, "stop video for ${video.id}")
-                subscriber.unproject(arrayListOf(video.id))
+//                subscriber.unproject(arrayListOf(video.id))
             })
             data.update {
                 val mutableOldProjectedData = it.trackProjectedData.toMutableMap()
@@ -459,19 +456,19 @@ class MultiStreamListener(
 
     fun playAudio(audioTrack: MultiStreamingData.Audio) {
         val audioTrackIds = ArrayList(data.value.allAudioTrackIds)
-        CoroutineScope(Dispatchers.Main).safeLaunch({ subscriber.unproject(audioTrackIds) })
+//        CoroutineScope(Dispatchers.Main).safeLaunch({ subscriber.unproject(audioTrackIds) })
 
-        val projectionData = ProjectionData(
-            mid = audioTrack.id!!,
-            trackId = MultiStreamingData.audio,
-            media = MultiStreamingData.audio
-        )
-        CoroutineScope(Dispatchers.Main).safeLaunch({
-            subscriber.project(
-                audioTrack.sourceId ?: "",
-                arrayListOf(projectionData)
-            )
-        })
+//        val projectionData = ProjectionData(
+//            mid = audioTrack.id!!,
+//            trackId = MultiStreamingData.audio,
+//            media = MultiStreamingData.audio
+//        )
+//        CoroutineScope(Dispatchers.Main).safeLaunch({
+//            subscriber.project(
+//                audioTrack.sourceId ?: "",
+//                arrayListOf(projectionData)
+//            )
+//        })
         data.update {
             it.copy(selectedAudioTrackId = audioTrack.sourceId)
         }
@@ -484,18 +481,18 @@ class MultiStreamListener(
         coroutineScope.safeLaunch({
             if (!pendingVideoTracks.isNullOrEmpty()) {
                 pendingVideoTracks.forEach { pendingTrack ->
-                    val track = subscriber.addRemoteTrackForResult(TrackType.Video)
-                    data.update {
-                        it.appendOtherVideoTrack(pendingTrack, track.track as VideoTrack, track.mid, pendingTrack.sourceId)
-                    }
+//                    val track = subscriber.addRemoteTrackForResult(TrackType.Video)
+//                    data.update {
+//                        it.appendOtherVideoTrack(pendingTrack, track.track as VideoTrack, track.mid, pendingTrack.sourceId)
+//                    }
                 }
             }
             if (!pendingAudioTracks.isNullOrEmpty()) {
                 pendingAudioTracks.forEach { pendingTrack ->
-                    val track = subscriber.addRemoteTrackForResult(TrackType.Audio)
-                    data.update {
-                        it.appendAudioTrack(track.track as AudioTrack, track.mid, pendingTrack.sourceId)
-                    }
+//                    val track = subscriber.addRemoteTrackForResult(TrackType.Audio)
+//                    data.update {
+//                        it.appendAudioTrack(track.track as AudioTrack, track.mid, pendingTrack.sourceId)
+//                    }
                 }
             }
         })
@@ -503,15 +500,15 @@ class MultiStreamListener(
 
     companion object {
         const val TAG = "io.dolby.interactiveplayer.listener"
-        private fun createProjectionData(
-            video: MultiStreamingData.Video,
-            availablePreferredVideoQuality: LowLevelVideoQuality?
-        ) = ProjectionData(
-            mid = video.id ?: "",
-            trackId = video.trackId,
-            media = video.mediaType,
-            layer = availablePreferredVideoQuality?.layerData
-        )
+//        private fun createProjectionData(
+//            video: MultiStreamingData.Video,
+//            availablePreferredVideoQuality: LowLevelVideoQuality?
+//        ) = ProjectionData(
+//            mid = video.id ?: "",
+//            trackId = video.trackId,
+//            media = video.mediaType,
+//            layer = availablePreferredVideoQuality?.layerData
+//        )
 
         private fun projectedDataFrom(
             sourceId: String?,

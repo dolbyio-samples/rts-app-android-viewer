@@ -7,15 +7,16 @@ import android.provider.Settings
 import androidx.activity.ComponentActivity
 import androidx.activity.compose.setContent
 import androidx.navigation.compose.rememberNavController
-import com.millicast.devices.track.AudioTrack
+import com.millicast.subscribers.remote.RemoteAudioTrack
 import dagger.hilt.android.AndroidEntryPoint
-import io.dolby.rtscomponentkit.utils.VolumeObserver
+import io.dolby.rtscomponentkit.utils.DispatcherProviderImpl
+import io.dolby.rtscomponentkit.utils.RemoteVolumeObserver
 import io.dolby.rtsviewer.ui.navigation.AppNavigation
 import io.dolby.rtsviewer.uikit.theme.RTSViewerTheme
 
 @AndroidEntryPoint
 class MainActivity : ComponentActivity() {
-    private var volumeObserver: VolumeObserver? = null
+    private var volumeObserver: RemoteVolumeObserver? = null
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         setContent {
@@ -31,9 +32,9 @@ class MainActivity : ComponentActivity() {
         super.onDestroy()
     }
 
-    fun addVolumeObserver(audioTrack: AudioTrack) {
+    fun addVolumeObserver(audioTrack: RemoteAudioTrack) {
         unregisterVolumeObserverIfExists()
-        volumeObserver = VolumeObserver(this, Handler(Looper.getMainLooper()), audioTrack)
+        volumeObserver = RemoteVolumeObserver(this, Handler(Looper.getMainLooper()), audioTrack, DispatcherProviderImpl)
 
         volumeObserver?.let {
             contentResolver.registerContentObserver(

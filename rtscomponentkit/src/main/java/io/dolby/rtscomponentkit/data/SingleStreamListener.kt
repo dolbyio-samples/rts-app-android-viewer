@@ -3,10 +3,8 @@ package io.dolby.rtscomponentkit.data
 import android.util.Log
 import com.millicast.Subscriber
 import com.millicast.clients.stats.RtsReport
-import com.millicast.devices.track.AudioTrack
-import com.millicast.devices.track.VideoTrack
-import com.millicast.subscribers.Option
-import com.millicast.subscribers.state.ActivityStream
+import com.millicast.subscribers.remote.RemoteAudioTrack
+import com.millicast.subscribers.remote.RemoteVideoTrack
 import com.millicast.subscribers.state.LayerData
 import com.millicast.subscribers.state.SubscriberConnectionState
 import com.millicast.utils.MillicastException
@@ -21,7 +19,6 @@ import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.distinctUntilChanged
 import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.launch
-import java.util.Optional
 
 class SingleStreamListener(
     private val subscriber: Subscriber,
@@ -56,9 +53,9 @@ class SingleStreamListener(
                     onDisconnected()
                 }
 
-                is SubscriberConnectionState.DisconnectedError -> {
-                    onConnectionError(state.reason)
-                }
+                    is SubscriberConnectionState.DisconnectedError -> {
+                        onConnectionError("Disconnected")
+                    }
 
                 SubscriberConnectionState.Disconnecting -> {
                     // nothing
@@ -82,41 +79,57 @@ class SingleStreamListener(
             Log.d(TAG, "onFrameMetadata: $ssrc, $timestamp, ${data.size}")
         }
 
-        subscriber.activity.collectInLocalScope {
-            when (it) {
-                is ActivityStream.Active -> onActive(
-                    it.streamId,
-                    it.track,
-                    it.sourceId
-                )
+        subscriber.currentState.websocketConnectionState
+        subscriber.currentState.peerConnectionState
 
-                is ActivityStream.Inactive -> onInactive(
-                    it.streamId,
-                    it.sourceId
-                )
-            }
-        }
+//        subscriber.activity.collectInLocalScope {
+//            when (it) {
+//                is ActivityStream.Active -> onActive(
+//                    it.streamId,
+//                    it.track,
+//                    it.sourceId
+//                )
+//
+//                is ActivityStream.Inactive -> onInactive(
+//                    it.streamId,
+//                    it.sourceId
+//                )
+//            }
+//        }
 
-        subscriber.layers.collectInLocalScope {
-            onLayers(it.mid, it.activeLayers, it.inactiveLayersEncodingIds)
-        }
+//        subscriber.layers.collectInLocalScope {
+//            onLayers(it.mid, it.activeLayers, it.inactiveLayersEncodingIds)
+//        }
 
         subscriber.state.map { it.viewers }.collectInLocalScope {
             onViewerCount(it)
         }
 
-        subscriber.tracks.collectInLocalScope { holder ->
-            Log.d(TAG, "onTrack, ${holder.track}, ${holder.mid}")
-            when (holder.track) {
-                is VideoTrack -> {
-                    onTrack(holder.track as VideoTrack, Optional.ofNullable(holder.mid))
+        subscriber.onRemoteTrack.collectInLocalScope { holder ->
+            Log.d(TAG, "onTrack, ${holder}, ${holder.currentMid}")
+            when (holder) {
+                is RemoteVideoTrack -> {
+                    onTrack(holder, holder.currentMid)
                 }
 
-                is AudioTrack -> {
-                    onTrack(holder.track as AudioTrack, Optional.ofNullable(holder.mid))
+                is RemoteAudioTrack -> {
+                    onTrack(holder, holder.currentMid)
                 }
             }
         }
+
+//        subscriber.currentState.tracks.collectInLocalScope { holder ->
+//            Log.d(TAG, "onTrack, ${holder.track}, ${holder.mid}")
+//            when (holder.track) {
+//                is VideoTrack -> {
+//                    onTrack(holder.track as VideoTrack, Optional.ofNullable(holder.mid))
+//                }
+//
+//                is AudioTrack -> {
+//                    onTrack(holder.track as AudioTrack, Optional.ofNullable(holder.mid))
+//                }
+//            }
+//        }
 
         subscriber.rtcStatsReport.collectInLocalScope { report ->
             // TODO: update the report structure
@@ -146,7 +159,7 @@ class SingleStreamListener(
 
     suspend fun selectLayer(layer: LayerData?): Boolean {
         return try {
-            subscriber.select(layer)
+//            subscriber.select(layer)
             true
         } catch (e: MillicastException) {
             false
@@ -173,14 +186,14 @@ class SingleStreamListener(
         statistics.value = null
     }
 
-    private fun onTrack(track: VideoTrack, p1: Optional<String>?) {
+    private fun onTrack(track: RemoteVideoTrack, p1: String?) {
         Log.d(TAG, "onVideoTrack")
         coroutineScope.launch {
             state.emit(RTSViewerDataStore.State.VideoTrackReady(track))
         }
     }
 
-    private fun onTrack(track: AudioTrack, p1: Optional<String>?) {
+    private fun onTrack(track: RemoteAudioTrack, p1: String?) {
         Log.d(TAG, "onAudioTrack")
         coroutineScope.launch {
             state.emit(RTSViewerDataStore.State.AudioTrackReady(track))
