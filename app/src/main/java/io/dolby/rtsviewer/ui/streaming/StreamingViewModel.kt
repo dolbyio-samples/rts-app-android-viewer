@@ -13,6 +13,8 @@ import io.dolby.rtsviewer.R
 import io.dolby.rtsviewer.preferenceStore.PrefsStore
 import io.dolby.rtsviewer.ui.navigation.Screen
 import io.dolby.rtsviewer.utils.NetworkStatusObserver
+import kotlinx.coroutines.cancel
+import kotlinx.coroutines.cancelChildren
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.MutableStateFlow
@@ -71,7 +73,7 @@ class StreamingViewModel @Inject constructor(
             tickerFlow(5.seconds)
                 .onEach {
                     if (!_uiState.value.connecting && (_uiState.value.error != null || _uiState.value.disconnected)) {
-                        Log.d(TAG, "Reconnect")
+                        Log.d(TAG, "Reconnect: ${this@StreamingViewModel}")
                         connect()
                     }
                 }
@@ -227,6 +229,8 @@ class StreamingViewModel @Inject constructor(
     }
 
     override fun onCleared() {
+        viewModelScope.cancel()
+        viewModelScope.coroutineContext.cancelChildren()
         repository.disconnect()
     }
 
