@@ -282,7 +282,7 @@ class SingleStreamListener(
         Log.d(
             TAG,
             "onLayers: $mid, ${activeLayers.contentToString()}, ${
-            inactiveLayers.contentToString()
+                inactiveLayers.contentToString()
             }"
         )
         val filteredActiveLayers = mutableListOf<LayerData>()
@@ -342,9 +342,8 @@ class SingleStreamListener(
             streamQualityTypes.value = trackLayerDataList
             // Update selected stream quality type everytime the `streamQualityTypes` change
             // It preserves the current selected type if the new list has a stream matching the type `selectedStreamQualityType`
-            val updatedStreamQualityType = streamQualityTypes.value.firstOrNull { type ->
-                selectedStreamQualityType.value::class == type::class
-            } ?: trackLayerDataList.last()
+            val updatedStreamQualityType = if (trackLayerDataList.size > 1)
+                trackLayerDataList[1] else trackLayerDataList.last()
 
             coroutineScope.launch { selectLayer(updatedStreamQualityType.layerData) }
 
