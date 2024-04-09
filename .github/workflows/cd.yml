@@ -3,7 +3,7 @@ name: CD Android build and distribution
 on:
   push:
     branches:
-      - main
+      - FIX_LOW_FPS_ISSUE_WITH_HIGH_AS_DEFAULT
     tags:
       - '*'
 env:
