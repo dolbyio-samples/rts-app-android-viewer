@@ -4,6 +4,7 @@ import android.icu.text.SimpleDateFormat
 import android.util.Log
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
+import com.millicast.video.TextureViewRenderer
 import dagger.hilt.android.lifecycle.HiltViewModel
 import io.dolby.rtscomponentkit.data.RTSViewerDataStore
 import io.dolby.rtscomponentkit.domain.MultiStreamStatisticsData
@@ -73,6 +74,7 @@ class StreamingViewModel @Inject constructor(
                                 )
                             }
                         }
+
                         NetworkStatusObserver.Status.Available -> when (dataStoreState) {
                             RTSViewerDataStore.State.Connecting -> {
                                 Log.d(TAG, "Connecting")
@@ -84,6 +86,7 @@ class StreamingViewModel @Inject constructor(
                                     }
                                 }
                             }
+
                             RTSViewerDataStore.State.Subscribed -> {
                                 Log.d(TAG, "Subscribed")
                                 repository.audioPlaybackStart()
@@ -98,6 +101,7 @@ class StreamingViewModel @Inject constructor(
                                     }
                                 }
                             }
+
                             RTSViewerDataStore.State.StreamActive -> {
                                 Log.d(TAG, "StreamActive")
                                 withContext(dispatcherProvider.main) {
@@ -111,6 +115,7 @@ class StreamingViewModel @Inject constructor(
                                     }
                                 }
                             }
+
                             RTSViewerDataStore.State.StreamInactive -> {
                                 Log.d(TAG, "StreamInactive")
                                 withContext(dispatcherProvider.main) {
@@ -122,6 +127,7 @@ class StreamingViewModel @Inject constructor(
                                     }
                                 }
                             }
+
                             is RTSViewerDataStore.State.AudioTrackReady -> {
                                 if (_uiState.value.audioTrack == null || _uiState.value.audioTrack?.isActive == false) {
                                     Log.d(TAG, "AudioTrackReady")
@@ -135,6 +141,7 @@ class StreamingViewModel @Inject constructor(
                                     }
                                 }
                             }
+
                             is RTSViewerDataStore.State.VideoTrackReady -> {
                                 if (_uiState.value.videoTrack == null || _uiState.value.audioTrack?.isActive == false) {
                                     Log.d(TAG, "VideoTrackReady")
@@ -147,6 +154,7 @@ class StreamingViewModel @Inject constructor(
                                     }
                                 }
                             }
+
                             RTSViewerDataStore.State.Disconnecting,
                             RTSViewerDataStore.State.Disconnected -> {
                                 Log.d(
@@ -164,6 +172,7 @@ class StreamingViewModel @Inject constructor(
                                     }
                                 }
                             }
+
                             is RTSViewerDataStore.State.Error -> {
                                 Log.d(TAG, "Error")
                                 withContext(dispatcherProvider.main) {
@@ -280,8 +289,8 @@ class StreamingViewModel @Inject constructor(
                     )
                 )
             }
-            val currentVideo = statistics.video?.firstOrNull{ it.mid == currentVideoMid }
-            val currentAudio = statistics.audio?.firstOrNull{ it.mid == currentAudioMid }
+            val currentVideo = statistics.video?.firstOrNull { it.mid == currentVideoMid }
+            val currentAudio = statistics.audio?.firstOrNull { it.mid == currentAudioMid }
             currentVideo?.videoResolution?.let {
                 statisticsValuesList.add(Pair(R.string.statisticsScreen_videoResolution, it))
             }
@@ -370,11 +379,38 @@ class StreamingViewModel @Inject constructor(
         }
         return String.format("%.1f %cB", value / 1000.0, ci.current())
     }
+
     fun updateShowSimulcastSettings(show: Boolean) {
         _showSimulcastSettings.update { show }
     }
 
     fun selectStreamQualityType(streamQualityType: RTSViewerDataStore.StreamQualityType) {
-        repository.selectStreamQualityType(streamQualityType)
+        _uiState.update { state ->
+            state.copy(pendingSelectedStreamQualityType = streamQualityType)
+        }
+    }
+
+    fun playVideo(
+        isMain: Boolean,
+        preferredQuality: RTSViewerDataStore.StreamQualityType,
+        view: TextureViewRenderer
+    ) {
+        var streamQualityType: RTSViewerDataStore.StreamQualityType? =
+            _uiState.value.pendingSelectedStreamQualityType
+        streamQualityType?.let { qualityType ->
+            _uiState.update {
+                it.copy(
+                    selectedStreamQualityType = qualityType,
+                    pendingSelectedStreamQualityType = null
+                )
+            }
+        } ?: { streamQualityType = _uiState.value.selectedStreamQualityType }
+        Log.d("=====>", "enableAsync $streamQualityType")
+        _uiState.value.videoTrack?.enableAsync(
+            isMain,
+//            null,
+            (streamQualityType ?: preferredQuality).layerData,
+            videoSink = view
+        )
     }
 }

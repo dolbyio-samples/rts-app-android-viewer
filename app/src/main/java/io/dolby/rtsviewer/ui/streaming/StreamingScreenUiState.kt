@@ -23,5 +23,6 @@ data class StreamingScreenUiState(
     val error: Error? = null,
 
     val streamQualityTypes: List<RTSViewerDataStore.StreamQualityType> = emptyList(),
-    val selectedStreamQualityType: RTSViewerDataStore.StreamQualityType = RTSViewerDataStore.StreamQualityType.Auto
+    val selectedStreamQualityType: RTSViewerDataStore.StreamQualityType = RTSViewerDataStore.StreamQualityType.Auto,
+    val pendingSelectedStreamQualityType: RTSViewerDataStore.StreamQualityType? = null
 )

@@ -18,6 +18,7 @@ import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import com.millicast.Media
 import com.millicast.video.TextureViewRenderer
+import io.dolby.rtscomponentkit.data.RTSViewerDataStore
 import io.dolby.rtscomponentkit.ui.DolbyBackgroundBox
 import io.dolby.rtsviewer.MainActivity
 import io.dolby.rtsviewer.R
@@ -44,6 +45,7 @@ fun StreamingScreen(viewModel: StreamingViewModel = hiltViewModel(), onBack: () 
             uiState.error != null -> {
                 ErrorView(error = uiState.error!!)
             }
+
             uiState.subscribed && uiState.error == null -> {
                 Box(
                     modifier = Modifier.align(Alignment.Center)
@@ -56,12 +58,21 @@ fun StreamingScreen(viewModel: StreamingViewModel = hiltViewModel(), onBack: () 
                         },
                         update = { view ->
                             view.setScalingType(RendererCommon.ScalingType.SCALE_ASPECT_FIT)
-                            uiState.videoTrack?.enableAsync(true, null, videoSink = view)
+                            viewModel.playVideo(
+                                isMain = true,
+                                preferredQuality = RTSViewerDataStore.StreamQualityType.Auto,
+                                view = view
+                            )
+                        },
+                        onRelease = { view ->
+                            uiState.videoTrack?.disableSync(videoSink = view)
+                            view.release()
                         }
                     )
                     SetupVolumeControlAudioStream()
                 }
             }
+
             uiState.disconnected -> {
                 (context.findActivity() as? MainActivity?)?.unregisterVolumeObserverIfExists()
             }

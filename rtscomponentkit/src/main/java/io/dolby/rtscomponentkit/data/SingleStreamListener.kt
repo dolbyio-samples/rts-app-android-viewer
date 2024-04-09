@@ -6,6 +6,7 @@ import com.millicast.clients.stats.RtsReport
 import com.millicast.subscribers.remote.RemoteAudioTrack
 import com.millicast.subscribers.remote.RemoteVideoTrack
 import com.millicast.subscribers.state.LayerData
+import com.millicast.subscribers.state.LayerDataSelection
 import com.millicast.subscribers.state.SubscriberConnectionState
 import com.millicast.utils.MillicastException
 import io.dolby.rtscomponentkit.data.RTSViewerDataStore.Companion.TAG
@@ -80,28 +81,6 @@ class SingleStreamListener(
             Log.d(TAG, "onFrameMetadata: $ssrc, $timestamp, ${data.size}")
         }
 
-        subscriber.currentState.websocketConnectionState
-        subscriber.currentState.peerConnectionState
-
-//        subscriber.activity.collectInLocalScope {
-//            when (it) {
-//                is ActivityStream.Active -> onActive(
-//                    it.streamId,
-//                    it.track,
-//                    it.sourceId
-//                )
-//
-//                is ActivityStream.Inactive -> onInactive(
-//                    it.streamId,
-//                    it.sourceId
-//                )
-//            }
-//        }
-
-//        subscriber.layers.collectInLocalScope {
-//            onLayers(it.mid, it.activeLayers, it.inactiveLayersEncodingIds)
-//        }
-
         subscriber.state.map { it.viewers }.collectInLocalScope {
             onViewerCount(it)
         }
@@ -111,6 +90,11 @@ class SingleStreamListener(
             when (holder) {
                 is RemoteVideoTrack -> {
                     onTrack(holder)
+                    holder.onState.collectInLocalScope { state ->
+                        state.layers?.let { layers ->
+                            onLayers(holder.currentMid, layers.activeLayers)
+                        }
+                    }
                 }
 
                 is RemoteAudioTrack -> {
@@ -118,19 +102,6 @@ class SingleStreamListener(
                 }
             }
         }
-
-//        subscriber.currentState.tracks.collectInLocalScope { holder ->
-//            Log.d(TAG, "onTrack, ${holder.track}, ${holder.mid}")
-//            when (holder.track) {
-//                is VideoTrack -> {
-//                    onTrack(holder.track as VideoTrack, Optional.ofNullable(holder.mid))
-//                }
-//
-//                is AudioTrack -> {
-//                    onTrack(holder.track as AudioTrack, Optional.ofNullable(holder.mid))
-//                }
-//            }
-//        }
 
         subscriber.rtcStatsReport.collectInLocalScope { report ->
             onStatsReport(report)
@@ -155,15 +126,6 @@ class SingleStreamListener(
         Log.d(TAG, "Release Millicast $this $subscriber")
         subscriber.release()
         coroutineScope.cancel()
-    }
-
-    suspend fun selectLayer(layer: LayerData?): Boolean {
-        return try {
-//            subscriber.select(layer)
-            true
-        } catch (e: MillicastException) {
-            false
-        }
     }
 
     private fun onSubscribed() {
@@ -258,17 +220,14 @@ class SingleStreamListener(
 
     private fun onLayers(
         mid: String?,
-        activeLayers: Array<out LayerData>,
-        inactiveLayers: Array<String>
+        activeLayers: List<LayerDataSelection>
     ) {
         Log.d(
             TAG,
-            "onLayers: $mid, ${activeLayers.contentToString()}, ${
-            inactiveLayers.contentToString()
-            }"
+            "onLayers: $mid, ${activeLayers}"
         )
-        val filteredActiveLayers = mutableListOf<LayerData>()
-        var simulcastLayers = activeLayers.filter { it.encodingId.isNotEmpty() }
+        val filteredActiveLayers = mutableListOf<LayerDataSelection>()
+        var simulcastLayers = activeLayers.filter { it.encodingId?.isNotEmpty() == true }
         if (simulcastLayers.isNotEmpty()) {
             val grouped = simulcastLayers.groupBy { it.encodingId }
             grouped.values.forEach { layers ->
@@ -288,14 +247,14 @@ class SingleStreamListener(
             }
         }
 
-        filteredActiveLayers.sortWith(object : Comparator<LayerData> {
-            override fun compare(o1: LayerData?, o2: LayerData?): Int {
+        filteredActiveLayers.sortWith(object : Comparator<LayerDataSelection> {
+            override fun compare(o1: LayerDataSelection?, o2: LayerDataSelection?): Int {
                 if (o1 == null) return -1
                 if (o2 == null) return 1
-                return when (o2.encodingId.lowercase()) {
+                return when (o2.encodingId?.lowercase()) {
                     "h" -> -1
-                    "l" -> if (o1.encodingId.lowercase() == "h") -1 else 1
-                    "m" -> if (o1.encodingId.lowercase() == "h" || o1.encodingId.lowercase() != "l") -1 else 1
+                    "l" -> if (o1.encodingId?.lowercase() == "h") -1 else 1
+                    "m" -> if (o1.encodingId?.lowercase() == "h" || o1.encodingId?.lowercase() != "l") -1 else 1
                     else -> 1
                 }
             }
@@ -327,8 +286,6 @@ class SingleStreamListener(
             val updatedStreamQualityType = streamQualityTypes.value.firstOrNull { type ->
                 selectedStreamQualityType.value::class == type::class
             } ?: trackLayerDataList.last()
-
-            coroutineScope.launch { selectLayer(updatedStreamQualityType.layerData) }
 
             selectedStreamQualityType.value = updatedStreamQualityType
         }

@@ -9,6 +9,7 @@ import com.millicast.subscribers.Credential
 import com.millicast.subscribers.remote.RemoteAudioTrack
 import com.millicast.subscribers.remote.RemoteVideoTrack
 import com.millicast.subscribers.state.LayerData
+import com.millicast.subscribers.state.LayerDataSelection
 import io.dolby.rtscomponentkit.domain.MultiStreamStatisticsData
 import io.dolby.rtscomponentkit.domain.StreamingData
 import io.dolby.rtscomponentkit.utils.DispatcherProvider
@@ -81,6 +82,7 @@ class RTSViewerDataStore constructor(
 
         try {
             subscriber.connect(ConnectionOptions(true))
+            subscriber.subscribe(Option(statsDelayMs = 1_000))
         } catch (e: Exception) {
             Log.e(TAG, "${e.message}")
         }
@@ -121,13 +123,6 @@ class RTSViewerDataStore constructor(
         }
     }
 
-    fun selectStreamQualityType(type: StreamQualityType) = apiScope.launch {
-        val success = listener?.selectLayer(type.layerData) ?: false
-        if (success) {
-            _selectedStreamQualityType.value = type
-        }
-    }
-
     private fun resetStreamQualityTypes() {
         _selectedStreamQualityType.value = StreamQualityType.Auto
         _streamQualityTypes.value = emptyList()
@@ -157,25 +152,25 @@ class RTSViewerDataStore constructor(
             }
         }
 
-        data class High(val layer: LayerData) : StreamQualityType() {
+        data class High(val layer: LayerDataSelection) : StreamQualityType() {
             override fun equals(other: Any?): Boolean {
-                return other is High && other.layer.isEqualTo(this.layer)
+                return other is High && other.layer == this.layer
             }
         }
 
-        data class Medium(val layer: LayerData) : StreamQualityType() {
+        data class Medium(val layer: LayerDataSelection) : StreamQualityType() {
             override fun equals(other: Any?): Boolean {
-                return other is Medium && other.layer.isEqualTo(this.layer)
+                return other is Medium && other.layer == this.layer
             }
         }
 
-        data class Low(val layer: LayerData) : StreamQualityType() {
+        data class Low(val layer: LayerDataSelection) : StreamQualityType() {
             override fun equals(other: Any?): Boolean {
-                return other is Low && other.layer.isEqualTo(this.layer)
+                return other is Low && other.layer == this.layer
             }
         }
 
-        val layerData: LayerData?
+        val layerData: LayerDataSelection?
             get() = when (this) {
                 is Auto -> null
                 is High -> layer
