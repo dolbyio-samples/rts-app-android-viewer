@@ -342,8 +342,8 @@ class SingleStreamListener(
             streamQualityTypes.value = trackLayerDataList
             // Update selected stream quality type everytime the `streamQualityTypes` change
             // It preserves the current selected type if the new list has a stream matching the type `selectedStreamQualityType`
-            val updatedStreamQualityType = if (trackLayerDataList.size > 1)
-                trackLayerDataList[1] else trackLayerDataList.last()
+            val updatedStreamQualityType = if (trackLayerDataList.size > 2)
+                trackLayerDataList[2] else trackLayerDataList.last()
 
             coroutineScope.launch { selectLayer(updatedStreamQualityType.layerData) }
 
