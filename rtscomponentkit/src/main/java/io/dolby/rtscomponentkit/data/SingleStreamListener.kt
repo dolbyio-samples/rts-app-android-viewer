@@ -321,20 +321,20 @@ class SingleStreamListener(
 
         val trackLayerDataList = when {
             filteredActiveLayers.count() == 2 -> listOf(
-                //RTSViewerDataStore.StreamQualityType.Auto,
+                RTSViewerDataStore.StreamQualityType.Auto,
                 RTSViewerDataStore.StreamQualityType.High(filteredActiveLayers[0]),
                 RTSViewerDataStore.StreamQualityType.Low(filteredActiveLayers[1])
             )
 
             filteredActiveLayers.count() >= 3 -> listOf(
-                //RTSViewerDataStore.StreamQualityType.Auto,
+                RTSViewerDataStore.StreamQualityType.Auto,
                 RTSViewerDataStore.StreamQualityType.High(filteredActiveLayers[0]),
                 RTSViewerDataStore.StreamQualityType.Medium(filteredActiveLayers[1]),
                 RTSViewerDataStore.StreamQualityType.Low(filteredActiveLayers[2])
             )
 
             else -> listOf(
-                //RTSViewerDataStore.StreamQualityType.Auto
+                RTSViewerDataStore.StreamQualityType.Auto
             )
         }
 
@@ -342,8 +342,9 @@ class SingleStreamListener(
             streamQualityTypes.value = trackLayerDataList
             // Update selected stream quality type everytime the `streamQualityTypes` change
             // It preserves the current selected type if the new list has a stream matching the type `selectedStreamQualityType`
-            val updatedStreamQualityType = if (trackLayerDataList.size > 1)
-                trackLayerDataList[1] else trackLayerDataList.last()
+            val updatedStreamQualityType = streamQualityTypes.value.firstOrNull { type ->
+                selectedStreamQualityType.value::class == type::class
+            } ?: trackLayerDataList.last()
 
             coroutineScope.launch { selectLayer(updatedStreamQualityType.layerData) }
 
