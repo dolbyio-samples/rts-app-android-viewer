@@ -81,7 +81,6 @@ class RTSViewerDataStore constructor(
 
         try {
             subscriber.connect(ConnectionOptions(true))
-            subscriber.subscribe(Option(statsDelayMs = 1_000))
         } catch (e: Exception) {
             Log.e(TAG, "${e.message}")
         }
