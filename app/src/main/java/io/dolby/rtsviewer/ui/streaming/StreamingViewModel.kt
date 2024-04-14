@@ -201,7 +201,7 @@ class StreamingViewModel @Inject constructor(
                     withContext(dispatcherProvider.main) {
                         _uiState.update { state ->
                             state.copy(
-                                streamQualityTypes = it
+                                streamQualityTypes = it[state.videoTrack?.currentMid] ?: emptyList()
                             )
                         }
                     }

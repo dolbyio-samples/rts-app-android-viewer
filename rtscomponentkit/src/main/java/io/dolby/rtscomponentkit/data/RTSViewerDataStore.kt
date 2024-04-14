@@ -6,6 +6,7 @@ import com.millicast.Media
 import com.millicast.clients.ConnectionOptions
 import com.millicast.devices.playback.AudioPlayback
 import com.millicast.subscribers.Credential
+import com.millicast.subscribers.Option
 import com.millicast.subscribers.remote.RemoteAudioTrack
 import com.millicast.subscribers.remote.RemoteVideoTrack
 import com.millicast.subscribers.state.LayerData
@@ -21,7 +22,6 @@ import kotlinx.coroutines.flow.MutableSharedFlow
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.asSharedFlow
 import kotlinx.coroutines.flow.asStateFlow
-import kotlinx.coroutines.launch
 
 class RTSViewerDataStore constructor(
     millicastSdk: MillicastSdk,
@@ -38,9 +38,9 @@ class RTSViewerDataStore constructor(
     private var media: Media
     private var audioPlayback: List<AudioPlayback>? = null
 
-    private var _streamQualityTypes: MutableStateFlow<List<StreamQualityType>> =
-        MutableStateFlow(emptyList())
-    val streamQualityTypes: Flow<List<StreamQualityType>> = _streamQualityTypes.asStateFlow()
+    private var _streamQualityTypes: MutableStateFlow<Map<String?, List<StreamQualityType>>> =
+        MutableStateFlow(emptyMap())
+    val streamQualityTypes: Flow<Map<String?, List<StreamQualityType>>> = _streamQualityTypes.asStateFlow()
 
     private var _selectedStreamQualityType: MutableStateFlow<StreamQualityType> =
         MutableStateFlow(StreamQualityType.Auto)
@@ -125,7 +125,7 @@ class RTSViewerDataStore constructor(
 
     private fun resetStreamQualityTypes() {
         _selectedStreamQualityType.value = StreamQualityType.Auto
-        _streamQualityTypes.value = emptyList()
+        _streamQualityTypes.value = emptyMap()
     }
 
     sealed class SubscriptionError(open val reason: String) {

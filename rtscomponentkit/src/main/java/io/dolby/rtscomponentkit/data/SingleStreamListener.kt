@@ -5,10 +5,8 @@ import com.millicast.Subscriber
 import com.millicast.clients.stats.RtsReport
 import com.millicast.subscribers.remote.RemoteAudioTrack
 import com.millicast.subscribers.remote.RemoteVideoTrack
-import com.millicast.subscribers.state.LayerData
 import com.millicast.subscribers.state.LayerDataSelection
 import com.millicast.subscribers.state.SubscriberConnectionState
-import com.millicast.utils.MillicastException
 import io.dolby.rtscomponentkit.data.RTSViewerDataStore.Companion.TAG
 import io.dolby.rtscomponentkit.domain.MultiStreamStatisticsData
 import kotlinx.coroutines.CoroutineScope
@@ -26,7 +24,7 @@ class SingleStreamListener(
     private val subscriber: Subscriber,
     private val state: MutableSharedFlow<RTSViewerDataStore.State>,
     private val statistics: MutableStateFlow<MultiStreamStatisticsData?>,
-    private val streamQualityTypes: MutableStateFlow<List<RTSViewerDataStore.StreamQualityType>>,
+    private val streamQualityTypes: MutableStateFlow<Map<String?, List<RTSViewerDataStore.StreamQualityType>>>,
     private val selectedStreamQualityType: MutableStateFlow<RTSViewerDataStore.StreamQualityType>
 ) {
     private lateinit var coroutineScope: CoroutineScope
@@ -44,7 +42,6 @@ class SingleStreamListener(
         subscriber.state.map { it.connectionState }.distinctUntilChanged().collectInLocalScope { state ->
             when (state) {
                 SubscriberConnectionState.Connected -> {
-                    onConnected()
                 }
 
                 SubscriberConnectionState.Connecting -> {
@@ -55,9 +52,9 @@ class SingleStreamListener(
                     onDisconnected()
                 }
 
-                    is SubscriberConnectionState.DisconnectedError -> {
-                        onConnectionError("Disconnected")
-                    }
+                is SubscriberConnectionState.DisconnectedError -> {
+                    onConnectionError("Disconnected")
+                }
 
                 SubscriberConnectionState.Disconnecting -> {
                     // nothing
@@ -90,9 +87,11 @@ class SingleStreamListener(
             when (holder) {
                 is RemoteVideoTrack -> {
                     onTrack(holder)
-                    holder.onState.collectInLocalScope { state ->
-                        state.layers?.let { layers ->
-                            onLayers(holder.currentMid, layers.activeLayers)
+                    if (holder.isActive) {
+                        holder.onState.collectInLocalScope { state ->
+                            state.layers?.let { layers ->
+                                onLayers(holder.currentMid, layers.activeLayers)
+                            }
                         }
                     }
                 }
@@ -171,26 +170,6 @@ class SingleStreamListener(
         Log.d("Subscriber", "onViewerCount $p0")
     }
 
-    private suspend fun onConnected() {
-        Log.d(TAG, "onConnected")
-        subscriber.subscribe(Option(statsDelayMs = 1_000))
-    }
-
-    private fun onActive(p0: String?, p1: Array<out String>, p2: String?) {
-        Log.d(TAG, "onActive")
-        coroutineScope.launch {
-            state.emit(RTSViewerDataStore.State.StreamActive)
-        }
-    }
-
-    private fun onInactive(p0: String?, p1: String?) {
-        Log.d(TAG, "onInactive")
-        onConnectionError("Stream Inactive")
-        coroutineScope.launch {
-            state.emit(RTSViewerDataStore.State.StreamInactive)
-        }
-    }
-
     private fun onStopped() {
         Log.d(TAG, "onStopped")
         coroutineScope.launch {
@@ -205,9 +184,7 @@ class SingleStreamListener(
         coroutineScope.launch {
             state.emit(
                 RTSViewerDataStore.State.Error(
-                    RTSViewerDataStore.SubscriptionError.ConnectError(
-                        reason
-                    )
+                    RTSViewerDataStore.SubscriptionError.ConnectError(reason)
                 )
             )
         }
@@ -222,10 +199,7 @@ class SingleStreamListener(
         mid: String?,
         activeLayers: List<LayerDataSelection>
     ) {
-        Log.d(
-            TAG,
-            "onLayers: $mid, ${activeLayers}"
-        )
+        Log.d(TAG, "onLayers: $mid, $activeLayers")
         val filteredActiveLayers = mutableListOf<LayerDataSelection>()
         var simulcastLayers = activeLayers.filter { it.encodingId?.isNotEmpty() == true }
         if (simulcastLayers.isNotEmpty()) {
@@ -279,11 +253,13 @@ class SingleStreamListener(
             )
         }
 
-        if (streamQualityTypes.value != trackLayerDataList) {
-            streamQualityTypes.value = trackLayerDataList
+        if (streamQualityTypes.value[mid] != trackLayerDataList) {
+            val mutable = streamQualityTypes.value.toMutableMap()
+            mutable[mid] = trackLayerDataList
+            streamQualityTypes.value = mutable
             // Update selected stream quality type everytime the `streamQualityTypes` change
             // It preserves the current selected type if the new list has a stream matching the type `selectedStreamQualityType`
-            val updatedStreamQualityType = streamQualityTypes.value.firstOrNull { type ->
+            val updatedStreamQualityType = trackLayerDataList.firstOrNull { type ->
                 selectedStreamQualityType.value::class == type::class
             } ?: trackLayerDataList.last()
 
