@@ -5,6 +5,7 @@ import com.millicast.Subscriber
 import com.millicast.clients.stats.RtsReport
 import com.millicast.devices.track.AudioTrack
 import com.millicast.devices.track.VideoTrack
+import com.millicast.subscribers.Option
 import com.millicast.subscribers.state.ActivityStream
 import com.millicast.subscribers.state.LayerData
 import com.millicast.subscribers.state.SubscriberConnectionState
@@ -231,6 +232,7 @@ class SingleStreamListener(
 
     private suspend fun onConnected() {
         Log.d(TAG, "onConnected")
+        subscriber.subscribe(Option(statsDelayMs = 1_000))
     }
 
     private fun onActive(p0: String?, p1: Array<out String>, p2: String?) {

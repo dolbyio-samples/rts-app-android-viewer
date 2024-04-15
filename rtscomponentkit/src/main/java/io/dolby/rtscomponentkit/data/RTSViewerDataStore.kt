@@ -8,7 +8,6 @@ import com.millicast.devices.playback.AudioPlayback
 import com.millicast.devices.track.AudioTrack
 import com.millicast.devices.track.VideoTrack
 import com.millicast.subscribers.Credential
-import com.millicast.subscribers.Option
 import com.millicast.subscribers.state.LayerData
 import io.dolby.rtscomponentkit.domain.StreamingData
 import io.dolby.rtscomponentkit.utils.DispatcherProvider
@@ -81,7 +80,6 @@ class RTSViewerDataStore constructor(
 
         try {
             subscriber.connect(ConnectionOptions(true))
-            subscriber.subscribe(Option(statsDelayMs = 1_000))
         } catch (e: Exception) {
             Log.e(TAG, "${e.message}")
         }
