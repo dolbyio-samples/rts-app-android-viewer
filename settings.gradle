@@ -6,11 +6,11 @@ pluginManagement {
     }
 }
 
-def prop = { String key ->
-    Properties properties = new Properties()
-    properties.load(new File(rootDir.absolutePath + "/local.properties").newDataInputStream())
-    properties.containsKey(key) ? properties[key] as String : null
-}
+//def prop = { String key ->
+//    Properties properties = new Properties()
+//    properties.load(new File(rootDir.absolutePath + "/local.properties").newDataInputStream())
+//    properties.containsKey(key) ? properties[key] as String : null
+//}
 
 //def internalRepo = prop("DOLBY_INTERNAL_MAVEN_URL")
 //def internalUser = prop("DOLBY_INTERNAL_MAVEN_USER")
