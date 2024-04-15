@@ -100,8 +100,8 @@ fun StreamingScreen(viewModel: StreamingViewModel = hiltViewModel(), onBack: () 
             } else if (showSettings.value) {
                 viewModel.settingsVisibility(false)
             } else {
-                viewModel.disconnect()
                 onBack.invoke()
+                viewModel.clear()
             }
         }
     }

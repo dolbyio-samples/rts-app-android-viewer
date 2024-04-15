@@ -94,10 +94,9 @@ class RTSViewerDataStore constructor(
         apiUrl = "https://director.millicast.com/api/director/subscribe"
     )
 
-    fun disconnect() = apiScope.launch {
-        val previousValue = listener
+    fun disconnect() {
+        listener?.release()
         listener = null
-        previousValue?.stopSubscribeAndDisconnect()
 
         resetStreamQualityTypes()
     }
