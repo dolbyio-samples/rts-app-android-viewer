@@ -251,7 +251,7 @@ class SingleStreamListener(
         Log.d(
             TAG,
             "onLayers: $mid, ${activeLayers.contentToString()}, ${
-                inactiveLayers.contentToString()
+            inactiveLayers.contentToString()
             }"
         )
         val filteredActiveLayers = mutableListOf<LayerData>()
