@@ -14,11 +14,11 @@ import io.dolby.rtscomponentkit.data.RTSViewerDataStore.Companion.TAG
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.cancel
-import kotlinx.coroutines.cancelChildren
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.FlowCollector
 import kotlinx.coroutines.flow.MutableSharedFlow
 import kotlinx.coroutines.flow.MutableStateFlow
+import kotlinx.coroutines.flow.distinctUntilChanged
 import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.launch
 import java.util.Optional
@@ -31,7 +31,6 @@ class SingleStreamListener(
     private val selectedStreamQualityType: MutableStateFlow<RTSViewerDataStore.StreamQualityType>
 ) {
     private lateinit var coroutineScope: CoroutineScope
-    private var disconnected = false
 
     private fun <T> Flow<T>.collectInLocalScope(
         collector: FlowCollector<T>
@@ -40,43 +39,41 @@ class SingleStreamListener(
     }
 
     fun start() {
+        Log.d(TAG, "Listener start $this")
         coroutineScope = CoroutineScope(Dispatchers.IO)
 
-        subscriber.state.map { it.connectionState }.collectInLocalScope { state ->
-            if (!disconnected) {
-                Log.d(TAG, "Listener start")
-                when (state) {
-                    SubscriberConnectionState.Connected -> {
-                        onConnected()
-                    }
+        subscriber.state.map { it.connectionState }.distinctUntilChanged().collectInLocalScope { state ->
+            when (state) {
+                SubscriberConnectionState.Connected -> {
+                    onConnected()
+                }
 
-                    SubscriberConnectionState.Connecting -> {
-                        // nothing
-                    }
+                SubscriberConnectionState.Connecting -> {
+                    // nothing
+                }
 
-                    SubscriberConnectionState.Disconnected -> {
-                        onDisconnected()
-                    }
+                SubscriberConnectionState.Disconnected -> {
+                    onDisconnected()
+                }
 
-                    is SubscriberConnectionState.DisconnectedError -> {
-                        onConnectionError(state.reason)
-                    }
+                is SubscriberConnectionState.DisconnectedError -> {
+                    onConnectionError(state.reason)
+                }
 
-                    SubscriberConnectionState.Disconnecting -> {
-                        // nothing
-                    }
+                SubscriberConnectionState.Disconnecting -> {
+                    // nothing
+                }
 
-                    is SubscriberConnectionState.Error -> {
-                        onSubscribedError(state.reason)
-                    }
+                is SubscriberConnectionState.Error -> {
+                    onSubscribedError(state.reason)
+                }
 
-                    SubscriberConnectionState.Stopped -> {
-                        onStopped()
-                    }
+                SubscriberConnectionState.Stopped -> {
+                    onStopped()
+                }
 
-                    SubscriberConnectionState.Subscribed -> {
-                        onSubscribed()
-                    }
+                SubscriberConnectionState.Subscribed -> {
+                    onSubscribed()
                 }
             }
         }
@@ -141,41 +138,10 @@ class SingleStreamListener(
         // nothing
     }
 
-    suspend fun stopSubscribeAndDisconnect(): Boolean {
-        // Stop subscribing to Millicast.
-        disconnected = true
-        var success = true
-        try {
-            subscriber.unsubscribe()
-        } catch (e: Exception) {
-            success = false
-            Log.d(TAG, "${e.message}")
-        }
-
-        // Disconnect from Millicast.
-        Log.d(TAG, "release Millicast")
-        subscriber.disconnect()
-        enableStatsSub(0)
-        state.emit(RTSViewerDataStore.State.Disconnected)
+    fun release() {
+        Log.d(TAG, "Release Millicast $this $subscriber")
+        subscriber.release()
         coroutineScope.cancel()
-        coroutineScope.coroutineContext.cancelChildren()
-        return success
-    }
-
-    private suspend fun enableStatsSub(enable: Int) {
-        subscriber.let {
-            try {
-                if (enable > 0) {
-                    it.enableStats(true)
-                    Log.d(TAG, "YES. Interval: $enable ms.")
-                } else {
-                    it.enableStats(false)
-                    Log.d(TAG, "NO.")
-                }
-            } catch (e: IllegalStateException) {
-                Log.e(TAG, e.message ?: e.toString())
-            }
-        }
     }
 
     suspend fun selectLayer(layer: LayerData?): Boolean {
@@ -244,6 +210,7 @@ class SingleStreamListener(
 
     private fun onInactive(p0: String?, p1: String?) {
         Log.d(TAG, "onInactive")
+        onConnectionError("Stream Inactive")
         coroutineScope.launch {
             state.emit(RTSViewerDataStore.State.StreamInactive)
         }
@@ -258,7 +225,7 @@ class SingleStreamListener(
     }
 
     private fun onConnectionError(reason: String) {
-        Log.d(TAG, "onConnectionError: $reason")
+        Log.d(TAG, "onConnectionError: $this $subscriber")
         statistics.value = null
         coroutineScope.launch {
             state.emit(
@@ -284,7 +251,7 @@ class SingleStreamListener(
         Log.d(
             TAG,
             "onLayers: $mid, ${activeLayers.contentToString()}, ${
-            inactiveLayers.contentToString()
+                inactiveLayers.contentToString()
             }"
         )
         val filteredActiveLayers = mutableListOf<LayerData>()
