@@ -60,7 +60,6 @@ fun StreamingScreen(viewModel: StreamingViewModel = hiltViewModel(), onBack: () 
                             view.setScalingType(RendererCommon.ScalingType.SCALE_ASPECT_FIT)
                             viewModel.playVideo(
                                 isMain = true,
-                                preferredQuality = RTSViewerDataStore.StreamQualityType.Auto,
                                 view = view
                             )
                         },

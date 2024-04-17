@@ -392,11 +392,11 @@ class StreamingViewModel @Inject constructor(
 
     fun playVideo(
         isMain: Boolean,
-        preferredQuality: RTSViewerDataStore.StreamQualityType,
-        view: TextureViewRenderer
+        view: TextureViewRenderer,
+        preferredQuality: RTSViewerDataStore.StreamQualityType? = null
     ) {
         var streamQualityType: RTSViewerDataStore.StreamQualityType? =
-            _uiState.value.pendingSelectedStreamQualityType
+            _uiState.value.pendingSelectedStreamQualityType ?: _uiState.value.selectedStreamQualityType
         streamQualityType?.let { qualityType ->
             _uiState.update {
                 it.copy(
@@ -405,11 +405,11 @@ class StreamingViewModel @Inject constructor(
                 )
             }
         } ?: { streamQualityType = _uiState.value.selectedStreamQualityType }
-        Log.d("=====>", "enableAsync $streamQualityType")
+        val qualityToApply = (streamQualityType ?: preferredQuality ?: RTSViewerDataStore.StreamQualityType.Auto).layerData
+        Log.d(TAG, "playVideo $qualityToApply $streamQualityType $preferredQuality")
         _uiState.value.videoTrack?.enableAsync(
             isMain,
-//            null,
-            (streamQualityType ?: preferredQuality).layerData,
+            qualityToApply,
             videoSink = view
         )
     }

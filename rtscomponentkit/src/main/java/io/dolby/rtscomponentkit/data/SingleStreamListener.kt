@@ -39,41 +39,42 @@ class SingleStreamListener(
         Log.d(TAG, "Listener start $this")
         coroutineScope = CoroutineScope(Dispatchers.IO)
 
-        subscriber.state.map { it.connectionState }.distinctUntilChanged().collectInLocalScope { state ->
-            when (state) {
-                SubscriberConnectionState.Connected -> {
-                    onConnected()
-                }
+        subscriber.state.map { it.connectionState }.distinctUntilChanged()
+            .collectInLocalScope { state ->
+                when (state) {
+                    SubscriberConnectionState.Connected -> {
+                        onConnected()
+                    }
 
-                SubscriberConnectionState.Connecting -> {
-                    // nothing
-                }
+                    SubscriberConnectionState.Connecting -> {
+                        // nothing
+                    }
 
-                SubscriberConnectionState.Disconnected -> {
-                    onDisconnected()
-                }
+                    SubscriberConnectionState.Disconnected -> {
+                        onDisconnected()
+                    }
 
-                is SubscriberConnectionState.DisconnectedError -> {
-                    onConnectionError("Disconnected")
-                }
+                    is SubscriberConnectionState.DisconnectedError -> {
+                        onConnectionError("Disconnected")
+                    }
 
-                SubscriberConnectionState.Disconnecting -> {
-                    // nothing
-                }
+                    SubscriberConnectionState.Disconnecting -> {
+                        // nothing
+                    }
 
-                is SubscriberConnectionState.Error -> {
-                    onSubscribedError(state.reason)
-                }
+                    is SubscriberConnectionState.Error -> {
+                        onSubscribedError(state.reason)
+                    }
 
-                SubscriberConnectionState.Stopped -> {
-                    onStopped()
-                }
+                    SubscriberConnectionState.Stopped -> {
+                        onStopped()
+                    }
 
-                SubscriberConnectionState.Subscribed -> {
-                    onSubscribed()
+                    SubscriberConnectionState.Subscribed -> {
+                        onSubscribed()
+                    }
                 }
             }
-        }
 
         subscriber.onTransformableFrame = { ssrc: Int, timestamp: Int, data: ByteArray ->
             Log.d(TAG, "onFrameMetadata: $ssrc, $timestamp, ${data.size}")
@@ -88,11 +89,10 @@ class SingleStreamListener(
             when (holder) {
                 is RemoteVideoTrack -> {
                     onTrack(holder)
-                    if (holder.isActive) {
-                        holder.onState.collectInLocalScope { state ->
-                            state.layers?.let { layers ->
-                                onLayers(holder.currentMid, layers.activeLayers)
-                            }
+                    Log.d(TAG, "onVideoTrack ${holder.currentMid}, ${holder.isActive}")
+                    holder.onState.distinctUntilChanged().collectInLocalScope { state ->
+                        state.layers?.let { layers ->
+                            onLayers(holder.currentMid, layers.activeLayers)
                         }
                     }
                 }

@@ -158,19 +158,19 @@ class RTSViewerDataStore constructor(
 
         data class High(val layer: LayerDataSelection) : StreamQualityType() {
             override fun equals(other: Any?): Boolean {
-                return other is High && other.layer == this.layer
+                return other is High && other.layer.encodingId == this.layer.encodingId
             }
         }
 
         data class Medium(val layer: LayerDataSelection) : StreamQualityType() {
             override fun equals(other: Any?): Boolean {
-                return other is Medium && other.layer == this.layer
+                return other is Medium && other.layer.encodingId == this.layer.encodingId
             }
         }
 
         data class Low(val layer: LayerDataSelection) : StreamQualityType() {
             override fun equals(other: Any?): Boolean {
-                return other is Low && other.layer == this.layer
+                return other is Low && other.layer.encodingId == this.layer.encodingId
             }
         }
 
