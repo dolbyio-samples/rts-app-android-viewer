@@ -42,6 +42,7 @@ class SingleStreamListener(
         subscriber.state.map { it.connectionState }.distinctUntilChanged().collectInLocalScope { state ->
             when (state) {
                 SubscriberConnectionState.Connected -> {
+                    onConnected()
                 }
 
                 SubscriberConnectionState.Connecting -> {
@@ -116,6 +117,10 @@ class SingleStreamListener(
     }
 
     fun connected(): Boolean = subscriber.isSubscribed
+
+    private suspend fun onConnected() {
+        subscriber.subscribe()
+    }
 
     private fun onDisconnected() {
         // nothing

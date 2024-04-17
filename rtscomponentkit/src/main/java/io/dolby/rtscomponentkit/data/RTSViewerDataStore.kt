@@ -54,9 +54,9 @@ class RTSViewerDataStore constructor(
         audioPlayback = media.audioPlayback
     }
 
-    suspend fun connect(streamName: String, accountId: String) {
+    suspend fun connect(streamName: String, accountId: String): Boolean {
         if (listener?.connected() == true) {
-            return
+            return true
         }
 
         _state.emit(State.Connecting)
@@ -82,10 +82,14 @@ class RTSViewerDataStore constructor(
 
         try {
             subscriber.connect(ConnectionOptions(true))
-            subscriber.subscribe(Option(statsDelayMs = 1_000))
         } catch (e: Exception) {
             Log.e(TAG, "${e.message}")
+            return false
+        } catch (e: Throwable) {
+            e.printStackTrace()
+            return false
         }
+        return true
     }
 
     private fun credential(
