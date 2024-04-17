@@ -6,6 +6,7 @@ import com.millicast.clients.stats.RtsReport
 import com.millicast.devices.track.AudioTrack
 import com.millicast.devices.track.TrackType
 import com.millicast.devices.track.VideoTrack
+import com.millicast.subscribers.Option
 import com.millicast.subscribers.ProjectionData
 import com.millicast.subscribers.state.ActivityStream
 import com.millicast.subscribers.state.LayerData
@@ -27,7 +28,8 @@ import kotlinx.coroutines.launch
 
 class MultiStreamListener(
     private val data: MutableStateFlow<MultiStreamingData>,
-    private var subscriber: Subscriber
+    private var subscriber: Subscriber,
+    private val options: Option
 ) {
     private lateinit var coroutineScope: CoroutineScope
 
@@ -137,11 +139,12 @@ class MultiStreamListener(
         subscriber.release()
     }
 
-    private fun onConnected() {
+    private suspend fun onConnected() {
         Log.d(
             TAG,
             "onConnected, this: $this, thread: ${Thread.currentThread().id}"
         )
+        subscriber.subscribe(options = options)
     }
 
     private fun onDisconnected() {
