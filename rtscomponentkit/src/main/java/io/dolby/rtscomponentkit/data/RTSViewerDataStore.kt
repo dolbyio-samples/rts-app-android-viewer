@@ -6,7 +6,6 @@ import com.millicast.Media
 import com.millicast.clients.ConnectionOptions
 import com.millicast.devices.playback.AudioPlayback
 import com.millicast.subscribers.Credential
-import com.millicast.subscribers.Option
 import com.millicast.subscribers.remote.RemoteAudioTrack
 import com.millicast.subscribers.remote.RemoteVideoTrack
 import com.millicast.subscribers.state.LayerData

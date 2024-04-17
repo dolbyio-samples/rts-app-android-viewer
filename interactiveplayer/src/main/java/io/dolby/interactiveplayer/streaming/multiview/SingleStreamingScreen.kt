@@ -33,7 +33,6 @@ import io.dolby.interactiveplayer.rts.ui.DolbyBackgroundBox
 import io.dolby.interactiveplayer.rts.ui.LiveIndicator
 import io.dolby.interactiveplayer.rts.ui.TopAppBar
 import io.dolby.interactiveplayer.streaming.StatisticsView
-import io.dolby.rtscomponentkit.data.multistream.VideoQuality
 import io.dolby.rtscomponentkit.data.multistream.prefs.MultiviewLayout
 import io.dolby.rtscomponentkit.domain.StreamingData
 import io.dolby.rtsviewer.uikit.button.StyledIconButton
@@ -193,11 +192,13 @@ private fun VideoView(
                 view.setScalingType(RendererCommon.ScalingType.SCALE_ASPECT_FIT)
                 uiState.videoTracks[page].disableSync()
                 val isSelected =
-                uiState.selectedVideoTrackId == uiState.videoTracks[page].sourceId
+                    uiState.selectedVideoTrackId == uiState.videoTracks[page].sourceId
 
-                uiState.videoTracks[page].enableAsync(layer = null,
+                uiState.videoTracks[page].enableAsync(
+                    layer = null,
 //                if (isSelected) uiState.connectOptions?.primaryVideoQuality ?: VideoQuality.AUTO else VideoQuality.LOW,
-                    videoSink = view)
+                    videoSink = view
+                )
             },
             onRelease = { view ->
                 uiState.videoTracks[page].disableSync(videoSink = view)

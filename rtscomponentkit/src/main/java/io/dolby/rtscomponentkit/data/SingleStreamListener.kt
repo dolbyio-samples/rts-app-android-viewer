@@ -85,7 +85,7 @@ class SingleStreamListener(
         }
 
         subscriber.onRemoteTrack.collectInLocalScope { holder ->
-            Log.d(TAG, "onTrack, ${holder}, ${holder.currentMid}")
+            Log.d(TAG, "onTrack, $holder, ${holder.currentMid}")
             when (holder) {
                 is RemoteVideoTrack -> {
                     onTrack(holder)

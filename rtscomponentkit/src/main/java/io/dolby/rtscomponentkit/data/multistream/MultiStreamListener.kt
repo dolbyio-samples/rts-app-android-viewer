@@ -178,18 +178,21 @@ class MultiStreamListener(
     private fun onVideoTrack(videoTrack: RemoteVideoTrack) {
         Log.d(TAG, "onVideoTrack: $videoTrack")
         data.update { data ->
-            data.copy(videoTracks = subscriber.currentState.tracks
-                .filter { it is RemoteVideoTrack && it.isActive }
-                .map { it as RemoteVideoTrack })
+            data.copy(
+                videoTracks = subscriber.currentState.tracks
+                    .filter { it is RemoteVideoTrack && it.isActive }
+                    .map { it as RemoteVideoTrack }
+            )
         }
     }
 
     private fun onAudioTrack(audioTrack: RemoteAudioTrack) {
         Log.d(TAG, "onAudioTrack: $audioTrack")
         data.update { data ->
-            data.copy(audioTracks = subscriber.currentState.tracks
-                .filter { it is RemoteAudioTrack && it.isActive }
-                .map { it as RemoteAudioTrack }
+            data.copy(
+                audioTracks = subscriber.currentState.tracks
+                    .filter { it is RemoteAudioTrack && it.isActive }
+                    .map { it as RemoteAudioTrack }
             )
         }
     }
@@ -209,7 +212,7 @@ class MultiStreamListener(
         Log.d(
             TAG,
             "onLayers: $mid, ${activeLayers.contentToString()}, ${
-                inactiveLayers.contentToString()
+            inactiveLayers.contentToString()
             }"
         )
         val filteredActiveLayers = mutableListOf<LayerData>()

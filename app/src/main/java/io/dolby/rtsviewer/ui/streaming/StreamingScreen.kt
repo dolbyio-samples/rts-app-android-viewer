@@ -18,7 +18,6 @@ import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import com.millicast.Media
 import com.millicast.video.TextureViewRenderer
-import io.dolby.rtscomponentkit.data.RTSViewerDataStore
 import io.dolby.rtscomponentkit.ui.DolbyBackgroundBox
 import io.dolby.rtsviewer.MainActivity
 import io.dolby.rtsviewer.R

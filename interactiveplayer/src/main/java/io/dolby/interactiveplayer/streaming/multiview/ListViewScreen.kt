@@ -45,7 +45,6 @@ import io.dolby.interactiveplayer.rts.ui.LiveIndicator
 import io.dolby.interactiveplayer.rts.ui.TopAppBar
 import io.dolby.interactiveplayer.streaming.ErrorView
 import io.dolby.rtscomponentkit.data.multistream.VideoQuality
-import io.dolby.rtscomponentkit.domain.MultiStreamingData
 import io.dolby.rtsviewer.uikit.text.Text
 import org.webrtc.RendererCommon
 
