@@ -11,6 +11,7 @@ import com.millicast.subscribers.ProjectionData
 import com.millicast.subscribers.state.ActivityStream
 import com.millicast.subscribers.state.LayerData
 import com.millicast.subscribers.state.SubscriberConnectionState
+import com.millicast.utils.MillicastException
 import io.dolby.rtscomponentkit.domain.MultiStreamStatisticsData
 import io.dolby.rtscomponentkit.domain.MultiStreamingData
 import kotlinx.coroutines.CoroutineScope
@@ -40,7 +41,8 @@ class MultiStreamListener(
         Log.d(TAG, "Listener start")
         coroutineScope = CoroutineScope(Dispatchers.IO)
 
-        subscriber.state.map { it.connectionState }.collectInLocalScope { state ->
+        subscriber.state.map { it.connectionState }.distinctUntilChanged().collectInLocalScope { state ->
+            Log.d(TAG, "New state: $state")
             when (state) {
                 SubscriberConnectionState.Connected -> {
                     onConnected()
@@ -144,7 +146,11 @@ class MultiStreamListener(
             TAG,
             "onConnected, this: $this, thread: ${Thread.currentThread().id}"
         )
-        subscriber.subscribe(options = options)
+        try {
+            subscriber.subscribe(options = options)
+        } catch (e: MillicastException) {
+            e.printStackTrace()
+        }
     }
 
     private fun onDisconnected() {
