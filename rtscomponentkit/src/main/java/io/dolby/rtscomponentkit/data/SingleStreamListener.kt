@@ -41,6 +41,7 @@ class SingleStreamListener(
 
         subscriber.state.map { it.connectionState }.distinctUntilChanged()
             .collectInLocalScope { state ->
+                Log.d(TAG, "New state: $state")
                 when (state) {
                     SubscriberConnectionState.Connected -> {
                         onConnected()
