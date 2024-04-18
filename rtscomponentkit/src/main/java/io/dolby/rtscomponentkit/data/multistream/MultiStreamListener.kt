@@ -169,9 +169,6 @@ class MultiStreamListener(
 
     private fun onSignalingError(p0: String?) {
         Log.d(TAG, "onSignalingError: $p0")
-        data.update {
-            it.populateError(error = p0 ?: "Signaling error")
-        }
     }
 
     private fun onStatsReport(p0: RtsReport?) {
