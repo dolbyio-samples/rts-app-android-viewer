@@ -91,10 +91,18 @@ class SingleStreamListener(
                 is RemoteVideoTrack -> {
                     onTrack(holder)
                     Log.d(TAG, "onVideoTrack ${holder.currentMid}, ${holder.isActive}")
-                    holder.onState.distinctUntilChanged().collectInLocalScope { state ->
-                        state.layers?.let { layers ->
+                    holder.onState.distinctUntilChanged().collectInLocalScope { trackState ->
+                        Log.d(TAG, "onVideoTrack state ${trackState.mid}, ${trackState.isActive}")
+                        trackState.layers?.let { layers ->
                             onLayers(holder.currentMid, layers.activeLayers)
                         }
+                        state.emit(
+                            if (trackState.isActive) {
+                                RTSViewerDataStore.State.StreamActive
+                            } else {
+                                RTSViewerDataStore.State.StreamInactive
+                            }
+                        )
                     }
                 }
 

@@ -143,7 +143,7 @@ class StreamingViewModel @Inject constructor(
                             }
 
                             is RTSViewerDataStore.State.VideoTrackReady -> {
-                                if (_uiState.value.videoTrack == null || _uiState.value.audioTrack?.isActive == false) {
+                                if (_uiState.value.videoTrack == null) {
                                     Log.d(TAG, "VideoTrackReady")
                                     withContext(dispatcherProvider.main) {
                                         _uiState.update { state ->
