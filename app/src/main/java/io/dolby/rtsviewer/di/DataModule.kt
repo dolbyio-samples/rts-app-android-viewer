@@ -16,8 +16,11 @@
 package io.dolby.rtsviewer.di
 
 import android.content.Context
+import android.util.Log
 import com.millicast.Core
 import com.millicast.Media
+import com.millicast.utils.LogLevel
+import com.millicast.utils.Logger
 import dagger.Module
 import dagger.Provides
 import dagger.hilt.InstallIn
@@ -38,6 +41,7 @@ import javax.inject.Singleton
 @Module
 @InstallIn(SingletonComponent::class)
 object DataModule {
+    private const val TAG: String = "MILLICAST_WEBRTC_DEBUG"
 
     @Provides
     fun provideMillicastSdk(): MillicastSdk {
@@ -46,6 +50,13 @@ object DataModule {
         }
 
         Core.initialize()
+
+        // set millicast logs
+        Logger.setLogLevels(LogLevel.MC_VERBOSE, LogLevel.MC_VERBOSE, LogLevel.MC_VERBOSE)
+        Logger.setLoggerListener { msg, level ->
+            Log.d(TAG, "millicast sdk: $level / $msg")
+        }
+
         return result
     }
 
