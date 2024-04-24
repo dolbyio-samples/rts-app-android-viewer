@@ -42,6 +42,7 @@ import javax.inject.Singleton
 @InstallIn(SingletonComponent::class)
 object DataModule {
     private const val TAG: String = "MILLICAST_WEBRTC_DEBUG"
+
     @Provides
     fun provideMillicastSdk(): MillicastSdk {
         val result = object : MillicastSdk {
@@ -55,7 +56,7 @@ object DataModule {
         Logger.setLoggerListener { msg, level ->
             Log.d(TAG, "millicast sdk: $level / $msg")
         }
-        
+
         return result
     }
 
