@@ -41,21 +41,21 @@ import javax.inject.Singleton
 @Module
 @InstallIn(SingletonComponent::class)
 object DataModule {
-
+    private const val TAG: String = "MILLICAST_WEBRTC_DEBUG"
     @Provides
     fun provideMillicastSdk(): MillicastSdk {
         val result = object : MillicastSdk {
             override fun getMedia(): Media = Media
         }
 
-        val TAG: String = "MILLICAST_WEBRTC_DEBUG"
         Core.initialize()
+
         // set millicast logs
         Logger.setLogLevels(LogLevel.MC_VERBOSE, LogLevel.MC_VERBOSE, LogLevel.MC_VERBOSE)
         Logger.setLoggerListener { msg, level ->
-            // we can make some filter here for the webrtc flood
             Log.d(TAG, "millicast sdk: $level / $msg")
         }
+        
         return result
     }
 
