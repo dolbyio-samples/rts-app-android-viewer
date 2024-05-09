@@ -10,10 +10,12 @@ import android.os.HandlerThread
 import android.provider.Settings
 import android.util.Log
 import com.millicast.Core
+import com.millicast.Subscriber
 import com.millicast.clients.ConnectionOptions
-import com.millicast.devices.track.AudioTrack
 import com.millicast.subscribers.Credential
 import com.millicast.subscribers.Option
+import com.millicast.subscribers.remote.RemoteAudioTrack
+import com.millicast.subscribers.state.SubscriberConnectionState
 import io.dolby.rtscomponentkit.data.multistream.MultiStreamListener.Companion.TAG
 import io.dolby.rtscomponentkit.data.multistream.prefs.AudioSelection
 import io.dolby.rtscomponentkit.data.multistream.prefs.MultiStreamPrefsStore
@@ -21,6 +23,7 @@ import io.dolby.rtscomponentkit.domain.ConnectOptions
 import io.dolby.rtscomponentkit.domain.MultiStreamingData
 import io.dolby.rtscomponentkit.domain.StreamingData
 import io.dolby.rtscomponentkit.utils.DispatcherProvider
+import io.dolby.rtscomponentkit.utils.RemoteVolumeObserver
 import io.dolby.rtscomponentkit.utils.adjustTrackVolume
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Job
@@ -48,8 +51,11 @@ class MultiStreamingRepository(
 
     private val _audioSelection = MutableStateFlow(AudioSelection.default)
     private var audioSelectionListenerJob: Job? = null
+    private var connectionStateJob: Job? = null
+    private var connectionJob: Job? = null
+    private var subscriptionJob: Job? = null
 
-    private var volumeObserver: io.dolby.rtscomponentkit.utils.VolumeObserver? = null
+    private var volumeObserver: RemoteVolumeObserver? = null
     private val audioManager = context.getSystemService(AudioManager::class.java) as AudioManager
     private val handlerThread = HandlerThread("Audio Device Listener")
     private val audioDeviceCallback = object : AudioDeviceCallback() {
@@ -76,7 +82,6 @@ class MultiStreamingRepository(
     }
 
     init {
-        listenForAudioSelection()
         handlerThread.start()
     }
 
@@ -113,17 +118,35 @@ class MultiStreamingRepository(
         audioManager.isSpeakerphoneOn = true
     }
 
+    private fun listenForConnectionState(subscriber: Subscriber, option: Option) {
+        connectionStateJob?.cancel()
+        connectionStateJob = CoroutineScope(dispatcherProvider.main).launch {
+            subscriber.state.collect {
+                when {
+                    it.connectionState == SubscriberConnectionState.Connected -> {
+                        if (!_data.value.isSubscribed && !_data.value.isSubscribing) {
+                            _data.update {
+                                it.copy(isSubscribing = true)
+                            }
+                            subscribe(subscriber, option)
+                        }
+                    }
+                }
+            }
+        }
+    }
     private fun listenForAudioSelection() {
         audioSelectionListenerJob?.cancel()
         audioSelectionListenerJob = CoroutineScope(dispatcherProvider.main).launch {
             combine(
-                _data,
+                data,
                 prefsStore.audioSelection(data.value.streamingData)
             ) { data, audioSelection -> Pair(data, audioSelection) }.collect {
                 val data = it.first
                 val audioSelection = it.second
-                var audioSourceIdToSelect: MultiStreamingData.Audio? = null
+                var audioSourceIdToSelect: RemoteAudioTrack? = null
                 _audioSelection.update { audioSelection }
+                Log.d(TAG, "ListenForAudio Selection Audio audioTracks ${data.audioTracks}")
                 when (audioSelection) {
                     AudioSelection.MainSource -> {
                         data.audioTracks.firstOrNull { it.sourceId == null }
@@ -158,11 +181,14 @@ class MultiStreamingRepository(
                     }
                 }
                 audioSourceIdToSelect?.let { audio ->
-                    if (audioSourceIdToSelect?.sourceId != data.selectedAudioTrackId) {
-                        playAudio(audio)
+                    if ((audio.sourceId != data.selectedAudioTrackId)) {
+                        Log.d(TAG, "Audio enable")
+                        audio.disableAsync()
+                        audio.enableAsync()
+                        updateSelectedAudioTrackId(audio.sourceId)
+                        adjustTrackVolume(context, audio)
+                        addVolumeObserver(audio)
                     }
-                    adjustTrackVolume(context, audio.audioTrack)
-                    addVolumeObserver(audio.audioTrack)
                 }
             }
         }
@@ -173,7 +199,6 @@ class MultiStreamingRepository(
             return
         }
         val subscriber = Core.createSubscriber()
-
         listener = MultiStreamListener(_data, subscriber).apply {
             start()
         }
@@ -212,23 +237,50 @@ class MultiStreamingRepository(
         Log.d(TAG, "Connecting ...")
 
         try {
-            subscriber.connect(ConnectionOptions(true))
-            subscriber.subscribe(options = options)
+            connectionJob?.cancel()
+            connectionJob = CoroutineScope(dispatcherProvider.io).launch {
+                Log.d(TAG, "Connect")
+                subscriber.connect(ConnectionOptions(true))
+            }
         } catch (e: Throwable) {
             e.printStackTrace()
         }
         _data.update { data -> data.copy(streamingData = streamingData) }
+        listenForConnectionState(subscriber, options)
         listenForAudioSelection()
         listenForAudioDevices()
     }
 
+    fun subscribe(subscriber: Subscriber, option: Option) {
+        subscriptionJob?.cancel()
+        subscriptionJob = CoroutineScope(dispatcherProvider.io).launch {
+            Log.d(TAG, "Start Subscribing")
+            subscriber.subscribe(option)
+        }
+    }
+
     fun disconnect() {
-        val listener = listener
-        this.listener = null
+        Log.d(TAG, "Disconnect")
+        cancelAllJobs()
         listener?.disconnect()
-        _data.update { MultiStreamingData() }
+        this.listener = null
+        clearData()
         unregisterVolumeObserver()
         unregisterAudioDeviceListener()
+    }
+
+    private fun cancelAllJobs() {
+        subscriptionJob?.cancel()
+        connectionJob?.cancel()
+        connectionStateJob?.cancel()
+        audioSelectionListenerJob?.cancel()
+        audioSelectionListenerJob = null
+        subscriptionJob = null
+        connectionJob = null
+        connectionStateJob = null
+    }
+    private fun clearData() {
+        _data.update { MultiStreamingData() }
     }
 
     private fun credential(
@@ -247,35 +299,20 @@ class MultiStreamingRepository(
 
     fun updateSelectedVideoTrackId(sourceId: String?) {
         _data.update { data ->
-            data.videoTracks.forEach {
-                it.videoTrack.removeVideoSink()
-            }
-
             data.copy(selectedVideoTrackId = sourceId)
         }
     }
 
-    fun playVideo(
-        video: MultiStreamingData.Video,
-        preferredVideoQuality: VideoQuality,
-        preferredVideoQualities: Map<String, VideoQuality>
-    ) {
-        val priorityVideoPreference =
-            if (preferredVideoQuality != VideoQuality.AUTO) preferredVideoQualities[video.id] else null
-        listener?.playVideo(video, priorityVideoPreference ?: preferredVideoQuality)
+    fun updateSelectedAudioTrackId(sourceId: String?) {
+        Log.d(TAG, "update SelectedAudio TrackId for sourceId $sourceId")
+        _data.update { data ->
+            data.copy(selectedAudioTrackId = sourceId)
+        }
     }
 
-    suspend fun stopVideo(video: MultiStreamingData.Video) {
-        listener?.stopVideo(video)
-    }
-
-    private fun playAudio(audio: MultiStreamingData.Audio) {
-        listener?.playAudio(audio)
-    }
-
-    private fun addVolumeObserver(audioTrack: AudioTrack) {
+    private fun addVolumeObserver(audioTrack: RemoteAudioTrack) {
         unregisterVolumeObserver()
-        val volumeObserver = io.dolby.rtscomponentkit.utils.VolumeObserver(
+        val volumeObserver = RemoteVolumeObserver(
             context,
             Handler(handlerThread.looper),
             audioTrack

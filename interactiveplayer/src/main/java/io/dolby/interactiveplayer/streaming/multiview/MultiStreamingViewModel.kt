@@ -3,6 +3,7 @@ package io.dolby.interactiveplayer.streaming.multiview
 import androidx.lifecycle.SavedStateHandle
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
+import com.millicast.subscribers.remote.RemoteVideoTrack
 import dagger.hilt.android.lifecycle.HiltViewModel
 import io.dolby.interactiveplayer.datastore.RecentStreamsDataStore
 import io.dolby.interactiveplayer.navigation.Screen
@@ -145,8 +146,8 @@ class MultiStreamingViewModel @Inject constructor(
     }
 
     private suspend fun update(data: MultiStreamingData) = withContext(dispatcherProvider.main) {
-        val videoTracks = data.videoTracks.filter { it.active }
-        val alphaNumericComparator = Comparator<MultiStreamingData.Video> { source1, source2 ->
+        val videoTracks = data.videoTracks.filter { it.isActive }
+        val alphaNumericComparator = Comparator<RemoteVideoTrack> { source1, source2 ->
             val source1Id = source1.sourceId
             val source2Id = source2.sourceId
             when {
@@ -163,7 +164,7 @@ class MultiStreamingViewModel @Inject constructor(
                     } else {
                         Error.NO_INTERNET_CONNECTION
                     }
-                    it.copy(error = error)
+                    it.copy(error = error, videoTracks = emptyList())
                 }
             }
 
@@ -192,31 +193,18 @@ class MultiStreamingViewModel @Inject constructor(
 
     private suspend fun updateLayers(data: MultiStreamingData) =
         withContext(dispatcherProvider.main) {
-            _videoQualityState.update {
-                it.copy(
-                    videoQualities = data.trackProjectedData.mapValues { it.value.videoQuality },
-                    availableVideoQualities = data.trackLayerData
-                )
-            }
+//            _videoQualityState.update {
+//                it.copy(
+//                    videoQualities = data.trackProjectedData.mapValues { it.value.videoQuality },
+//                    availableVideoQualities = data.trackLayerData
+//                )
+//            }
         }
 
     fun disconnect() = repository.disconnect()
 
     fun selectVideoTrack(sourceId: String?) {
         repository.updateSelectedVideoTrackId(sourceId)
-    }
-
-    fun playVideo(
-        video: MultiStreamingData.Video,
-        preferredVideoQuality: VideoQuality
-    ) = repository.playVideo(
-        video = video,
-        preferredVideoQuality = preferredVideoQuality,
-        preferredVideoQualities = _videoQualityState.value.preferredVideoQualities
-    )
-
-    fun stopVideo(video: MultiStreamingData.Video) = viewModelScope.launch {
-        repository.stopVideo(video)
     }
 
     fun updateStatistics(show: Boolean) {

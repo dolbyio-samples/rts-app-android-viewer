@@ -1,6 +1,7 @@
 package io.dolby.interactiveplayer.streaming.multiview
 
 import android.content.res.Configuration
+import android.util.Log
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
@@ -24,10 +25,12 @@ import androidx.compose.material.Scaffold
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
+import androidx.compose.runtime.remember
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.platform.LocalConfiguration
+import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.platform.LocalFocusManager
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.semantics.contentDescription
@@ -36,6 +39,7 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.viewinterop.AndroidView
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import com.millicast.Media
+import com.millicast.subscribers.remote.RemoteVideoTrack
 import com.millicast.video.TextureViewRenderer
 import io.dolby.interactiveplayer.R
 import io.dolby.interactiveplayer.rts.ui.DolbyBackgroundBox
@@ -44,7 +48,6 @@ import io.dolby.interactiveplayer.rts.ui.LiveIndicator
 import io.dolby.interactiveplayer.rts.ui.TopAppBar
 import io.dolby.interactiveplayer.streaming.ErrorView
 import io.dolby.rtscomponentkit.data.multistream.VideoQuality
-import io.dolby.rtscomponentkit.domain.MultiStreamingData
 import io.dolby.rtsviewer.uikit.text.Text
 import org.webrtc.RendererCommon
 
@@ -55,8 +58,7 @@ fun ListViewScreen(
     onMainClick: (String?) -> Unit,
     onSettingsClick: () -> Unit
 ) {
-    val uiState by viewModel.uiState.collectAsStateWithLifecycle()
-
+    val uiState by viewModel.uiState.collectAsState()
     val screenContentDescription = stringResource(id = R.string.streaming_screen_contentDescription)
 
     val focusManager = LocalFocusManager.current
@@ -69,8 +71,8 @@ fun ListViewScreen(
             TopAppBar(
                 title = uiState.streamName ?: screenContentDescription,
                 onBack = {
-                    onBack()
                     viewModel.disconnect()
+                    onBack()
                 },
                 onAction = onSettingsClick
             )
@@ -94,7 +96,7 @@ fun ListViewScreen(
 
                 uiState.videoTracks.isNotEmpty() -> {
                     val configuration = LocalConfiguration.current
-                    val onOtherClick = { videoTrack: MultiStreamingData.Video ->
+                    val onOtherClick = { videoTrack: RemoteVideoTrack ->
                         viewModel.selectVideoTrack(videoTrack.sourceId)
                     }
 
@@ -130,7 +132,7 @@ fun HorizontalEndListView(
     uiState: MultiStreamingUiState,
     displayLabel: Boolean,
     onMainClick: (String?) -> Unit,
-    onOtherClick: (MultiStreamingData.Video) -> Unit
+    onOtherClick: (RemoteVideoTrack) -> Unit
 ) {
     Box(
         modifier = modifier
@@ -138,13 +140,13 @@ fun HorizontalEndListView(
         Row {
             val selectedVideo =
                 uiState.videoTracks.firstOrNull { it.sourceId == uiState.selectedVideoTrackId }
-            val mainVideo: MultiStreamingData.Video? =
+            val mainVideo: RemoteVideoTrack? =
                 selectedVideo ?: uiState.videoTracks.firstOrNull()?.also {
                     viewModel.selectVideoTrack(it.sourceId)
                 }
             Box(
                 modifier = Modifier.clickable {
-                    onMainClick(uiState.videoTracks.find { it.sourceId == uiState.selectedVideoTrackId }?.id)
+                    onMainClick(uiState.videoTracks.find { it.sourceId == uiState.selectedVideoTrackId }?.currentMid)
                 }
             ) {
                 AndroidView(
@@ -152,24 +154,15 @@ fun HorizontalEndListView(
                     factory = { context ->
                         val view = TextureViewRenderer(context)
                         view.init(Media.eglBaseContext, null)
-//                        view.setZOrderOnTop(true)
-//                        view.setZOrderMediaOverlay(true)
                         view
                     },
                     update = { view ->
                         view.setScalingType(RendererCommon.ScalingType.SCALE_ASPECT_FIT)
-                        mainVideo?.play(
-                            view = view,
-                            viewModel = viewModel,
-                            videoQuality = uiState.connectOptions?.primaryVideoQuality
-                                ?: VideoQuality.AUTO
-                        )
+                        mainVideo?.enableAsync(videoSink = view)
                     },
-                    onRelease = {
-                        mainVideo?.let {
-                            viewModel.stopVideo(it)
-                        }
-                        it.release()
+                    onRelease = { view ->
+                        mainVideo?.disableAsync()
+                        view.release()
                     }
                 )
                 if (displayLabel) {
@@ -188,6 +181,7 @@ fun HorizontalEndListView(
             }
             val otherTracks =
                 uiState.videoTracks.filter { it.sourceId != mainVideo?.sourceId }
+
             LazyColumn(
                 modifier = Modifier
                     .fillMaxHeight()
@@ -220,7 +214,7 @@ fun VerticalTopListView(
     uiState: MultiStreamingUiState,
     displayLabel: Boolean,
     onMainClick: (String?) -> Unit,
-    onOtherClick: (MultiStreamingData.Video) -> Unit
+    onOtherClick: (RemoteVideoTrack) -> Unit
 ) {
     Box(
         modifier = modifier
@@ -228,13 +222,13 @@ fun VerticalTopListView(
         Column {
             val selectedVideo =
                 uiState.videoTracks.firstOrNull { it.sourceId == uiState.selectedVideoTrackId }
-            val mainVideo: MultiStreamingData.Video? =
+            val mainVideo: RemoteVideoTrack? =
                 selectedVideo ?: uiState.videoTracks.firstOrNull()?.also {
                     viewModel.selectVideoTrack(it.sourceId)
                 }
             Box(
                 modifier = Modifier.clickable {
-                    onMainClick(uiState.videoTracks.find { it.sourceId == uiState.selectedVideoTrackId }?.id)
+                    onMainClick(uiState.videoTracks.find { it.sourceId == uiState.selectedVideoTrackId }?.currentMid)
                 }
             ) {
                 AndroidView(
@@ -242,24 +236,15 @@ fun VerticalTopListView(
                     factory = { context ->
                         val view = TextureViewRenderer(context)
                         view.init(Media.eglBaseContext, null)
-//                        view.setZOrderOnTop(true)
-//                        view.setZOrderMediaOverlay(true)
                         view
                     },
                     update = { view ->
                         view.setScalingType(RendererCommon.ScalingType.SCALE_ASPECT_FIT)
-                        mainVideo?.play(
-                            view = view,
-                            viewModel = viewModel,
-                            videoQuality = uiState.connectOptions?.primaryVideoQuality
-                                ?: VideoQuality.AUTO
-                        )
+                        mainVideo?.enableAsync(videoSink = view)
                     },
-                    onRelease = {
-                        mainVideo?.let {
-                            viewModel.stopVideo(mainVideo)
-                        }
-                        it.release()
+                    onRelease = { view ->
+                        mainVideo?.disableAsync()
+                        // view.release()
                     }
                 )
                 if (displayLabel) {
@@ -276,7 +261,9 @@ fun VerticalTopListView(
             }
             val otherTracks =
                 uiState.videoTracks.filter { it.sourceId != mainVideo?.sourceId }
+
             val lazyVerticalGridState = rememberLazyGridState()
+
             LazyVerticalGrid(
                 state = lazyVerticalGridState,
                 columns = GridCells.Fixed(count = 2),
@@ -310,30 +297,33 @@ fun VerticalTopListView(
 @Composable
 fun VideoView(
     viewModel: MultiStreamingViewModel,
-    video: MultiStreamingData.Video,
+    video: RemoteVideoTrack,
     displayLabel: Boolean = true,
     displayQuality: Boolean = false,
     videoQuality: VideoQuality = VideoQuality.AUTO,
-    onClick: ((MultiStreamingData.Video) -> Unit)? = null,
+    onClick: ((RemoteVideoTrack) -> Unit)? = null,
     modifier: Modifier
 ) {
     val updatedModifier = onClick?.let {
         modifier.clickable { onClick(video) }
     } ?: modifier
+    val context = LocalContext.current
+    val videoRenderer = remember(context) {
+        TextureViewRenderer(context).apply {
+            init(Media.eglBaseContext, null)
+        }
+    }
     Box {
         AndroidView(
             modifier = updatedModifier,
-            factory = { context ->
-                val view = TextureViewRenderer(context)
-                view.init(Media.eglBaseContext, null)
-                view
-            },
+            factory = { videoRenderer },
             update = { view ->
                 view.setScalingType(RendererCommon.ScalingType.SCALE_ASPECT_FIT)
-                video.play(view, viewModel, videoQuality)
+                video.enableAsync(videoSink = view)
             },
             onRelease = {
-                viewModel.stopVideo(video)
+                Log.d("VideoView", "disable sync for video id ${video.currentMid}")
+                video.disableAsync()
                 it.release()
             }
         )
@@ -353,15 +343,15 @@ fun VideoView(
 @Composable
 fun QualityLabel(
     viewModel: MultiStreamingViewModel,
-    video: MultiStreamingData.Video?,
+    video: RemoteVideoTrack?,
     modifier: Modifier
 ) {
     val videoQualityState by viewModel.videoQualityState.collectAsStateWithLifecycle()
     Text(
-        text = videoQualityState.videoQualities[video?.id]?.name ?: "null",
+        text = videoQualityState.videoQualities[video?.currentMid]?.name ?: "null",
         modifier = modifier.clickable {
             video?.let {
-                viewModel.showVideoQualitySelection(it.id, true)
+                viewModel.showVideoQualitySelection(it.currentMid, true)
             }
         }
     )
@@ -415,18 +405,5 @@ fun LiveIndicatorComponent(modifier: Modifier, on: Boolean) {
     LiveIndicator(
         modifier = modifier,
         on = on
-    )
-}
-
-fun MultiStreamingData.Video.play(
-    view: TextureViewRenderer,
-    viewModel: MultiStreamingViewModel,
-    videoQuality: VideoQuality = VideoQuality.AUTO
-) {
-    videoTrack.removeVideoSink()
-    videoTrack.setVideoSink(view)
-    viewModel.playVideo(
-        this,
-        videoQuality
     )
 }
