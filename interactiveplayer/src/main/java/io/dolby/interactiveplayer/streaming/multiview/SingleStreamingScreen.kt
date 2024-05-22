@@ -18,6 +18,7 @@ import androidx.compose.runtime.remember
 import androidx.compose.runtime.snapshotFlow
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.semantics.contentDescription
@@ -178,32 +179,25 @@ private fun VideoView(
     uiState: MultiStreamingUiState,
     displayLabels: Boolean
 ) {
+    val context = LocalContext.current
+    val videoRenderer = remember(context) {
+        TextureViewRenderer(context).apply {
+            init(Media.eglBaseContext, null)
+        }
+    }
     Box(modifier = Modifier.fillMaxSize()) {
         AndroidView(
             modifier = Modifier
                 .aspectRatio(16F / 9)
                 .align(Alignment.Center),
-            factory = { context ->
-                val view = TextureViewRenderer(context)
-                view.init(Media.eglBaseContext, null)
-                view
-            },
+            factory = { videoRenderer },
             update = { view ->
                 view.setScalingType(RendererCommon.ScalingType.SCALE_ASPECT_FIT)
-                uiState.videoTracks[page].disableAsync()
-                val isSelected =
-                    uiState.selectedVideoTrackId == uiState.videoTracks[page].sourceId
-
-                uiState.videoTracks[page].enableAsync(
-                    layer = null,
-//                if (isSelected) uiState.connectOptions?.primaryVideoQuality ?: VideoQuality.AUTO else VideoQuality.LOW,
-                    videoSink = view
-                )
-            },
-            onRelease = { view ->
-                uiState.videoTracks[page].disableAsync()
-                view.release()
             }
         )
+        val audioTrack =
+            uiState.audioTracks.firstOrNull { it.sourceId == uiState.selectedAudioTrack }
+        AudioTrackLifecycleObserver(audioTrack)
+        VideoTrackLifecycleObserver(video = uiState.videoTracks[page], videoSink = videoRenderer)
     }
 }

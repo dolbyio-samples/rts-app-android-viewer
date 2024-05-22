@@ -23,22 +23,28 @@ import androidx.compose.foundation.lazy.items
 import androidx.compose.material.CircularProgressIndicator
 import androidx.compose.material.Scaffold
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.DisposableEffect
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.remember
+import androidx.compose.runtime.rememberUpdatedState
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.platform.LocalConfiguration
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.platform.LocalFocusManager
+import androidx.compose.ui.platform.LocalLifecycleOwner
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.semantics.contentDescription
 import androidx.compose.ui.semantics.semantics
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.viewinterop.AndroidView
+import androidx.lifecycle.Lifecycle
+import androidx.lifecycle.LifecycleEventObserver
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import com.millicast.Media
+import com.millicast.subscribers.remote.RemoteAudioTrack
 import com.millicast.subscribers.remote.RemoteVideoTrack
 import com.millicast.video.TextureViewRenderer
 import io.dolby.interactiveplayer.R
@@ -50,6 +56,7 @@ import io.dolby.interactiveplayer.streaming.ErrorView
 import io.dolby.rtscomponentkit.data.multistream.VideoQuality
 import io.dolby.rtsviewer.uikit.text.Text
 import org.webrtc.RendererCommon
+import org.webrtc.VideoSink
 
 @Composable
 fun ListViewScreen(
@@ -319,14 +326,9 @@ fun VideoView(
             factory = { videoRenderer },
             update = { view ->
                 view.setScalingType(RendererCommon.ScalingType.SCALE_ASPECT_FIT)
-                video.enableAsync(videoSink = view)
-            },
-            onRelease = {
-                Log.d("VideoView", "disable sync for video id ${video.currentMid}")
-                video.disableAsync()
-                it.release()
             }
         )
+        VideoTrackLifecycleObserver(video = video, videoSink = videoRenderer)
         if (displayLabel) {
             LabelIndicator(modifier = Modifier.align(Alignment.BottomStart), label = video.sourceId)
         }
@@ -336,6 +338,64 @@ fun VideoView(
                 video = video,
                 modifier = Modifier.align(Alignment.BottomEnd)
             )
+        }
+    }
+}
+
+@Composable
+fun VideoTrackLifecycleObserver(video: RemoteVideoTrack, videoSink: VideoSink) {
+    val lifecycleOwner = rememberUpdatedState(LocalLifecycleOwner.current)
+    DisposableEffect(Unit) {
+        val observer = LifecycleEventObserver { _, event ->
+            when (event) {
+                Lifecycle.Event.ON_PAUSE -> {
+                    Log.i("VideoTrack", "Lifecycle onPause for video ${video.currentMid}")
+                    video.disableAsync()
+                }
+
+                Lifecycle.Event.ON_RESUME -> {
+                    Log.i("VideoTrack", "Lifecycle OnResume for video ${video.currentMid}")
+                    video.enableAsync(videoSink = videoSink)
+                }
+
+                else -> {
+                }
+            }
+        }
+        val lifecycle = lifecycleOwner.value.lifecycle
+        lifecycle.addObserver(observer)
+        onDispose {
+            lifecycle.removeObserver(observer)
+        }
+    }
+}
+
+@Composable
+fun AudioTrackLifecycleObserver(audioTrack: RemoteAudioTrack?) {
+    audioTrack?.let { audio ->
+        val lifecycleOwner = rememberUpdatedState(LocalLifecycleOwner.current)
+        DisposableEffect(Unit) {
+            val observer = LifecycleEventObserver { _, event ->
+                when (event) {
+                    Lifecycle.Event.ON_PAUSE -> {
+                        Log.i("AudioTrack", "Lifecycle onPause for audio ${audio.currentMid}")
+                        audio.disableAsync()
+                    }
+
+                    Lifecycle.Event.ON_RESUME -> {
+                        Log.i("AudioTrack", "Lifecycle OnResume for audio ${audio.currentMid}")
+                        audio.enableAsync()
+                    }
+
+                    else -> {
+                    }
+                }
+            }
+            val lifecycle = lifecycleOwner.value.lifecycle
+            lifecycle.addObserver(observer)
+            onDispose {
+                lifecycle.removeObserver(observer)
+            }
         }
     }
 }
