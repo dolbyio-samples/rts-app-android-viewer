@@ -9,10 +9,12 @@ data class MultiStreamingData(
     val audioTracks: List<RemoteAudioTrack> = emptyList(),
     val allAudioTrackIds: List<String?> = arrayListOf(),
     val selectedVideoTrackId: String? = null,
-    val selectedAudioTrackId: String? = null,
+    val selectedAudioTrackId: String? = "-1", // In order to differentiate between main source id which is null and initial state
     val viewerCount: Int = 0,
     val error: String? = null,
     val isSubscribed: Boolean = false,
+    val isSubscribing: Boolean = false,
+    val isConnected: Boolean = false,
     val streamingData: StreamingData? = null,
     val statisticsData: MultiStreamStatisticsData? = null,
     val trackLayerData: Map<String, List<LowLevelVideoQuality>> = emptyMap()
@@ -22,7 +24,9 @@ data class MultiStreamingData(
         audioTracks = emptyList(),
         selectedAudioTrackId = null,
         error = error,
-        isSubscribed = false
+        isSubscribed = false,
+        isSubscribing = false,
+        isConnected = false
     )
 
     companion object {

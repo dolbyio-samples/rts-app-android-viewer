@@ -1,6 +1,7 @@
 package io.dolby.interactiveplayer.streaming.multiview
 
 import android.content.res.Configuration
+import android.util.Log
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
@@ -24,10 +25,12 @@ import androidx.compose.material.Scaffold
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
+import androidx.compose.runtime.remember
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.platform.LocalConfiguration
+import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.platform.LocalFocusManager
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.semantics.contentDescription
@@ -55,8 +58,7 @@ fun ListViewScreen(
     onMainClick: (String?) -> Unit,
     onSettingsClick: () -> Unit
 ) {
-    val uiState by viewModel.uiState.collectAsStateWithLifecycle()
-
+    val uiState by viewModel.uiState.collectAsState()
     val screenContentDescription = stringResource(id = R.string.streaming_screen_contentDescription)
 
     val focusManager = LocalFocusManager.current
@@ -69,8 +71,8 @@ fun ListViewScreen(
             TopAppBar(
                 title = uiState.streamName ?: screenContentDescription,
                 onBack = {
-                    onBack()
                     viewModel.disconnect()
+                    onBack()
                 },
                 onAction = onSettingsClick
             )
@@ -152,22 +154,14 @@ fun HorizontalEndListView(
                     factory = { context ->
                         val view = TextureViewRenderer(context)
                         view.init(Media.eglBaseContext, null)
-//                        view.setZOrderOnTop(true)
-//                        view.setZOrderMediaOverlay(true)
                         view
                     },
                     update = { view ->
                         view.setScalingType(RendererCommon.ScalingType.SCALE_ASPECT_FIT)
                         mainVideo?.enableAsync(videoSink = view)
-//                        mainVideo?.play(
-//                            view = view,
-//                            viewModel = viewModel,
-//                            videoQuality = uiState.connectOptions?.primaryVideoQuality
-//                                ?: VideoQuality.AUTO
-//                        )
                     },
                     onRelease = { view ->
-                        mainVideo?.disableSync(videoSink = view)
+                        mainVideo?.disableAsync()
                         view.release()
                     }
                 )
@@ -187,6 +181,7 @@ fun HorizontalEndListView(
             }
             val otherTracks =
                 uiState.videoTracks.filter { it.sourceId != mainVideo?.sourceId }
+
             LazyColumn(
                 modifier = Modifier
                     .fillMaxHeight()
@@ -241,23 +236,15 @@ fun VerticalTopListView(
                     factory = { context ->
                         val view = TextureViewRenderer(context)
                         view.init(Media.eglBaseContext, null)
-//                        view.setZOrderOnTop(true)
-//                        view.setZOrderMediaOverlay(true)
                         view
                     },
                     update = { view ->
                         view.setScalingType(RendererCommon.ScalingType.SCALE_ASPECT_FIT)
                         mainVideo?.enableAsync(videoSink = view)
-//                        mainVideo?.play(
-//                            view = view,
-//                            viewModel = viewModel,
-//                            videoQuality = uiState.connectOptions?.primaryVideoQuality
-//                                ?: VideoQuality.AUTO
-//                        )
                     },
                     onRelease = { view ->
-                        mainVideo?.disableSync(view)
-                        view.release()
+                        mainVideo?.disableAsync()
+                        // view.release()
                     }
                 )
                 if (displayLabel) {
@@ -274,7 +261,9 @@ fun VerticalTopListView(
             }
             val otherTracks =
                 uiState.videoTracks.filter { it.sourceId != mainVideo?.sourceId }
+
             val lazyVerticalGridState = rememberLazyGridState()
+
             LazyVerticalGrid(
                 state = lazyVerticalGridState,
                 columns = GridCells.Fixed(count = 2),
@@ -318,22 +307,23 @@ fun VideoView(
     val updatedModifier = onClick?.let {
         modifier.clickable { onClick(video) }
     } ?: modifier
+    val context = LocalContext.current
+    val videoRenderer = remember(context) {
+        TextureViewRenderer(context).apply {
+            init(Media.eglBaseContext, null)
+        }
+    }
     Box {
         AndroidView(
             modifier = updatedModifier,
-            factory = { context ->
-                val view = TextureViewRenderer(context)
-                view.init(Media.eglBaseContext, null)
-                view
-            },
+            factory = { videoRenderer },
             update = { view ->
                 view.setScalingType(RendererCommon.ScalingType.SCALE_ASPECT_FIT)
                 video.enableAsync(videoSink = view)
-//                video.play(view, viewModel, videoQuality)
             },
             onRelease = {
-                video.disableSync(it)
-//                viewModel.stopVideo(video)
+                Log.d("VideoView", "disable sync for video id ${video.currentMid}")
+                video.disableAsync()
                 it.release()
             }
         )

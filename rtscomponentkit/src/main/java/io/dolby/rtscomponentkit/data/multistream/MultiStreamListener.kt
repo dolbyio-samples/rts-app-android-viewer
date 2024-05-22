@@ -111,11 +111,10 @@ class MultiStreamListener(
     fun connected(): Boolean = subscriber.isSubscribed
 
     fun disconnect() {
-        Log.d(TAG, "Cancelling coroutines...")
+        subscriber.disconnect()
         coroutineScope.coroutineContext.cancelChildren()
         coroutineScope.coroutineContext.cancel()
         Log.d(TAG, "Disconnecting subscriber...")
-        subscriber.release()
     }
 
     private fun onConnected() {
@@ -123,6 +122,9 @@ class MultiStreamListener(
             TAG,
             "onConnected, this: $this, thread: ${Thread.currentThread().id}"
         )
+        data.update {
+            it.copy(isConnected = true, isSubscribed = false)
+        }
     }
 
     private fun onDisconnected() {
@@ -165,7 +167,7 @@ class MultiStreamListener(
 
     private fun onSubscribed() {
         Log.d(TAG, "onSubscribed")
-        data.update { data -> data.copy(isSubscribed = true, error = null) }
+        data.update { data -> data.copy(isSubscribed = true, isSubscribing = false, error = null) }
     }
 
     private fun onSubscribedError(p0: String?) {
@@ -180,7 +182,7 @@ class MultiStreamListener(
         data.update { data ->
             data.copy(
                 videoTracks = subscriber.currentState.tracks
-                    .filter { it is RemoteVideoTrack && it.isActive }
+                    .filter { it is RemoteVideoTrack }
                     .map { it as RemoteVideoTrack }
             )
         }
@@ -191,7 +193,7 @@ class MultiStreamListener(
         data.update { data ->
             data.copy(
                 audioTracks = subscriber.currentState.tracks
-                    .filter { it is RemoteAudioTrack && it.isActive }
+                    .filter { it is RemoteAudioTrack }
                     .map { it as RemoteAudioTrack }
             )
         }

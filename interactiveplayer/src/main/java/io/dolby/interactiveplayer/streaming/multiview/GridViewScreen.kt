@@ -25,7 +25,6 @@ import androidx.compose.ui.semantics.contentDescription
 import androidx.compose.ui.semantics.semantics
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.viewinterop.AndroidView
-import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import com.millicast.Media
 import com.millicast.subscribers.remote.RemoteVideoTrack
 import com.millicast.video.TextureViewRenderer
@@ -44,7 +43,7 @@ fun GridViewScreen(
     onMainClick: (String?) -> Unit,
     onSettingsClick: () -> Unit
 ) {
-    val uiState by viewModel.uiState.collectAsStateWithLifecycle()
+    val uiState by viewModel.uiState.collectAsState()
 
     val screenContentDescription = stringResource(id = R.string.streaming_screen_contentDescription)
 
@@ -57,8 +56,8 @@ fun GridViewScreen(
             TopAppBar(
                 title = uiState.streamName ?: screenContentDescription,
                 onBack = {
-                    onBack()
                     viewModel.disconnect()
+                    onBack()
                 },
                 onAction = onSettingsClick
             )
@@ -170,9 +169,9 @@ private fun VideoView(
 //                video.play(view, viewModel, videoQuality)
             },
             onRelease = {
-                video.disableSync(it)
+                video.disableAsync()
 //                viewModel.stopVideo(video)
-                it.release()
+                // it.release()
             }
         )
         if (displayLabel) {

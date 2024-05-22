@@ -45,7 +45,7 @@ fun SingleStreamingScreen(
     onBack: () -> Unit,
     onSettingsClick: (StreamingData?) -> Unit
 ) {
-    val uiState by viewModel.uiState.collectAsStateWithLifecycle()
+    val uiState by viewModel.uiState.collectAsState()
 
     val screenContentDescription = stringResource(id = R.string.streaming_screen_contentDescription)
     val selectedItem =
@@ -190,7 +190,7 @@ private fun VideoView(
             },
             update = { view ->
                 view.setScalingType(RendererCommon.ScalingType.SCALE_ASPECT_FIT)
-                uiState.videoTracks[page].disableSync()
+                uiState.videoTracks[page].disableAsync()
                 val isSelected =
                     uiState.selectedVideoTrackId == uiState.videoTracks[page].sourceId
 
@@ -201,7 +201,7 @@ private fun VideoView(
                 )
             },
             onRelease = { view ->
-                uiState.videoTracks[page].disableSync(videoSink = view)
+                uiState.videoTracks[page].disableAsync()
                 view.release()
             }
         )
