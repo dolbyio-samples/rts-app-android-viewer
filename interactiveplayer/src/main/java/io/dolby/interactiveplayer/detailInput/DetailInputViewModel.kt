@@ -141,5 +141,5 @@ class DetailInputViewModel @Inject constructor(
     }
 }
 
-const val DEMO_STREAM_NAME = "simulcastmultiview"
+const val DEMO_STREAM_NAME = "multiview"
 const val DEMO_ACCOUNT_ID = "k9Mwad"
