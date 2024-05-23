@@ -123,7 +123,7 @@ class MultiStreamListener(
             "onConnected, this: $this, thread: ${Thread.currentThread().id}"
         )
         data.update {
-            it.copy(isConnected = true, isSubscribed = false)
+            it.copy(isConnected = true, error = null)
         }
     }
 
@@ -173,7 +173,7 @@ class MultiStreamListener(
     private fun onSubscribedError(p0: String?) {
         Log.d(TAG, "onSubscribedError: $p0")
         data.update {
-            it.copy(error = p0 ?: "Subscribed error")
+            it.copy(error = p0 ?: "Subscribed error", isSubscribed = false, isSubscribing = false)
         }
     }
 
