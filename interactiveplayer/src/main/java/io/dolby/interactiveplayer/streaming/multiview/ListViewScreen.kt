@@ -28,6 +28,7 @@ import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.rememberUpdatedState
+import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
@@ -156,35 +157,16 @@ fun HorizontalEndListView(
                     onMainClick(uiState.videoTracks.find { it.sourceId == uiState.selectedVideoTrackId }?.currentMid)
                 }
             ) {
-                AndroidView(
-                    modifier = Modifier.aspectRatio(16F / 9),
-                    factory = { context ->
-                        val view = TextureViewRenderer(context)
-                        view.init(Media.eglBaseContext, null)
-                        view
-                    },
-                    update = { view ->
-                        view.setScalingType(RendererCommon.ScalingType.SCALE_ASPECT_FIT)
-                        mainVideo?.enableAsync(videoSink = view)
-                    },
-                    onRelease = { view ->
-                        mainVideo?.disableAsync()
-                        view.release()
-                    }
-                )
-                if (displayLabel) {
-                    LabelIndicator(
-                        modifier = Modifier.align(Alignment.BottomStart),
-                        label = uiState.selectedVideoTrackId
+                mainVideo?.let {
+                    VideoView(
+                        viewModel = viewModel,
+                        video = it,
+                        displayLabel = displayLabel,
+                        videoQuality = VideoQuality.LOW,
+                        onClick = { onMainClick(uiState.videoTracks.find { it.sourceId == uiState.selectedVideoTrackId }?.currentMid) },
+                        modifier = Modifier.aspectRatio(16F / 9)
                     )
                 }
-//                QualityLabel(
-//                    viewModel = viewModel,
-//                    video = mainVideo,
-//                    modifier = Modifier.align(
-//                        Alignment.BottomEnd
-//                    )
-//                )
             }
             val otherTracks =
                 uiState.videoTracks.filter { it.sourceId != mainVideo?.sourceId }
@@ -238,26 +220,14 @@ fun VerticalTopListView(
                     onMainClick(uiState.videoTracks.find { it.sourceId == uiState.selectedVideoTrackId }?.currentMid)
                 }
             ) {
-                AndroidView(
-                    modifier = Modifier.aspectRatio(16F / 9),
-                    factory = { context ->
-                        val view = TextureViewRenderer(context)
-                        view.init(Media.eglBaseContext, null)
-                        view
-                    },
-                    update = { view ->
-                        view.setScalingType(RendererCommon.ScalingType.SCALE_ASPECT_FIT)
-                        mainVideo?.enableAsync(videoSink = view)
-                    },
-                    onRelease = { view ->
-                        mainVideo?.disableAsync()
-                        // view.release()
-                    }
-                )
-                if (displayLabel) {
-                    LabelIndicator(
-                        modifier = Modifier.align(Alignment.BottomStart),
-                        label = mainVideo?.sourceId
+                mainVideo?.let {
+                    VideoView(
+                        viewModel = viewModel,
+                        video = it,
+                        displayLabel = displayLabel,
+                        videoQuality = VideoQuality.LOW,
+                        onClick = { onMainClick(uiState.videoTracks.find { it.sourceId == uiState.selectedVideoTrackId }?.currentMid) },
+                        modifier = Modifier.aspectRatio(16F / 9)
                     )
                 }
 //                QualityLabel(
@@ -315,7 +285,7 @@ fun VideoView(
         modifier.clickable { onClick(video) }
     } ?: modifier
     val context = LocalContext.current
-    val videoRenderer = remember(context) {
+    val videoRenderer = remember(video) {
         TextureViewRenderer(context).apply {
             init(Media.eglBaseContext, null)
         }
@@ -326,6 +296,8 @@ fun VideoView(
             factory = { videoRenderer },
             update = { view ->
                 view.setScalingType(RendererCommon.ScalingType.SCALE_ASPECT_FIT)
+                Log.i("VideoView", "Update enableAsync for video ${video.currentMid}")
+                video.enableAsync(videoSink = view)
             }
         )
         VideoTrackLifecycleObserver(video = video, videoSink = videoRenderer)
@@ -349,15 +321,12 @@ fun VideoTrackLifecycleObserver(video: RemoteVideoTrack, videoSink: VideoSink) {
         val observer = LifecycleEventObserver { _, event ->
             when (event) {
                 Lifecycle.Event.ON_PAUSE -> {
-                    Log.i("VideoTrack", "Lifecycle onPause for video ${video.currentMid}")
                     video.disableAsync()
                 }
 
                 Lifecycle.Event.ON_RESUME -> {
-                    Log.i("VideoTrack", "Lifecycle OnResume for video ${video.currentMid}")
                     video.enableAsync(videoSink = videoSink)
                 }
-
                 else -> {
                 }
             }
@@ -378,12 +347,10 @@ fun AudioTrackLifecycleObserver(audioTrack: RemoteAudioTrack?) {
             val observer = LifecycleEventObserver { _, event ->
                 when (event) {
                     Lifecycle.Event.ON_PAUSE -> {
-                        Log.i("AudioTrack", "Lifecycle onPause for audio ${audio.currentMid}")
                         audio.disableAsync()
                     }
-
                     Lifecycle.Event.ON_RESUME -> {
-                        Log.i("AudioTrack", "Lifecycle OnResume for audio ${audio.currentMid}")
+                        audio.disableAsync()
                         audio.enableAsync()
                     }
 
