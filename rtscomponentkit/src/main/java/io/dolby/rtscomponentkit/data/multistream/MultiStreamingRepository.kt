@@ -25,13 +25,17 @@ import io.dolby.rtscomponentkit.domain.StreamingData
 import io.dolby.rtscomponentkit.utils.DispatcherProvider
 import io.dolby.rtscomponentkit.utils.RemoteVolumeObserver
 import io.dolby.rtscomponentkit.utils.adjustTrackVolume
+import kotlinx.coroutines.CoroutineExceptionHandler
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Job
+import kotlinx.coroutines.coroutineScope
+import kotlinx.coroutines.delay
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.combine
 import kotlinx.coroutines.flow.update
+import kotlinx.coroutines.isActive
 import kotlinx.coroutines.launch
 import java.io.File
 import java.time.Instant
@@ -135,9 +139,10 @@ class MultiStreamingRepository(
             }
         }
     }
+
     private fun listenForAudioSelection() {
         audioSelectionListenerJob?.cancel()
-        audioSelectionListenerJob = CoroutineScope(dispatcherProvider.main).launch {
+        audioSelectionListenerJob = CoroutineScope(dispatcherProvider.main).safeLaunch(block = {
             combine(
                 data,
                 prefsStore.audioSelection(data.value.streamingData)
@@ -164,6 +169,7 @@ class MultiStreamingRepository(
                     AudioSelection.FollowVideo -> {
                         val selectAudioTrack =
                             data.audioTracks.find { it.sourceId == data.selectedVideoTrackId }
+                        Log.d(TAG, "AudioListener followVideo $selectAudioTrack")
                         selectAudioTrack?.let {
                             audioSourceIdToSelect = selectAudioTrack
                         }
@@ -181,8 +187,8 @@ class MultiStreamingRepository(
                     }
                 }
                 audioSourceIdToSelect?.let { audio ->
-                    if ((audio.sourceId != data.selectedAudioTrackId)) {
-                        Log.d(TAG, "Audio enable")
+                    if (audio.sourceId != data.selectedAudioTrackId) {
+                        Log.d(TAG, "Audio enable for source id ${audio.sourceId}")
                         audio.disableAsync()
                         audio.enableAsync()
                         updateSelectedAudioTrackId(audio.sourceId)
@@ -191,7 +197,7 @@ class MultiStreamingRepository(
                     }
                 }
             }
-        }
+        })
     }
 
     suspend fun connect(streamingData: StreamingData, connectOptions: ConnectOptions) {
@@ -236,27 +242,42 @@ class MultiStreamingRepository(
 
         Log.d(TAG, "Connecting ...")
 
-        try {
-            connectionJob?.cancel()
-            connectionJob = CoroutineScope(dispatcherProvider.io).launch {
-                Log.d(TAG, "Connect")
-                subscriber.connect(ConnectionOptions(true))
-            }
-        } catch (e: Throwable) {
-            e.printStackTrace()
-        }
+        connectionJob?.cancel()
+        connectionJob = startConnection(subscriber, ConnectionOptions(true))
         _data.update { data -> data.copy(streamingData = streamingData) }
         listenForConnectionState(subscriber, options)
         listenForAudioSelection()
         listenForAudioDevices()
     }
 
+    fun startConnection(subscriber: Subscriber, connectOptions: ConnectionOptions) =
+        CoroutineScope(dispatcherProvider.io).launch {
+            tryConnecting(subscriber, connectOptions, this)
+        }
+
+    suspend fun tryConnecting(
+        subscriber: Subscriber,
+        connectOptions: ConnectionOptions,
+        coroutineScope: CoroutineScope
+    ) {
+        runCatching {
+            Log.i(TAG, "Connect")
+            subscriber.connect(connectOptions)
+        }.onFailure {
+            if (coroutineScope.isActive) {
+                Log.i(TAG, "Connection failure with message ${it.message}")
+                delay(2000)
+                tryConnecting(subscriber, connectOptions, coroutineScope)
+            }
+        }
+    }
+
     fun subscribe(subscriber: Subscriber, option: Option) {
         subscriptionJob?.cancel()
-        subscriptionJob = CoroutineScope(dispatcherProvider.io).launch {
-            Log.d(TAG, "Start Subscribing")
+        subscriptionJob = CoroutineScope(dispatcherProvider.io).safeLaunch(block = {
+            Log.d(TAG, "Start Subscribing ${option.disableAudio}")
             subscriber.subscribe(option)
-        }
+        })
     }
 
     fun disconnect() {
@@ -279,6 +300,7 @@ class MultiStreamingRepository(
         connectionJob = null
         connectionStateJob = null
     }
+
     private fun clearData() {
         _data.update { MultiStreamingData() }
     }
@@ -349,6 +371,10 @@ fun createDirectoryIfNotExists(directoryPath: String) {
     } else {
         Log.d(TAG, "Directory already exists")
     }
+}
+
+val handler = CoroutineExceptionHandler { _, exception ->
+    println("CoroutineExceptionHandler got $exception")
 }
 
 fun <T> CoroutineScope.safeLaunch(
