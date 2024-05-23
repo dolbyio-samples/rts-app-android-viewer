@@ -20,12 +20,7 @@ data class MultiStreamingData(
     val trackLayerData: Map<String, List<LowLevelVideoQuality>> = emptyMap()
 ) {
     fun populateError(error: String): MultiStreamingData = copy(
-        videoTracks = emptyList(),
-        audioTracks = emptyList(),
-        selectedAudioTrackId = null,
         error = error,
-        isSubscribed = false,
-        isSubscribing = false,
         isConnected = false
     )
 
