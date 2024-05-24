@@ -174,9 +174,6 @@ class MultiStreamingRepository(
         }
         val subscriber = Core.createSubscriber()
 
-        listener = MultiStreamListener(_data, subscriber).apply {
-            start()
-        }
         subscriber.enableStats(true)
 
         subscriber.setCredentials(
@@ -209,11 +206,14 @@ class MultiStreamingRepository(
             options = options.copy(rtcEventLogOutputPath = path + "/${timeStamp}_rtclogs.proto")
         }
 
+        listener = MultiStreamListener(_data, subscriber, options).apply {
+            start()
+        }
+
         Log.d(TAG, "Connecting ...")
 
         try {
             subscriber.connect(ConnectionOptions(true))
-            subscriber.subscribe(options = options)
         } catch (e: Throwable) {
             e.printStackTrace()
         }
