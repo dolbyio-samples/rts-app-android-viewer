@@ -10,14 +10,22 @@ import androidx.compose.foundation.pager.HorizontalPager
 import androidx.compose.foundation.pager.rememberPagerState
 import androidx.compose.material.Scaffold
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.DisposableEffect
 import androidx.compose.runtime.LaunchedEffect
+import androidx.compose.runtime.MutableState
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableIntStateOf
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
+import androidx.compose.runtime.rememberUpdatedState
+import androidx.compose.runtime.saveable.rememberSaveable
+import androidx.compose.runtime.setValue
 import androidx.compose.runtime.snapshotFlow
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.platform.LocalContext
+import androidx.compose.ui.platform.LocalLifecycleOwner
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.semantics.contentDescription
@@ -25,8 +33,11 @@ import androidx.compose.ui.semantics.semantics
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.viewinterop.AndroidView
 import androidx.hilt.navigation.compose.hiltViewModel
+import androidx.lifecycle.Lifecycle
+import androidx.lifecycle.LifecycleEventObserver
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import com.millicast.Media
+import com.millicast.subscribers.remote.RemoteVideoTrack
 import com.millicast.video.TextureViewRenderer
 import io.dolby.interactiveplayer.R
 import io.dolby.interactiveplayer.rts.ui.DolbyBackgroundBox
@@ -37,6 +48,7 @@ import io.dolby.rtscomponentkit.data.multistream.prefs.MultiviewLayout
 import io.dolby.rtscomponentkit.domain.StreamingData
 import io.dolby.rtsviewer.uikit.button.StyledIconButton
 import org.webrtc.RendererCommon
+import org.webrtc.VideoSink
 
 @OptIn(ExperimentalFoundationApi::class)
 @Composable
@@ -45,7 +57,7 @@ fun SingleStreamingScreen(
     onBack: () -> Unit,
     onSettingsClick: (StreamingData?) -> Unit
 ) {
-    val uiState by viewModel.uiState.collectAsStateWithLifecycle()
+    val uiState by viewModel.uiState.collectAsState()
 
     val screenContentDescription = stringResource(id = R.string.streaming_screen_contentDescription)
     val selectedItem =
@@ -90,6 +102,8 @@ fun SingleStreamingScreen(
                 initialPage = initialPage,
                 pageCount = { uiState.videoTracks.size }
             )
+            val currentShownPage: MutableState<Boolean> = remember { mutableStateOf(true) }
+
             if (uiState.videoTracks.isNotEmpty()) {
                 LaunchedEffect(pagerState) {
                     snapshotFlow { pagerState.currentPage }.collect { page ->
@@ -106,21 +120,13 @@ fun SingleStreamingScreen(
             }
 
             HorizontalPager(state = pagerState) { page ->
-                VideoView(page, uiState, showSourceLabels.value)
+                VideoView(page, pagerState.currentPage, uiState, showSourceLabels.value)
             }
 
             LiveIndicator(
                 modifier = Modifier.align(Alignment.TopStart),
                 on = uiState.videoTracks.isNotEmpty() || uiState.audioTracks.isNotEmpty()
             )
-
-//            if (uiState.videoTracks.isNotEmpty()) {
-//                QualityLabel(
-//                    viewModel = viewModel,
-//                    video = uiState.videoTracks[pagerState.currentPage],
-//                    modifier = Modifier.align(Alignment.BottomEnd)
-//                )
-//            }
 
             QualitySelector(viewModel = viewModel)
 
@@ -175,35 +181,69 @@ private fun Statistics(
 @Composable
 private fun VideoView(
     page: Int,
+    currentShownPage: Int,
     uiState: MultiStreamingUiState,
     displayLabels: Boolean
 ) {
+    val context = LocalContext.current
+    val videoRenderer = remember(context) {
+        TextureViewRenderer(context).apply {
+            init(Media.eglBaseContext, null)
+        }
+    }
     Box(modifier = Modifier.fillMaxSize()) {
         AndroidView(
             modifier = Modifier
                 .aspectRatio(16F / 9)
                 .align(Alignment.Center),
-            factory = { context ->
-                val view = TextureViewRenderer(context)
-                view.init(Media.eglBaseContext, null)
-                view
-            },
+            factory = { videoRenderer },
             update = { view ->
                 view.setScalingType(RendererCommon.ScalingType.SCALE_ASPECT_FIT)
-                uiState.videoTracks[page].disableSync()
-                val isSelected =
-                    uiState.selectedVideoTrackId == uiState.videoTracks[page].sourceId
-
-                uiState.videoTracks[page].enableAsync(
-                    layer = null,
-//                if (isSelected) uiState.connectOptions?.primaryVideoQuality ?: VideoQuality.AUTO else VideoQuality.LOW,
-                    videoSink = view
-                )
-            },
-            onRelease = { view ->
-                uiState.videoTracks[page].disableSync(videoSink = view)
-                view.release()
             }
         )
+        val audioTrack =
+            uiState.audioTracks.firstOrNull { it.sourceId == uiState.selectedAudioTrack }
+        AudioTrackLifecycleObserver(audioTrack)
+        PagerVideoTrackLifecycleObserver(
+            video = uiState.videoTracks[page],
+            videoSink = videoRenderer,
+            page = page,
+            currentShownPage = currentShownPage
+        )
+    }
+}
+
+@Composable
+fun PagerVideoTrackLifecycleObserver(
+    video: RemoteVideoTrack,
+    videoSink: VideoSink,
+    page: Int,
+    currentShownPage: Int
+) {
+    val lifecycleOwner = rememberUpdatedState(LocalLifecycleOwner.current)
+    val pageIndex by rememberSaveable { mutableIntStateOf(page) }
+    DisposableEffect(currentShownPage) {
+        val observer = LifecycleEventObserver { _, event ->
+            when (event) {
+                Lifecycle.Event.ON_PAUSE -> {
+                    video.disableAsync()
+                }
+
+                Lifecycle.Event.ON_RESUME -> {
+                    if (pageIndex == currentShownPage) {
+                        video.enableAsync(videoSink = videoSink)
+                    }
+                }
+
+                else -> {
+                }
+            }
+        }
+        val lifecycle = lifecycleOwner.value.lifecycle
+        lifecycle.addObserver(observer)
+        onDispose {
+            lifecycle.removeObserver(observer)
+            video.disableAsync()
+        }
     }
 }

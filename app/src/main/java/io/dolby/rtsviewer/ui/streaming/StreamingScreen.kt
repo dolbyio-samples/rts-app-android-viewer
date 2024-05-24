@@ -61,10 +61,6 @@ fun StreamingScreen(viewModel: StreamingViewModel = hiltViewModel(), onBack: () 
                                 isMain = true,
                                 view = view
                             )
-                        },
-                        onRelease = { view ->
-                            uiState.videoTrack?.disableSync(videoSink = view)
-                            view.release()
                         }
                     )
                     SetupVolumeControlAudioStream()

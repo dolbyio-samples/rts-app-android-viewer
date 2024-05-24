@@ -10,10 +10,12 @@ import android.os.HandlerThread
 import android.provider.Settings
 import android.util.Log
 import com.millicast.Core
+import com.millicast.Subscriber
 import com.millicast.clients.ConnectionOptions
 import com.millicast.subscribers.Credential
 import com.millicast.subscribers.Option
 import com.millicast.subscribers.remote.RemoteAudioTrack
+import com.millicast.subscribers.state.SubscriberConnectionState
 import io.dolby.rtscomponentkit.data.multistream.MultiStreamListener.Companion.TAG
 import io.dolby.rtscomponentkit.data.multistream.prefs.AudioSelection
 import io.dolby.rtscomponentkit.data.multistream.prefs.MultiStreamPrefsStore
@@ -23,13 +25,17 @@ import io.dolby.rtscomponentkit.domain.StreamingData
 import io.dolby.rtscomponentkit.utils.DispatcherProvider
 import io.dolby.rtscomponentkit.utils.RemoteVolumeObserver
 import io.dolby.rtscomponentkit.utils.adjustTrackVolume
+import kotlinx.coroutines.CoroutineExceptionHandler
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Job
+import kotlinx.coroutines.coroutineScope
+import kotlinx.coroutines.delay
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.combine
 import kotlinx.coroutines.flow.update
+import kotlinx.coroutines.isActive
 import kotlinx.coroutines.launch
 import java.io.File
 import java.time.Instant
@@ -49,6 +55,9 @@ class MultiStreamingRepository(
 
     private val _audioSelection = MutableStateFlow(AudioSelection.default)
     private var audioSelectionListenerJob: Job? = null
+    private var connectionStateJob: Job? = null
+    private var connectionJob: Job? = null
+    private var subscriptionJob: Job? = null
 
     private var volumeObserver: RemoteVolumeObserver? = null
     private val audioManager = context.getSystemService(AudioManager::class.java) as AudioManager
@@ -77,7 +86,6 @@ class MultiStreamingRepository(
     }
 
     init {
-        listenForAudioSelection()
         handlerThread.start()
     }
 
@@ -114,17 +122,36 @@ class MultiStreamingRepository(
         audioManager.isSpeakerphoneOn = true
     }
 
+    private fun listenForConnectionState(subscriber: Subscriber, option: Option) {
+        connectionStateJob?.cancel()
+        connectionStateJob = CoroutineScope(dispatcherProvider.main).launch {
+            subscriber.state.collect {
+                when {
+                    it.connectionState == SubscriberConnectionState.Connected -> {
+                        if (!_data.value.isSubscribed && !_data.value.isSubscribing) {
+                            _data.update {
+                                it.copy(isSubscribing = true)
+                            }
+                            subscribe(subscriber, option)
+                        }
+                    }
+                }
+            }
+        }
+    }
+
     private fun listenForAudioSelection() {
         audioSelectionListenerJob?.cancel()
-        audioSelectionListenerJob = CoroutineScope(dispatcherProvider.main).launch {
+        audioSelectionListenerJob = CoroutineScope(dispatcherProvider.main).safeLaunch(block = {
             combine(
-                _data,
+                data,
                 prefsStore.audioSelection(data.value.streamingData)
             ) { data, audioSelection -> Pair(data, audioSelection) }.collect {
                 val data = it.first
                 val audioSelection = it.second
                 var audioSourceIdToSelect: RemoteAudioTrack? = null
                 _audioSelection.update { audioSelection }
+                Log.d(TAG, "ListenForAudio Selection Audio audioTracks ${data.audioTracks}")
                 when (audioSelection) {
                     AudioSelection.MainSource -> {
                         data.audioTracks.firstOrNull { it.sourceId == null }
@@ -142,6 +169,7 @@ class MultiStreamingRepository(
                     AudioSelection.FollowVideo -> {
                         val selectAudioTrack =
                             data.audioTracks.find { it.sourceId == data.selectedVideoTrackId }
+                        Log.d(TAG, "AudioListener followVideo $selectAudioTrack")
                         selectAudioTrack?.let {
                             audioSourceIdToSelect = selectAudioTrack
                         }
@@ -159,14 +187,17 @@ class MultiStreamingRepository(
                     }
                 }
                 audioSourceIdToSelect?.let { audio ->
-                    if (audioSourceIdToSelect?.sourceId != data.selectedAudioTrackId) {
-                        audio.enable()
+                    if (audio.sourceId != data.selectedAudioTrackId) {
+                        Log.d(TAG, "Audio enable for source id ${audio.sourceId}")
+                        audio.disableAsync()
+                        audio.enableAsync()
+                        updateSelectedAudioTrackId(audio.sourceId)
+                        adjustTrackVolume(context, audio)
+                        addVolumeObserver(audio)
                     }
-                    adjustTrackVolume(context, audio)
-                    addVolumeObserver(audio)
                 }
             }
-        }
+        })
     }
 
     suspend fun connect(streamingData: StreamingData, connectOptions: ConnectOptions) {
@@ -174,7 +205,6 @@ class MultiStreamingRepository(
             return
         }
         val subscriber = Core.createSubscriber()
-
         listener = MultiStreamListener(_data, subscriber).apply {
             start()
         }
@@ -212,24 +242,67 @@ class MultiStreamingRepository(
 
         Log.d(TAG, "Connecting ...")
 
-        try {
-            subscriber.connect(ConnectionOptions(true))
-            subscriber.subscribe(options = options)
-        } catch (e: Throwable) {
-            e.printStackTrace()
-        }
+        connectionJob?.cancel()
+        connectionJob = startConnection(subscriber, ConnectionOptions(true))
         _data.update { data -> data.copy(streamingData = streamingData) }
+        listenForConnectionState(subscriber, options)
         listenForAudioSelection()
         listenForAudioDevices()
     }
 
+    fun startConnection(subscriber: Subscriber, connectOptions: ConnectionOptions) =
+        CoroutineScope(dispatcherProvider.io).launch {
+            tryConnecting(subscriber, connectOptions, this)
+        }
+
+    suspend fun tryConnecting(
+        subscriber: Subscriber,
+        connectOptions: ConnectionOptions,
+        coroutineScope: CoroutineScope
+    ) {
+        runCatching {
+            Log.i(TAG, "Connect")
+            subscriber.connect(connectOptions)
+        }.onFailure {
+            if (coroutineScope.isActive) {
+                Log.i(TAG, "Connection failure with message ${it.message}")
+                delay(2000)
+                tryConnecting(subscriber, connectOptions, coroutineScope)
+            }
+        }
+    }
+
+    fun subscribe(subscriber: Subscriber, option: Option) {
+        subscriptionJob?.cancel()
+        subscriptionJob = CoroutineScope(dispatcherProvider.io).safeLaunch(block = {
+            Log.d(TAG, "Start Subscribing ${option.disableAudio}")
+            subscriber.subscribe(option)
+        })
+    }
+
     fun disconnect() {
-        val listener = listener
-        this.listener = null
+        Log.d(TAG, "Disconnect")
+        cancelAllJobs()
         listener?.disconnect()
-        _data.update { MultiStreamingData() }
+        this.listener = null
+        clearData()
         unregisterVolumeObserver()
         unregisterAudioDeviceListener()
+    }
+
+    private fun cancelAllJobs() {
+        subscriptionJob?.cancel()
+        connectionJob?.cancel()
+        connectionStateJob?.cancel()
+        audioSelectionListenerJob?.cancel()
+        audioSelectionListenerJob = null
+        subscriptionJob = null
+        connectionJob = null
+        connectionStateJob = null
+    }
+
+    private fun clearData() {
+        _data.update { MultiStreamingData() }
     }
 
     private fun credential(
@@ -248,10 +321,14 @@ class MultiStreamingRepository(
 
     fun updateSelectedVideoTrackId(sourceId: String?) {
         _data.update { data ->
-//            data.videoTracks.forEach {
-//                it.videoTrack.removeVideoSink()
-//            }
             data.copy(selectedVideoTrackId = sourceId)
+        }
+    }
+
+    fun updateSelectedAudioTrackId(sourceId: String?) {
+        Log.d(TAG, "update SelectedAudio TrackId for sourceId $sourceId")
+        _data.update { data ->
+            data.copy(selectedAudioTrackId = sourceId)
         }
     }
 
@@ -294,6 +371,10 @@ fun createDirectoryIfNotExists(directoryPath: String) {
     } else {
         Log.d(TAG, "Directory already exists")
     }
+}
+
+val handler = CoroutineExceptionHandler { _, exception ->
+    println("CoroutineExceptionHandler got $exception")
 }
 
 fun <T> CoroutineScope.safeLaunch(

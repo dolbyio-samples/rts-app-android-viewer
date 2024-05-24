@@ -18,6 +18,7 @@ data class MultiStreamingUiState(
     val videoTracks: List<RemoteVideoTrack> = emptyList(),
     val audioTracks: List<RemoteAudioTrack> = emptyList(),
     val selectedVideoTrackId: String? = null,
+    val selectedAudioTrack: String? = null,
     val error: Error? = null,
     val hasNetwork: Boolean = true,
     val layerData: Map<String, List<LowLevelVideoQuality>> = emptyMap()

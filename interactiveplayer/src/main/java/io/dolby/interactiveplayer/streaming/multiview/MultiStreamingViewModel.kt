@@ -164,7 +164,7 @@ class MultiStreamingViewModel @Inject constructor(
                     } else {
                         Error.NO_INTERNET_CONNECTION
                     }
-                    it.copy(error = error)
+                    it.copy(error = error, videoTracks = emptyList())
                 }
             }
 
@@ -176,6 +176,7 @@ class MultiStreamingViewModel @Inject constructor(
                     } else videoTracks,
                     audioTracks = data.audioTracks,
                     selectedVideoTrackId = data.selectedVideoTrackId,
+                    selectedAudioTrack = data.selectedAudioTrackId,
                     streamName = data.streamingData?.streamName,
                     layerData = data.trackLayerData,
                     error = null

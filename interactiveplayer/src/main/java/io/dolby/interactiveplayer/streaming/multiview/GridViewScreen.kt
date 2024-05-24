@@ -1,6 +1,7 @@
 package io.dolby.interactiveplayer.streaming.multiview
 
 import android.content.res.Configuration
+import android.util.Log
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
@@ -16,16 +17,17 @@ import androidx.compose.material.Scaffold
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
+import androidx.compose.runtime.remember
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.LocalConfiguration
+import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.platform.LocalFocusManager
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.semantics.contentDescription
 import androidx.compose.ui.semantics.semantics
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.viewinterop.AndroidView
-import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import com.millicast.Media
 import com.millicast.subscribers.remote.RemoteVideoTrack
 import com.millicast.video.TextureViewRenderer
@@ -44,7 +46,7 @@ fun GridViewScreen(
     onMainClick: (String?) -> Unit,
     onSettingsClick: () -> Unit
 ) {
-    val uiState by viewModel.uiState.collectAsStateWithLifecycle()
+    val uiState by viewModel.uiState.collectAsState()
 
     val screenContentDescription = stringResource(id = R.string.streaming_screen_contentDescription)
 
@@ -57,8 +59,8 @@ fun GridViewScreen(
             TopAppBar(
                 title = uiState.streamName ?: screenContentDescription,
                 onBack = {
-                    onBack()
                     viewModel.disconnect()
+                    onBack()
                 },
                 onAction = onSettingsClick
             )
@@ -153,28 +155,26 @@ private fun VideoView(
     onClick: ((String?) -> Unit)? = null,
     modifier: Modifier
 ) {
+    val context = LocalContext.current
+    val videoRenderer = remember(video) {
+        TextureViewRenderer(context).apply {
+            init(Media.eglBaseContext, null)
+        }
+    }
     val updatedModifier = onClick?.let {
         modifier.clickable { onClick(video.sourceId) }
     } ?: modifier
     Box {
         AndroidView(
             modifier = updatedModifier,
-            factory = { context ->
-                val view = TextureViewRenderer(context)
-                view.init(Media.eglBaseContext, null)
-                view
-            },
+            factory = { videoRenderer },
             update = { view ->
                 view.setScalingType(RendererCommon.ScalingType.SCALE_ASPECT_FIT)
-                video.enableAsync(layer = null, videoSink = view)
-//                video.play(view, viewModel, videoQuality)
-            },
-            onRelease = {
-                video.disableSync(it)
-//                viewModel.stopVideo(video)
-                it.release()
+                Log.d("VideoView", "enableAsync for video ${video.currentMid} ")
+                video.enableAsync(videoSink = view)
             }
         )
+        VideoTrackLifecycleObserver(video = video, videoSink = videoRenderer)
         if (displayLabel) {
             LabelIndicator(
                 modifier = Modifier.align(Alignment.BottomStart),
