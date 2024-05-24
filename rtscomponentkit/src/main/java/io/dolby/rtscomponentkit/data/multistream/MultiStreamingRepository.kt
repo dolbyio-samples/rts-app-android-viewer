@@ -373,10 +373,6 @@ fun createDirectoryIfNotExists(directoryPath: String) {
     }
 }
 
-val handler = CoroutineExceptionHandler { _, exception ->
-    println("CoroutineExceptionHandler got $exception")
-}
-
 fun <T> CoroutineScope.safeLaunch(
     block: suspend CoroutineScope.() -> T,
     error: (suspend CoroutineScope.(err: Throwable) -> T)? = null

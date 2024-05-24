@@ -49,7 +49,7 @@ class MultiStreamListener(
                 }
 
                 is SubscriberConnectionState.DisconnectedError -> {
-//                    onConnectionError(state.httpCode, state.reason)
+                    onConnectionError(state.httpCode, state.reason)
                 }
 
                 SubscriberConnectionState.Disconnecting -> {
