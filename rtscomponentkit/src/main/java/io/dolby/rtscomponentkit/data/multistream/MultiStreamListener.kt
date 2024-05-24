@@ -6,10 +6,12 @@ import com.millicast.clients.stats.RtsReport
 import com.millicast.devices.track.AudioTrack
 import com.millicast.devices.track.TrackType
 import com.millicast.devices.track.VideoTrack
+import com.millicast.subscribers.Option
 import com.millicast.subscribers.ProjectionData
 import com.millicast.subscribers.state.ActivityStream
 import com.millicast.subscribers.state.LayerData
 import com.millicast.subscribers.state.SubscriberConnectionState
+import com.millicast.utils.MillicastException
 import io.dolby.rtscomponentkit.domain.MultiStreamStatisticsData
 import io.dolby.rtscomponentkit.domain.MultiStreamingData
 import kotlinx.coroutines.CoroutineScope
@@ -27,7 +29,8 @@ import kotlinx.coroutines.launch
 
 class MultiStreamListener(
     private val data: MutableStateFlow<MultiStreamingData>,
-    private var subscriber: Subscriber
+    private var subscriber: Subscriber,
+    private val options: Option
 ) {
     private lateinit var coroutineScope: CoroutineScope
 
@@ -38,7 +41,8 @@ class MultiStreamListener(
         Log.d(TAG, "Listener start")
         coroutineScope = CoroutineScope(Dispatchers.IO)
 
-        subscriber.state.map { it.connectionState }.collectInLocalScope { state ->
+        subscriber.state.map { it.connectionState }.distinctUntilChanged().collectInLocalScope { state ->
+            Log.d(TAG, "New state: $state")
             when (state) {
                 SubscriberConnectionState.Connected -> {
                     onConnected()
@@ -137,11 +141,16 @@ class MultiStreamListener(
         subscriber.release()
     }
 
-    private fun onConnected() {
+    private suspend fun onConnected() {
         Log.d(
             TAG,
             "onConnected, this: $this, thread: ${Thread.currentThread().id}"
         )
+        try {
+            subscriber.subscribe(options = options)
+        } catch (e: MillicastException) {
+            e.printStackTrace()
+        }
     }
 
     private fun onDisconnected() {
@@ -160,9 +169,6 @@ class MultiStreamListener(
 
     private fun onSignalingError(p0: String?) {
         Log.d(TAG, "onSignalingError: $p0")
-        data.update {
-            it.populateError(error = p0 ?: "Signaling error")
-        }
     }
 
     private fun onStatsReport(p0: RtsReport?) {

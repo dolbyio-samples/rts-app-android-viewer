@@ -198,7 +198,11 @@ class SingleStreamListener(
 
     private suspend fun onConnected() {
         Log.d(TAG, "onConnected")
-        subscriber.subscribe(Option(statsDelayMs = 1_000))
+        try {
+            subscriber.subscribe(Option(statsDelayMs = 1_000))
+        } catch (e: MillicastException) {
+            e.printStackTrace()
+        }
     }
 
     private fun onActive(p0: String?, p1: Array<out String>, p2: String?) {
