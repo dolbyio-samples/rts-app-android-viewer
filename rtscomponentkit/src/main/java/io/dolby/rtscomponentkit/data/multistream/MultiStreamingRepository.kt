@@ -25,7 +25,6 @@ import io.dolby.rtscomponentkit.domain.StreamingData
 import io.dolby.rtscomponentkit.utils.DispatcherProvider
 import io.dolby.rtscomponentkit.utils.RemoteVolumeObserver
 import io.dolby.rtscomponentkit.utils.adjustTrackVolume
-import kotlinx.coroutines.CoroutineExceptionHandler
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Job
 import kotlinx.coroutines.coroutineScope
