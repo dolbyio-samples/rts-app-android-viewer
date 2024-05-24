@@ -4,9 +4,10 @@ import android.icu.text.SimpleDateFormat
 import android.util.Log
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
+import com.millicast.video.TextureViewRenderer
 import dagger.hilt.android.lifecycle.HiltViewModel
 import io.dolby.rtscomponentkit.data.RTSViewerDataStore
-import io.dolby.rtscomponentkit.data.SingleStreamStatisticsData
+import io.dolby.rtscomponentkit.domain.MultiStreamStatisticsData
 import io.dolby.rtscomponentkit.utils.DispatcherProvider
 import io.dolby.rtsviewer.R
 import io.dolby.rtsviewer.preferenceStore.PrefsStore
@@ -73,6 +74,7 @@ class StreamingViewModel @Inject constructor(
                                 )
                             }
                         }
+
                         NetworkStatusObserver.Status.Available -> when (dataStoreState) {
                             RTSViewerDataStore.State.Connecting -> {
                                 Log.d(TAG, "Connecting")
@@ -84,6 +86,7 @@ class StreamingViewModel @Inject constructor(
                                     }
                                 }
                             }
+
                             RTSViewerDataStore.State.Subscribed -> {
                                 Log.d(TAG, "Subscribed")
                                 repository.audioPlaybackStart()
@@ -98,6 +101,7 @@ class StreamingViewModel @Inject constructor(
                                     }
                                 }
                             }
+
                             RTSViewerDataStore.State.StreamActive -> {
                                 Log.d(TAG, "StreamActive")
                                 withContext(dispatcherProvider.main) {
@@ -111,6 +115,7 @@ class StreamingViewModel @Inject constructor(
                                     }
                                 }
                             }
+
                             RTSViewerDataStore.State.StreamInactive -> {
                                 Log.d(TAG, "StreamInactive")
                                 withContext(dispatcherProvider.main) {
@@ -122,26 +127,34 @@ class StreamingViewModel @Inject constructor(
                                     }
                                 }
                             }
+
                             is RTSViewerDataStore.State.AudioTrackReady -> {
-                                Log.d(TAG, "AudioTrackReady")
-                                withContext(dispatcherProvider.main) {
-                                    _uiState.update { state ->
-                                        state.copy(
-                                            audioTrack = dataStoreState.audioTrack
-                                        )
+                                if (_uiState.value.audioTrack == null || _uiState.value.audioTrack?.isActive == false) {
+                                    Log.d(TAG, "AudioTrackReady")
+                                    withContext(dispatcherProvider.main) {
+                                        dataStoreState.audioTrack.enable()
+                                        _uiState.update { state ->
+                                            state.copy(
+                                                audioTrack = dataStoreState.audioTrack
+                                            )
+                                        }
                                     }
                                 }
                             }
+
                             is RTSViewerDataStore.State.VideoTrackReady -> {
-                                Log.d(TAG, "VideoTrackReady")
-                                withContext(dispatcherProvider.main) {
-                                    _uiState.update { state ->
-                                        state.copy(
-                                            videoTrack = dataStoreState.videoTrack
-                                        )
+                                if (_uiState.value.videoTrack == null) {
+                                    Log.d(TAG, "VideoTrackReady")
+                                    withContext(dispatcherProvider.main) {
+                                        _uiState.update { state ->
+                                            state.copy(
+                                                videoTrack = dataStoreState.videoTrack
+                                            )
+                                        }
                                     }
                                 }
                             }
+
                             RTSViewerDataStore.State.Disconnecting,
                             RTSViewerDataStore.State.Disconnected -> {
                                 Log.d(
@@ -159,6 +172,7 @@ class StreamingViewModel @Inject constructor(
                                     }
                                 }
                             }
+
                             is RTSViewerDataStore.State.Error -> {
                                 Log.d(TAG, "Error")
                                 withContext(dispatcherProvider.main) {
@@ -187,7 +201,7 @@ class StreamingViewModel @Inject constructor(
                     withContext(dispatcherProvider.main) {
                         _uiState.update { state ->
                             state.copy(
-                                streamQualityTypes = it
+                                streamQualityTypes = it[state.videoTrack?.currentMid] ?: emptyList()
                             )
                         }
                     }
@@ -254,7 +268,9 @@ class StreamingViewModel @Inject constructor(
     private fun streamingStatistics(): Flow<List<Pair<Int, String>>?> =
         repository.statisticsData.map { statisticsData -> getStatisticsValuesList(statisticsData) }
 
-    private fun getStatisticsValuesList(statisticsData: SingleStreamStatisticsData?): List<Pair<Int, String>>? {
+    private fun getStatisticsValuesList(statisticsData: MultiStreamStatisticsData?): List<Pair<Int, String>>? {
+        val currentVideoMid = _uiState.value.videoTrack?.currentMid
+        val currentAudioMid = _uiState.value.audioTrack?.currentMid
         statisticsData?.let { statistics ->
             val statisticsValuesList = mutableListOf<Pair<Int, String>>()
             statistics.roundTripTime?.let {
@@ -273,13 +289,15 @@ class StreamingViewModel @Inject constructor(
                     )
                 )
             }
-            statistics.video?.videoResolution?.let {
+            val currentVideo = statistics.video?.firstOrNull { it.mid == currentVideoMid }
+            val currentAudio = statistics.audio?.firstOrNull { it.mid == currentAudioMid }
+            currentVideo?.videoResolution?.let {
                 statisticsValuesList.add(Pair(R.string.statisticsScreen_videoResolution, it))
             }
-            statistics.video?.fps?.let {
+            currentVideo?.fps?.let {
                 statisticsValuesList.add(Pair(R.string.statisticsScreen_fps, "${it.toLong()}"))
             }
-            statistics.video?.bytesReceived?.let {
+            currentVideo?.bytesReceived?.let {
                 statisticsValuesList.add(
                     Pair(
                         R.string.statisticsScreen_videoTotal,
@@ -287,7 +305,7 @@ class StreamingViewModel @Inject constructor(
                     )
                 )
             }
-            statistics.audio?.bytesReceived?.let {
+            currentAudio?.bytesReceived?.let {
                 statisticsValuesList.add(
                     Pair(
                         R.string.statisticsScreen_audioTotal,
@@ -295,13 +313,13 @@ class StreamingViewModel @Inject constructor(
                     )
                 )
             }
-            statistics.video?.packetsLost?.let {
+            currentVideo?.packetsLost?.let {
                 statisticsValuesList.add(Pair(R.string.statisticsScreen_videoLoss, "$it"))
             }
-            statistics.audio?.packetsLost?.let {
+            currentAudio?.packetsLost?.let {
                 statisticsValuesList.add(Pair(R.string.statisticsScreen_audioLoss, "$it"))
             }
-            statistics.video?.jitter?.let {
+            currentVideo?.jitter?.let {
                 statisticsValuesList.add(
                     Pair(
                         R.string.statisticsScreen_videoJitter,
@@ -309,7 +327,7 @@ class StreamingViewModel @Inject constructor(
                     )
                 )
             }
-            statistics.audio?.jitter?.let {
+            currentAudio?.jitter?.let {
                 statisticsValuesList.add(
                     Pair(
                         R.string.statisticsScreen_audioJitter,
@@ -318,18 +336,18 @@ class StreamingViewModel @Inject constructor(
                 )
             }
             var codecNames = ""
-            statistics.video?.codecName?.let {
+            currentVideo?.codecName?.let {
                 codecNames += it
             }
-            statistics.audio?.codecName?.let {
+            currentAudio?.codecName?.let {
                 if (codecNames.isNotEmpty()) codecNames += ", "
                 codecNames += it
             }
             if (codecNames.isNotEmpty()) {
                 statisticsValuesList.add(Pair(R.string.statisticsScreen_codecs, codecNames))
             }
-            statistics.timestamp?.let {
-                getDateTime(it)?.let { dateTime ->
+            statistics.timestamp?.let { doubleTime ->
+                getDateTime(doubleTime.toLong())?.let { dateTime ->
                     statisticsValuesList.add(Pair(R.string.statisticsScreen_timestamp, dateTime))
                 }
             }
@@ -361,11 +379,38 @@ class StreamingViewModel @Inject constructor(
         }
         return String.format("%.1f %cB", value / 1000.0, ci.current())
     }
+
     fun updateShowSimulcastSettings(show: Boolean) {
         _showSimulcastSettings.update { show }
     }
 
     fun selectStreamQualityType(streamQualityType: RTSViewerDataStore.StreamQualityType) {
-        repository.selectStreamQualityType(streamQualityType)
+        _uiState.update { state ->
+            state.copy(pendingSelectedStreamQualityType = streamQualityType)
+        }
+    }
+
+    fun playVideo(
+        isMain: Boolean,
+        view: TextureViewRenderer,
+        preferredQuality: RTSViewerDataStore.StreamQualityType? = null
+    ) {
+        var streamQualityType: RTSViewerDataStore.StreamQualityType? =
+            _uiState.value.pendingSelectedStreamQualityType ?: _uiState.value.selectedStreamQualityType
+        streamQualityType?.let { qualityType ->
+            _uiState.update {
+                it.copy(
+                    selectedStreamQualityType = qualityType,
+                    pendingSelectedStreamQualityType = null
+                )
+            }
+        } ?: { streamQualityType = _uiState.value.selectedStreamQualityType }
+        val qualityToApply = (streamQualityType ?: preferredQuality ?: RTSViewerDataStore.StreamQualityType.Auto).layerData
+        Log.d(TAG, "playVideo $qualityToApply $streamQualityType $preferredQuality")
+        _uiState.value.videoTrack?.enableAsync(
+            isMain,
+            qualityToApply,
+            videoSink = view
+        )
     }
 }

@@ -44,6 +44,7 @@ fun StreamingScreen(viewModel: StreamingViewModel = hiltViewModel(), onBack: () 
             uiState.error != null -> {
                 ErrorView(error = uiState.error!!)
             }
+
             uiState.subscribed && uiState.error == null -> {
                 Box(
                     modifier = Modifier.align(Alignment.Center)
@@ -56,12 +57,20 @@ fun StreamingScreen(viewModel: StreamingViewModel = hiltViewModel(), onBack: () 
                         },
                         update = { view ->
                             view.setScalingType(RendererCommon.ScalingType.SCALE_ASPECT_FIT)
-                            uiState.videoTrack?.setVideoSink(view)
+                            viewModel.playVideo(
+                                isMain = true,
+                                view = view
+                            )
+                        },
+                        onRelease = { view ->
+                            uiState.videoTrack?.disableSync(videoSink = view)
+                            view.release()
                         }
                     )
                     SetupVolumeControlAudioStream()
                 }
             }
+
             uiState.disconnected -> {
                 (context.findActivity() as? MainActivity?)?.unregisterVolumeObserverIfExists()
             }

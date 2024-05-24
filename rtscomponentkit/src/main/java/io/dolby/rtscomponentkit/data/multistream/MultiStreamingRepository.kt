@@ -11,9 +11,9 @@ import android.provider.Settings
 import android.util.Log
 import com.millicast.Core
 import com.millicast.clients.ConnectionOptions
-import com.millicast.devices.track.AudioTrack
 import com.millicast.subscribers.Credential
 import com.millicast.subscribers.Option
+import com.millicast.subscribers.remote.RemoteAudioTrack
 import io.dolby.rtscomponentkit.data.multistream.MultiStreamListener.Companion.TAG
 import io.dolby.rtscomponentkit.data.multistream.prefs.AudioSelection
 import io.dolby.rtscomponentkit.data.multistream.prefs.MultiStreamPrefsStore
@@ -21,6 +21,7 @@ import io.dolby.rtscomponentkit.domain.ConnectOptions
 import io.dolby.rtscomponentkit.domain.MultiStreamingData
 import io.dolby.rtscomponentkit.domain.StreamingData
 import io.dolby.rtscomponentkit.utils.DispatcherProvider
+import io.dolby.rtscomponentkit.utils.RemoteVolumeObserver
 import io.dolby.rtscomponentkit.utils.adjustTrackVolume
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Job
@@ -49,7 +50,7 @@ class MultiStreamingRepository(
     private val _audioSelection = MutableStateFlow(AudioSelection.default)
     private var audioSelectionListenerJob: Job? = null
 
-    private var volumeObserver: io.dolby.rtscomponentkit.utils.VolumeObserver? = null
+    private var volumeObserver: RemoteVolumeObserver? = null
     private val audioManager = context.getSystemService(AudioManager::class.java) as AudioManager
     private val handlerThread = HandlerThread("Audio Device Listener")
     private val audioDeviceCallback = object : AudioDeviceCallback() {
@@ -122,7 +123,7 @@ class MultiStreamingRepository(
             ) { data, audioSelection -> Pair(data, audioSelection) }.collect {
                 val data = it.first
                 val audioSelection = it.second
-                var audioSourceIdToSelect: MultiStreamingData.Audio? = null
+                var audioSourceIdToSelect: RemoteAudioTrack? = null
                 _audioSelection.update { audioSelection }
                 when (audioSelection) {
                     AudioSelection.MainSource -> {
@@ -159,10 +160,10 @@ class MultiStreamingRepository(
                 }
                 audioSourceIdToSelect?.let { audio ->
                     if (audioSourceIdToSelect?.sourceId != data.selectedAudioTrackId) {
-                        playAudio(audio)
+                        audio.enable()
                     }
-                    adjustTrackVolume(context, audio.audioTrack)
-                    addVolumeObserver(audio.audioTrack)
+                    adjustTrackVolume(context, audio)
+                    addVolumeObserver(audio)
                 }
             }
         }
@@ -247,35 +248,16 @@ class MultiStreamingRepository(
 
     fun updateSelectedVideoTrackId(sourceId: String?) {
         _data.update { data ->
-            data.videoTracks.forEach {
-                it.videoTrack.removeVideoSink()
-            }
-
+//            data.videoTracks.forEach {
+//                it.videoTrack.removeVideoSink()
+//            }
             data.copy(selectedVideoTrackId = sourceId)
         }
     }
 
-    fun playVideo(
-        video: MultiStreamingData.Video,
-        preferredVideoQuality: VideoQuality,
-        preferredVideoQualities: Map<String, VideoQuality>
-    ) {
-        val priorityVideoPreference =
-            if (preferredVideoQuality != VideoQuality.AUTO) preferredVideoQualities[video.id] else null
-        listener?.playVideo(video, priorityVideoPreference ?: preferredVideoQuality)
-    }
-
-    suspend fun stopVideo(video: MultiStreamingData.Video) {
-        listener?.stopVideo(video)
-    }
-
-    private fun playAudio(audio: MultiStreamingData.Audio) {
-        listener?.playAudio(audio)
-    }
-
-    private fun addVolumeObserver(audioTrack: AudioTrack) {
+    private fun addVolumeObserver(audioTrack: RemoteAudioTrack) {
         unregisterVolumeObserver()
-        val volumeObserver = io.dolby.rtscomponentkit.utils.VolumeObserver(
+        val volumeObserver = RemoteVolumeObserver(
             context,
             Handler(handlerThread.looper),
             audioTrack

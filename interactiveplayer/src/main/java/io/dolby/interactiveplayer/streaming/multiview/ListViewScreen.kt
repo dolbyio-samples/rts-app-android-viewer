@@ -36,6 +36,7 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.viewinterop.AndroidView
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import com.millicast.Media
+import com.millicast.subscribers.remote.RemoteVideoTrack
 import com.millicast.video.TextureViewRenderer
 import io.dolby.interactiveplayer.R
 import io.dolby.interactiveplayer.rts.ui.DolbyBackgroundBox
@@ -44,7 +45,6 @@ import io.dolby.interactiveplayer.rts.ui.LiveIndicator
 import io.dolby.interactiveplayer.rts.ui.TopAppBar
 import io.dolby.interactiveplayer.streaming.ErrorView
 import io.dolby.rtscomponentkit.data.multistream.VideoQuality
-import io.dolby.rtscomponentkit.domain.MultiStreamingData
 import io.dolby.rtsviewer.uikit.text.Text
 import org.webrtc.RendererCommon
 
@@ -94,7 +94,7 @@ fun ListViewScreen(
 
                 uiState.videoTracks.isNotEmpty() -> {
                     val configuration = LocalConfiguration.current
-                    val onOtherClick = { videoTrack: MultiStreamingData.Video ->
+                    val onOtherClick = { videoTrack: RemoteVideoTrack ->
                         viewModel.selectVideoTrack(videoTrack.sourceId)
                     }
 
@@ -130,7 +130,7 @@ fun HorizontalEndListView(
     uiState: MultiStreamingUiState,
     displayLabel: Boolean,
     onMainClick: (String?) -> Unit,
-    onOtherClick: (MultiStreamingData.Video) -> Unit
+    onOtherClick: (RemoteVideoTrack) -> Unit
 ) {
     Box(
         modifier = modifier
@@ -138,13 +138,13 @@ fun HorizontalEndListView(
         Row {
             val selectedVideo =
                 uiState.videoTracks.firstOrNull { it.sourceId == uiState.selectedVideoTrackId }
-            val mainVideo: MultiStreamingData.Video? =
+            val mainVideo: RemoteVideoTrack? =
                 selectedVideo ?: uiState.videoTracks.firstOrNull()?.also {
                     viewModel.selectVideoTrack(it.sourceId)
                 }
             Box(
                 modifier = Modifier.clickable {
-                    onMainClick(uiState.videoTracks.find { it.sourceId == uiState.selectedVideoTrackId }?.id)
+                    onMainClick(uiState.videoTracks.find { it.sourceId == uiState.selectedVideoTrackId }?.currentMid)
                 }
             ) {
                 AndroidView(
@@ -158,18 +158,17 @@ fun HorizontalEndListView(
                     },
                     update = { view ->
                         view.setScalingType(RendererCommon.ScalingType.SCALE_ASPECT_FIT)
-                        mainVideo?.play(
-                            view = view,
-                            viewModel = viewModel,
-                            videoQuality = uiState.connectOptions?.primaryVideoQuality
-                                ?: VideoQuality.AUTO
-                        )
+                        mainVideo?.enableAsync(videoSink = view)
+//                        mainVideo?.play(
+//                            view = view,
+//                            viewModel = viewModel,
+//                            videoQuality = uiState.connectOptions?.primaryVideoQuality
+//                                ?: VideoQuality.AUTO
+//                        )
                     },
-                    onRelease = {
-                        mainVideo?.let {
-                            viewModel.stopVideo(it)
-                        }
-                        it.release()
+                    onRelease = { view ->
+                        mainVideo?.disableSync(videoSink = view)
+                        view.release()
                     }
                 )
                 if (displayLabel) {
@@ -220,7 +219,7 @@ fun VerticalTopListView(
     uiState: MultiStreamingUiState,
     displayLabel: Boolean,
     onMainClick: (String?) -> Unit,
-    onOtherClick: (MultiStreamingData.Video) -> Unit
+    onOtherClick: (RemoteVideoTrack) -> Unit
 ) {
     Box(
         modifier = modifier
@@ -228,13 +227,13 @@ fun VerticalTopListView(
         Column {
             val selectedVideo =
                 uiState.videoTracks.firstOrNull { it.sourceId == uiState.selectedVideoTrackId }
-            val mainVideo: MultiStreamingData.Video? =
+            val mainVideo: RemoteVideoTrack? =
                 selectedVideo ?: uiState.videoTracks.firstOrNull()?.also {
                     viewModel.selectVideoTrack(it.sourceId)
                 }
             Box(
                 modifier = Modifier.clickable {
-                    onMainClick(uiState.videoTracks.find { it.sourceId == uiState.selectedVideoTrackId }?.id)
+                    onMainClick(uiState.videoTracks.find { it.sourceId == uiState.selectedVideoTrackId }?.currentMid)
                 }
             ) {
                 AndroidView(
@@ -248,18 +247,17 @@ fun VerticalTopListView(
                     },
                     update = { view ->
                         view.setScalingType(RendererCommon.ScalingType.SCALE_ASPECT_FIT)
-                        mainVideo?.play(
-                            view = view,
-                            viewModel = viewModel,
-                            videoQuality = uiState.connectOptions?.primaryVideoQuality
-                                ?: VideoQuality.AUTO
-                        )
+                        mainVideo?.enableAsync(videoSink = view)
+//                        mainVideo?.play(
+//                            view = view,
+//                            viewModel = viewModel,
+//                            videoQuality = uiState.connectOptions?.primaryVideoQuality
+//                                ?: VideoQuality.AUTO
+//                        )
                     },
-                    onRelease = {
-                        mainVideo?.let {
-                            viewModel.stopVideo(mainVideo)
-                        }
-                        it.release()
+                    onRelease = { view ->
+                        mainVideo?.disableSync(view)
+                        view.release()
                     }
                 )
                 if (displayLabel) {
@@ -310,11 +308,11 @@ fun VerticalTopListView(
 @Composable
 fun VideoView(
     viewModel: MultiStreamingViewModel,
-    video: MultiStreamingData.Video,
+    video: RemoteVideoTrack,
     displayLabel: Boolean = true,
     displayQuality: Boolean = false,
     videoQuality: VideoQuality = VideoQuality.AUTO,
-    onClick: ((MultiStreamingData.Video) -> Unit)? = null,
+    onClick: ((RemoteVideoTrack) -> Unit)? = null,
     modifier: Modifier
 ) {
     val updatedModifier = onClick?.let {
@@ -330,10 +328,12 @@ fun VideoView(
             },
             update = { view ->
                 view.setScalingType(RendererCommon.ScalingType.SCALE_ASPECT_FIT)
-                video.play(view, viewModel, videoQuality)
+                video.enableAsync(videoSink = view)
+//                video.play(view, viewModel, videoQuality)
             },
             onRelease = {
-                viewModel.stopVideo(video)
+                video.disableSync(it)
+//                viewModel.stopVideo(video)
                 it.release()
             }
         )
@@ -353,15 +353,15 @@ fun VideoView(
 @Composable
 fun QualityLabel(
     viewModel: MultiStreamingViewModel,
-    video: MultiStreamingData.Video?,
+    video: RemoteVideoTrack?,
     modifier: Modifier
 ) {
     val videoQualityState by viewModel.videoQualityState.collectAsStateWithLifecycle()
     Text(
-        text = videoQualityState.videoQualities[video?.id]?.name ?: "null",
+        text = videoQualityState.videoQualities[video?.currentMid]?.name ?: "null",
         modifier = modifier.clickable {
             video?.let {
-                viewModel.showVideoQualitySelection(it.id, true)
+                viewModel.showVideoQualitySelection(it.currentMid, true)
             }
         }
     )
@@ -415,18 +415,5 @@ fun LiveIndicatorComponent(modifier: Modifier, on: Boolean) {
     LiveIndicator(
         modifier = modifier,
         on = on
-    )
-}
-
-fun MultiStreamingData.Video.play(
-    view: TextureViewRenderer,
-    viewModel: MultiStreamingViewModel,
-    videoQuality: VideoQuality = VideoQuality.AUTO
-) {
-    videoTrack.removeVideoSink()
-    videoTrack.setVideoSink(view)
-    viewModel.playVideo(
-        this,
-        videoQuality
     )
 }

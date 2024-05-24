@@ -27,6 +27,7 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.viewinterop.AndroidView
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import com.millicast.Media
+import com.millicast.subscribers.remote.RemoteVideoTrack
 import com.millicast.video.TextureViewRenderer
 import io.dolby.interactiveplayer.R
 import io.dolby.interactiveplayer.rts.ui.DolbyBackgroundBox
@@ -34,7 +35,6 @@ import io.dolby.interactiveplayer.rts.ui.LabelIndicator
 import io.dolby.interactiveplayer.rts.ui.TopAppBar
 import io.dolby.interactiveplayer.streaming.ErrorView
 import io.dolby.rtscomponentkit.data.multistream.VideoQuality
-import io.dolby.rtscomponentkit.domain.MultiStreamingData
 import org.webrtc.RendererCommon
 
 @Composable
@@ -146,7 +146,7 @@ private fun Grid(
 @Composable
 private fun VideoView(
     viewModel: MultiStreamingViewModel,
-    video: MultiStreamingData.Video,
+    video: RemoteVideoTrack,
     displayLabel: Boolean = true,
     displayQuality: Boolean = false,
     videoQuality: VideoQuality = VideoQuality.AUTO,
@@ -166,10 +166,12 @@ private fun VideoView(
             },
             update = { view ->
                 view.setScalingType(RendererCommon.ScalingType.SCALE_ASPECT_FIT)
-                video.play(view, viewModel, videoQuality)
+                video.enableAsync(layer = null, videoSink = view)
+//                video.play(view, viewModel, videoQuality)
             },
             onRelease = {
-                viewModel.stopVideo(video)
+                video.disableSync(it)
+//                viewModel.stopVideo(video)
                 it.release()
             }
         )

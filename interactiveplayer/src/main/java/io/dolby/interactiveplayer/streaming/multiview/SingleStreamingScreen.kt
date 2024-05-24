@@ -33,7 +33,6 @@ import io.dolby.interactiveplayer.rts.ui.DolbyBackgroundBox
 import io.dolby.interactiveplayer.rts.ui.LiveIndicator
 import io.dolby.interactiveplayer.rts.ui.TopAppBar
 import io.dolby.interactiveplayer.streaming.StatisticsView
-import io.dolby.rtscomponentkit.data.multistream.VideoQuality
 import io.dolby.rtscomponentkit.data.multistream.prefs.MultiviewLayout
 import io.dolby.rtscomponentkit.domain.StreamingData
 import io.dolby.rtsviewer.uikit.button.StyledIconButton
@@ -107,7 +106,7 @@ fun SingleStreamingScreen(
             }
 
             HorizontalPager(state = pagerState) { page ->
-                VideoView(page, uiState, viewModel, showSourceLabels.value)
+                VideoView(page, uiState, showSourceLabels.value)
             }
 
             LiveIndicator(
@@ -158,7 +157,7 @@ private fun Statistics(
     }
     if (statisticsState.showStatistics && statisticsState.statisticsData != null) {
         val statistics =
-            viewModel.streamingStatistics(uiState.videoTracks[currentPage].id)
+            viewModel.streamingStatistics(uiState.videoTracks[currentPage].currentMid)
         Box(modifier = Modifier.fillMaxSize()) {
             StatisticsView(
                 statistics = statistics,
@@ -177,7 +176,6 @@ private fun Statistics(
 private fun VideoView(
     page: Int,
     uiState: MultiStreamingUiState,
-    viewModel: MultiStreamingViewModel,
     displayLabels: Boolean
 ) {
     Box(modifier = Modifier.fillMaxSize()) {
@@ -192,20 +190,18 @@ private fun VideoView(
             },
             update = { view ->
                 view.setScalingType(RendererCommon.ScalingType.SCALE_ASPECT_FIT)
-                uiState.videoTracks[page].videoTrack.removeVideoSink()
-                uiState.videoTracks[page].videoTrack.setVideoSink(view)
+                uiState.videoTracks[page].disableSync()
                 val isSelected =
                     uiState.selectedVideoTrackId == uiState.videoTracks[page].sourceId
-                viewModel.playVideo(
-                    uiState.videoTracks[page],
-                    if (isSelected) {
-                        uiState.connectOptions?.primaryVideoQuality
-                            ?: VideoQuality.AUTO
-                    } else VideoQuality.LOW
+
+                uiState.videoTracks[page].enableAsync(
+                    layer = null,
+//                if (isSelected) uiState.connectOptions?.primaryVideoQuality ?: VideoQuality.AUTO else VideoQuality.LOW,
+                    videoSink = view
                 )
             },
             onRelease = { view ->
-                viewModel.stopVideo(uiState.videoTracks[page])
+                uiState.videoTracks[page].disableSync(videoSink = view)
                 view.release()
             }
         )
