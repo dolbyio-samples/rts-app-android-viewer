@@ -48,10 +48,6 @@ class MultiStreamListener(
                     onDisconnected()
                 }
 
-                is SubscriberConnectionState.DisconnectedError -> {
-                    onConnectionError(state.httpCode, state.reason)
-                }
-
                 SubscriberConnectionState.Disconnecting -> {
                     // nothing
                 }
@@ -67,6 +63,8 @@ class MultiStreamListener(
                 SubscriberConnectionState.Subscribed -> {
                     onSubscribed()
                 }
+
+                SubscriberConnectionState.DisconnectedError -> {}
             }
         }
 
