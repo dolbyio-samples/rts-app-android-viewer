@@ -36,19 +36,19 @@ dependencyResolutionManagement {
             }
         }
 
-        if (null != internalRepo && null != internalUser && null != internalPassword) {
-            maven {
-                name = "Snapshots"
-                url = uri(internalRepo)
-                credentials {
-                    username = internalUser
-                    password = internalPassword
-                }
-                authentication {
-                    digest(BasicAuthentication)
-                }
-            }
-        }
+//        if (null != internalRepo && null != internalUser && null != internalPassword) {
+//            maven {
+//                name = "Snapshots"
+//                url = uri(internalRepo)
+//                credentials {
+//                    username = internalUser
+//                    password = internalPassword
+//                }
+//                authentication {
+//                    digest(BasicAuthentication)
+//                }
+//            }
+//        }
     }
 }
 
