@@ -41,8 +41,8 @@ import io.dolby.rtscomponentkit.ui.DolbyBackgroundBox
 import io.dolby.rtscomponentkit.ui.DolbyCopyrightFooterView
 import io.dolby.rtscomponentkit.ui.TopActionBar
 import io.dolby.rtsviewer.R
+import io.dolby.rtsviewer.ui.DetailInputConnectionAlert
 import io.dolby.rtsviewer.ui.alert.ClearStreamConfirmationAlert
-import io.dolby.rtsviewer.ui.alert.DetailInputConnectionAlert
 import io.dolby.rtsviewer.ui.alert.DetailInputValidationAlert
 import io.dolby.rtsviewer.uikit.button.ButtonType
 import io.dolby.rtsviewer.uikit.button.StyledButton
