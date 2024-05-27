@@ -12,6 +12,10 @@ def prop = { String key ->
     properties.containsKey(key) ? properties[key] as String : null
 }
 
+def internalRepo = System.getenv("DOLBY_INTERNAL_MAVEN_URL") ?: null
+def internalUser = System.getenv("DOLBY_INTERNAL_MAVEN_USER") ?: null
+def internalPassword = System.getenv("DOLBY_INTERNAL_MAVEN_PASSWORD") ?: null
+
 def gitUserName = System.env.GIT_USERNAME ?: getGithubUsername()
 def gitPat = System.env.GIT_PAT ?: getGithubUserPassword()
 
@@ -32,13 +36,13 @@ dependencyResolutionManagement {
             }
         }
 
-        if (null != System.env.DOLBY_INTERNAL_MAVEN_URL && null != System.env.DOLBY_INTERNAL_MAVEN_USER && null != System.env.DOLBY_INTERNAL_MAVEN_PASSWORD) {
+        if (null != internalRepo && null != internalUser && null != internalPassword) {
             maven {
                 name = "Snapshots"
-                url = uri("$System.env.DOLBY_INTERNAL_MAVEN_URL")
+                url = uri(internalRepo)
                 credentials {
-                    username = "$System.env.DOLBY_INTERNAL_MAVEN_USER"
-                    password = "$System.env.DOLBY_INTERNAL_MAVEN_PASSWORD"
+                    username = internalUser
+                    password = internalPassword
                 }
                 authentication {
                     digest(BasicAuthentication)
