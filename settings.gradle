@@ -12,9 +12,9 @@ def prop = { String key ->
     properties.containsKey(key) ? properties[key] as String : null
 }
 
-def internalRepo = System.getenv("DOLBY_INTERNAL_MAVEN_URL") ?: null
-def internalUser = System.getenv("DOLBY_INTERNAL_MAVEN_USER") ?: null
-def internalPassword = System.getenv("DOLBY_INTERNAL_MAVEN_PASSWORD") ?: null
+def internalRepo = System.env.DOLBY_INTERNAL_MAVEN_URL ?: null
+def internalUser = System.env.DOLBY_INTERNAL_MAVEN_USER ?: null
+def internalPassword = System.env.DOLBY_INTERNAL_MAVEN_PASSWORD ?: null
 
 def gitUserName = System.env.GIT_USERNAME ?: getGithubUsername()
 def gitPat = System.env.GIT_PAT ?: getGithubUserPassword()
