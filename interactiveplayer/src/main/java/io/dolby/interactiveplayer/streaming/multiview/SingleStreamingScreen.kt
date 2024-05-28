@@ -12,7 +12,6 @@ import androidx.compose.material.Scaffold
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.DisposableEffect
 import androidx.compose.runtime.LaunchedEffect
-import androidx.compose.runtime.MutableState
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableIntStateOf
@@ -101,9 +100,11 @@ fun SingleStreamingScreen(
                 initialPage = initialPage,
                 pageCount = { uiState.videoTracks.size }
             )
-            val currentShownPage: MutableState<Boolean> = remember { mutableStateOf(true) }
 
             if (uiState.videoTracks.isNotEmpty()) {
+                LaunchedEffect(Unit) {
+                    pagerState.scrollToPage(initialPage)
+                }
                 LaunchedEffect(pagerState) {
                     snapshotFlow { pagerState.currentPage }.collect { page ->
                         if (uiState.videoTracks.isNotEmpty()) {

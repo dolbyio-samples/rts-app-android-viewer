@@ -156,7 +156,7 @@ private fun VideoView(
     modifier: Modifier
 ) {
     val context = LocalContext.current
-    val videoRenderer = remember(video) {
+    val videoRenderer = remember(context) {
         TextureViewRenderer(context).apply {
             init(Media.eglBaseContext, null)
         }

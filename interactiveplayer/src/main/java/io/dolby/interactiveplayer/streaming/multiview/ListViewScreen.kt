@@ -1,7 +1,6 @@
 package io.dolby.interactiveplayer.streaming.multiview
 
 import android.content.res.Configuration
-import android.util.Log
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
@@ -285,7 +284,7 @@ fun VideoView(
         modifier.clickable { onClick(video) }
     } ?: modifier
     val context = LocalContext.current
-    val videoRenderer = remember(video) {
+    val videoRenderer = remember(context) {
         TextureViewRenderer(context).apply {
             init(Media.eglBaseContext, null)
         }
@@ -296,8 +295,6 @@ fun VideoView(
             factory = { videoRenderer },
             update = { view ->
                 view.setScalingType(RendererCommon.ScalingType.SCALE_ASPECT_FIT)
-                Log.i("VideoView", "Update enableAsync for video ${video.currentMid}")
-                video.enableAsync(videoSink = view)
             }
         )
         VideoTrackLifecycleObserver(video = video, videoSink = videoRenderer)
@@ -317,7 +314,7 @@ fun VideoView(
 @Composable
 fun VideoTrackLifecycleObserver(video: RemoteVideoTrack, videoSink: VideoSink) {
     val lifecycleOwner = rememberUpdatedState(LocalLifecycleOwner.current)
-    DisposableEffect(Unit) {
+    DisposableEffect(video) {
         val observer = LifecycleEventObserver { _, event ->
             when (event) {
                 Lifecycle.Event.ON_PAUSE -> {
@@ -335,6 +332,7 @@ fun VideoTrackLifecycleObserver(video: RemoteVideoTrack, videoSink: VideoSink) {
         lifecycle.addObserver(observer)
         onDispose {
             lifecycle.removeObserver(observer)
+            video.disableAsync()
         }
     }
 }
@@ -343,14 +341,13 @@ fun VideoTrackLifecycleObserver(video: RemoteVideoTrack, videoSink: VideoSink) {
 fun AudioTrackLifecycleObserver(audioTrack: RemoteAudioTrack?) {
     audioTrack?.let { audio ->
         val lifecycleOwner = rememberUpdatedState(LocalLifecycleOwner.current)
-        DisposableEffect(Unit) {
+        DisposableEffect(audioTrack) {
             val observer = LifecycleEventObserver { _, event ->
                 when (event) {
                     Lifecycle.Event.ON_PAUSE -> {
                         audio.disableAsync()
                     }
                     Lifecycle.Event.ON_RESUME -> {
-                        audio.disableAsync()
                         audio.enableAsync()
                     }
 
@@ -362,6 +359,7 @@ fun AudioTrackLifecycleObserver(audioTrack: RemoteAudioTrack?) {
             lifecycle.addObserver(observer)
             onDispose {
                 lifecycle.removeObserver(observer)
+                audio.disableAsync()
             }
         }
     }
