@@ -20,7 +20,6 @@ import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.rememberUpdatedState
 import androidx.compose.runtime.saveable.rememberSaveable
-import androidx.compose.runtime.setValue
 import androidx.compose.runtime.snapshotFlow
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
@@ -122,6 +121,7 @@ fun SingleStreamingScreen(
             HorizontalPager(state = pagerState) { page ->
                 VideoView(page, pagerState.currentPage, uiState, showSourceLabels.value)
             }
+            PagerAudioTrackLifecycleObserver(uiState)
 
             LiveIndicator(
                 modifier = Modifier.align(Alignment.TopStart),
@@ -201,15 +201,43 @@ private fun VideoView(
                 view.setScalingType(RendererCommon.ScalingType.SCALE_ASPECT_FIT)
             }
         )
-        val audioTrack =
-            uiState.audioTracks.firstOrNull { it.sourceId == uiState.selectedAudioTrack }
-        AudioTrackLifecycleObserver(audioTrack)
         PagerVideoTrackLifecycleObserver(
             video = uiState.videoTracks[page],
             videoSink = videoRenderer,
             page = page,
             currentShownPage = currentShownPage
         )
+    }
+}
+
+@Composable
+fun PagerAudioTrackLifecycleObserver(
+    uiState: MultiStreamingUiState
+) {
+    val audioTrack =
+        uiState.audioTracks.firstOrNull { it.sourceId == uiState.selectedAudioTrack }
+    audioTrack?.let { audio ->
+        val lifecycleOwner = rememberUpdatedState(LocalLifecycleOwner.current)
+        DisposableEffect(audioTrack) {
+            val observer = LifecycleEventObserver { _, event ->
+                when (event) {
+                    Lifecycle.Event.ON_PAUSE -> {
+                        audio.disableAsync()
+                    }
+                    Lifecycle.Event.ON_RESUME -> {
+                        audio.enableAsync()
+                    }
+                    else -> {
+                    }
+                }
+            }
+            val lifecycle = lifecycleOwner.value.lifecycle
+            lifecycle.addObserver(observer)
+            onDispose {
+                lifecycle.removeObserver(observer)
+                audio.disableAsync()
+            }
+        }
     }
 }
 

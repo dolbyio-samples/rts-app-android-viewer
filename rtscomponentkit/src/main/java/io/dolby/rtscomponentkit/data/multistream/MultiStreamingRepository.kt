@@ -188,7 +188,7 @@ class MultiStreamingRepository(
                 audioSourceIdToSelect?.let { audio ->
                     if (audio.sourceId != data.selectedAudioTrackId) {
                         Log.d(TAG, "Audio enable for source id ${audio.sourceId}")
-                        audio.disableAsync()
+                        data.audioTracks.firstOrNull { it.sourceId == data.selectedAudioTrackId }?.disableAsync()
                         audio.enableAsync()
                         updateSelectedAudioTrackId(audio.sourceId)
                         adjustTrackVolume(context, audio)
