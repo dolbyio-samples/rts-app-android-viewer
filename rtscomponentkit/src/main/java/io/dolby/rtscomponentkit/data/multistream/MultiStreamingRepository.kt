@@ -221,7 +221,7 @@ class MultiStreamingRepository(
             statsDelayMs = 10_000,
             disableAudio = connectOptions.disableAudio,
             forcePlayoutDelay = connectOptions.forcePlayOutDelay,
-            videoJitterMinimumDelayMs = connectOptions.videoJitterMinimumDelayMs
+            jitterMinimumDelayMs = connectOptions.videoJitterMinimumDelayMs
         )
 
         if (connectOptions.rtcLogs) {
