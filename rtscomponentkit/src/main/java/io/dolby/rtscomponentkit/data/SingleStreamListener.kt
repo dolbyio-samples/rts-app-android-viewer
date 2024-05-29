@@ -3,13 +3,11 @@ package io.dolby.rtscomponentkit.data
 import android.util.Log
 import com.millicast.Subscriber
 import com.millicast.clients.stats.RtsReport
-import com.millicast.subscribers.Option
 import com.millicast.subscribers.remote.RemoteAudioTrack
 import com.millicast.subscribers.remote.RemoteVideoTrack
 import com.millicast.subscribers.state.LayerDataSelection
 import com.millicast.subscribers.state.SubscriberConnectionState
 import io.dolby.rtscomponentkit.data.RTSViewerDataStore.Companion.TAG
-import io.dolby.rtscomponentkit.data.multistream.MultiStreamingRepository
 import io.dolby.rtscomponentkit.data.multistream.safeLaunch
 import io.dolby.rtscomponentkit.domain.MultiStreamStatisticsData
 import kotlinx.coroutines.CoroutineScope

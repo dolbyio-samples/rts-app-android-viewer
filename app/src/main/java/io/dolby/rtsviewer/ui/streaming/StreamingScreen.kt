@@ -1,6 +1,5 @@
 package io.dolby.rtsviewer.ui.streaming
 
-import android.util.Log
 import androidx.activity.compose.BackHandler
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.padding
@@ -58,7 +57,7 @@ fun StreamingScreen(viewModel: StreamingViewModel = hiltViewModel(), onBack: () 
                 ErrorView(error = uiState.error!!)
             }
 
-            uiState.subscribed && uiState.error == null && uiState.videoTrack!=null -> {
+            uiState.subscribed && uiState.error == null && uiState.videoTrack != null -> {
                 DisposableEffect(uiState.videoTrack) {
                     val observer = LifecycleEventObserver { _, event ->
                         when (event) {
