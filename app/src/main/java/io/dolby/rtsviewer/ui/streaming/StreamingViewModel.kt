@@ -132,7 +132,6 @@ class StreamingViewModel @Inject constructor(
                                 if (_uiState.value.audioTrack == null || _uiState.value.audioTrack?.isActive == false) {
                                     Log.d(TAG, "AudioTrackReady")
                                     withContext(dispatcherProvider.main) {
-                                        dataStoreState.audioTrack.enable()
                                         _uiState.update { state ->
                                             state.copy(
                                                 audioTrack = dataStoreState.audioTrack
@@ -391,7 +390,6 @@ class StreamingViewModel @Inject constructor(
     }
 
     fun playVideo(
-        isMain: Boolean,
         view: TextureViewRenderer,
         preferredQuality: RTSViewerDataStore.StreamQualityType? = null
     ) {
@@ -408,9 +406,14 @@ class StreamingViewModel @Inject constructor(
         val qualityToApply = (streamQualityType ?: preferredQuality ?: RTSViewerDataStore.StreamQualityType.Auto).layerData
         Log.d(TAG, "playVideo $qualityToApply $streamQualityType $preferredQuality")
         _uiState.value.videoTrack?.enableAsync(
-            isMain,
-            qualityToApply,
+            promote = true,
+            layer = qualityToApply,
             videoSink = view
         )
+        _uiState.value.audioTrack?.enableAsync()
+    }
+    fun pauseVideo() {
+        _uiState.value.videoTrack?.disableAsync()
+        _uiState.value.audioTrack?.disableAsync()
     }
 }

@@ -3,6 +3,7 @@ package io.dolby.rtscomponentkit.data
 import android.util.Log
 import com.millicast.Core
 import com.millicast.Media
+import com.millicast.Subscriber
 import com.millicast.clients.ConnectionOptions
 import com.millicast.devices.playback.AudioPlayback
 import com.millicast.subscribers.Credential
@@ -16,21 +17,25 @@ import io.dolby.rtscomponentkit.utils.DispatcherProvider
 import io.dolby.rtscomponentkit.utils.DispatcherProviderImpl
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Job
+import kotlinx.coroutines.delay
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.MutableSharedFlow
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.asSharedFlow
 import kotlinx.coroutines.flow.asStateFlow
+import kotlinx.coroutines.isActive
+import kotlinx.coroutines.launch
 
 class RTSViewerDataStore constructor(
     millicastSdk: MillicastSdk,
-    dispatcherProvider: DispatcherProvider = DispatcherProviderImpl
+    private val dispatcherProvider: DispatcherProvider = DispatcherProviderImpl
 ) {
     private val apiScope = CoroutineScope(dispatcherProvider.default + Job())
 
     private val _state: MutableSharedFlow<State> = MutableSharedFlow()
     val state: Flow<State> = _state.asSharedFlow()
 
+    private var connectionJob: Job? = null
     private val _statistics: MutableStateFlow<MultiStreamStatisticsData?> = MutableStateFlow(null)
     val statisticsData: Flow<MultiStreamStatisticsData?> = _statistics.asStateFlow()
 
@@ -59,7 +64,6 @@ class RTSViewerDataStore constructor(
         }
 
         _state.emit(State.Connecting)
-        Core.initialize()
 
         val subscriber = Core.createSubscriber()
 
@@ -78,19 +82,32 @@ class RTSViewerDataStore constructor(
         ).apply { start() }
 
         subscriber.enableStats(true)
-
-        try {
-            subscriber.connect(ConnectionOptions(true))
-        } catch (e: Exception) {
-            Log.e(TAG, "${e.message}")
-            return false
-        } catch (e: Throwable) {
-            e.printStackTrace()
-            return false
-        }
+        connectionJob?.cancel()
+        connectionJob = startConnection(subscriber, ConnectionOptions(true))
         return true
     }
 
+    fun startConnection(subscriber: Subscriber, connectOptions: ConnectionOptions) =
+        CoroutineScope(dispatcherProvider.io).launch {
+            tryConnecting(subscriber, connectOptions, this)
+        }
+
+    suspend fun tryConnecting(
+        subscriber: Subscriber,
+        connectOptions: ConnectionOptions,
+        coroutineScope: CoroutineScope
+    ) {
+        runCatching {
+            Log.i(TAG, "Connect")
+            subscriber.connect(connectOptions)
+        }.onFailure {
+            if (coroutineScope.isActive) {
+                Log.i(TAG, "Connection failure with message ${it.message}")
+                delay(2000)
+                tryConnecting(subscriber, connectOptions, coroutineScope)
+            }
+        }
+    }
     private fun credential(
         credentials: Credential,
         streamingData: StreamingData
@@ -103,7 +120,8 @@ class RTSViewerDataStore constructor(
     fun disconnect() {
         listener?.release()
         listener = null
-
+        connectionJob?.cancel()
+        connectionJob = null
         resetStreamQualityTypes()
     }
 

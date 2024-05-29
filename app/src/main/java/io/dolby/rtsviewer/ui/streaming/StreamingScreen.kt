@@ -1,20 +1,27 @@
 package io.dolby.rtsviewer.ui.streaming
 
+import android.util.Log
 import androidx.activity.compose.BackHandler
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.padding
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.DisposableEffect
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
+import androidx.compose.runtime.remember
+import androidx.compose.runtime.rememberUpdatedState
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.LocalContext
+import androidx.compose.ui.platform.LocalLifecycleOwner
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.semantics.contentDescription
 import androidx.compose.ui.semantics.semantics
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.viewinterop.AndroidView
 import androidx.hilt.navigation.compose.hiltViewModel
+import androidx.lifecycle.Lifecycle
+import androidx.lifecycle.LifecycleEventObserver
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import com.millicast.Media
 import com.millicast.video.TextureViewRenderer
@@ -32,7 +39,13 @@ fun StreamingScreen(viewModel: StreamingViewModel = hiltViewModel(), onBack: () 
     val showSettings = viewModel.showSettings.collectAsState()
     val showStatistics = viewModel.showStatistics.collectAsState()
     val showSimulcastSettings = viewModel.showSimulcastSettings.collectAsState()
-
+    val context = LocalContext.current
+    val lifecycleOwner = rememberUpdatedState(LocalLifecycleOwner.current)
+    val videoRenderer = remember(context) {
+        TextureViewRenderer(context).apply {
+            init(Media.eglBaseContext, null)
+        }
+    }
     val screenContentDescription = stringResource(id = R.string.streaming_screen_contentDescription)
     DolbyBackgroundBox(
         modifier = Modifier.semantics {
@@ -45,22 +58,36 @@ fun StreamingScreen(viewModel: StreamingViewModel = hiltViewModel(), onBack: () 
                 ErrorView(error = uiState.error!!)
             }
 
-            uiState.subscribed && uiState.error == null -> {
+            uiState.subscribed && uiState.error == null && uiState.videoTrack!=null -> {
+                DisposableEffect(uiState.videoTrack) {
+                    val observer = LifecycleEventObserver { _, event ->
+                        when (event) {
+                            Lifecycle.Event.ON_PAUSE -> {
+                                viewModel.pauseVideo()
+                            }
+
+                            Lifecycle.Event.ON_RESUME -> {
+                                viewModel.playVideo(videoRenderer)
+                            }
+
+                            else -> {
+                            }
+                        }
+                    }
+                    val lifecycle = lifecycleOwner.value.lifecycle
+                    lifecycle.addObserver(observer)
+                    onDispose {
+                        lifecycle.removeObserver(observer)
+                        viewModel.pauseVideo()
+                    }
+                }
                 Box(
                     modifier = Modifier.align(Alignment.Center)
                 ) {
                     AndroidView(
-                        factory = { context ->
-                            val view = TextureViewRenderer(context)
-                            view.init(Media.eglBaseContext, null)
-                            view
-                        },
+                        factory = { videoRenderer },
                         update = { view ->
                             view.setScalingType(RendererCommon.ScalingType.SCALE_ASPECT_FIT)
-                            viewModel.playVideo(
-                                isMain = true,
-                                view = view
-                            )
                         }
                     )
                     SetupVolumeControlAudioStream()

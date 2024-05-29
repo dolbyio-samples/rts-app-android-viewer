@@ -3,14 +3,18 @@ package io.dolby.rtscomponentkit.data
 import android.util.Log
 import com.millicast.Subscriber
 import com.millicast.clients.stats.RtsReport
+import com.millicast.subscribers.Option
 import com.millicast.subscribers.remote.RemoteAudioTrack
 import com.millicast.subscribers.remote.RemoteVideoTrack
 import com.millicast.subscribers.state.LayerDataSelection
 import com.millicast.subscribers.state.SubscriberConnectionState
 import io.dolby.rtscomponentkit.data.RTSViewerDataStore.Companion.TAG
+import io.dolby.rtscomponentkit.data.multistream.MultiStreamingRepository
+import io.dolby.rtscomponentkit.data.multistream.safeLaunch
 import io.dolby.rtscomponentkit.domain.MultiStreamStatisticsData
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.Job
 import kotlinx.coroutines.cancel
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.FlowCollector
@@ -28,6 +32,7 @@ class SingleStreamListener(
     private val selectedStreamQualityType: MutableStateFlow<RTSViewerDataStore.StreamQualityType>
 ) {
     private lateinit var coroutineScope: CoroutineScope
+    private var subscriptionJob: Job? = null
 
     private fun <T> Flow<T>.collectInLocalScope(
         collector: FlowCollector<T>
@@ -128,15 +133,24 @@ class SingleStreamListener(
     fun connected(): Boolean = subscriber.isSubscribed
 
     private suspend fun onConnected() {
-        subscriber.subscribe()
+        startSubscription()
     }
 
     private fun onDisconnected() {
         // nothing
     }
 
+    private fun startSubscription() {
+        subscriptionJob?.cancel()
+        subscriptionJob = CoroutineScope(Dispatchers.IO).safeLaunch(block = {
+            Log.d(TAG, "Start Subscribing")
+            subscriber.subscribe()
+        })
+    }
     fun release() {
         Log.d(TAG, "Release Millicast $this $subscriber")
+        subscriptionJob?.cancel()
+        subscriptionJob = null
         subscriber.release()
         coroutineScope.cancel()
     }
