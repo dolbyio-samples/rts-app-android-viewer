@@ -149,7 +149,7 @@ class SingleStreamListener(
         Log.d(TAG, "Release Millicast $this $subscriber")
         subscriptionJob?.cancel()
         subscriptionJob = null
-        subscriber.release()
+        subscriber.disconnect()
         coroutineScope.cancel()
     }
 
