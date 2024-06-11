@@ -458,7 +458,7 @@ data class StatsInboundRtp(
             return String.format("%.1f %cB", value / 1000.0, ci.current())
         }
 
-        private fun msNormalised(numerator: Double, denominator: Double): Double {
+        fun msNormalised(numerator: Double, denominator: Double): Double {
             return if (denominator == 0.0) {
                 0.0
             } else {

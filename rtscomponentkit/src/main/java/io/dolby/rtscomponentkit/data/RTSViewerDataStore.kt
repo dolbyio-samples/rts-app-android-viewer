@@ -36,7 +36,7 @@ class RTSViewerDataStore constructor(
     val state: Flow<State> = _state.asSharedFlow()
 
     private var connectionJob: Job? = null
-    private val _statistics: MutableStateFlow<MultiStreamStatisticsData?> = MutableStateFlow(null)
+    val _statistics: MutableStateFlow<MultiStreamStatisticsData?> = MutableStateFlow(null)
     val statisticsData: Flow<MultiStreamStatisticsData?> = _statistics.asStateFlow()
 
     private var media: Media
@@ -114,7 +114,7 @@ class RTSViewerDataStore constructor(
     ) = credentials.copy(
         streamName = streamingData.streamName,
         accountId = streamingData.accountId,
-        apiUrl = "https://director.millicast.com/api/director/subscribe"
+        apiUrl = "https://director-staging.millicast.com/api/director/subscribe"
     )
 
     fun disconnect() {
