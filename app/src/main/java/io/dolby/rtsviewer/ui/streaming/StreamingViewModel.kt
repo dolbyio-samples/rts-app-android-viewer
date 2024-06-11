@@ -8,9 +8,9 @@ import com.millicast.video.TextureViewRenderer
 import dagger.hilt.android.lifecycle.HiltViewModel
 import io.dolby.rtscomponentkit.data.RTSViewerDataStore
 import io.dolby.rtscomponentkit.domain.MultiStreamStatisticsData
-import io.dolby.rtscomponentkit.domain.StatsInboundRtp
+import io.dolby.rtscomponentkit.domain.StatsInboundRtp.Companion.msNormalised
 import io.dolby.rtscomponentkit.utils.DispatcherProvider
-import io.dolby.rtsviewer.R
+import io.dolby.rtscomponentkit.R
 import io.dolby.rtsviewer.preferenceStore.PrefsStore
 import io.dolby.rtsviewer.utils.NetworkStatusObserver
 import kotlinx.coroutines.delay
@@ -49,7 +49,7 @@ class StreamingViewModel @Inject constructor(
     val showToolbarState = _showToolbarState.asStateFlow()
     private val _showToolbarDelayState = MutableStateFlow(0L)
 
-    private val _showStatistics = MutableStateFlow(false)
+    private val _showStatistics = MutableStateFlow(true)
     val showStatistics = _showStatistics.asStateFlow()
 
     private val _showSettings = MutableStateFlow(false)
@@ -299,33 +299,37 @@ class StreamingViewModel @Inject constructor(
             }
 
             currentVideo?.processingDelay?.let { pd ->
+                currentVideo.framesDecoded?.let { fd ->
+                    Log.i("Shaaban", "processingDelay ${pd} frames decoded ${fd}")
                     statisticsValuesList.add(
                         Pair(
-                            io.dolby.rtscomponentkit.R.string.statisticsScreen_processing_delay,
-                            String.format("%.2f s",
-                               pd
-                            )
+                            R.string.statisticsScreen_processing_delay,
+                            String.format("%.2f ms", msNormalised(pd, fd.toDouble()))
                         )
                     )
+                }
             }
-            currentVideo?.jitterBufferMinimumDelay?.let { jbmd ->
-                    statisticsValuesList.add(
-                        Pair(
-                            io.dolby.rtscomponentkit.R.string.statisticsScreen_jitter_bufffer_min_delay,
-                            String.format("%.2f s",
-                                jbmd
-                            )
-                        )
-                    )
-            }
-//
+
             currentVideo?.jitterBufferDelay?.let { jbd ->
+                currentVideo.jitterBufferEmittedCount.let { jbec ->
                     statisticsValuesList.add(
                         Pair(
-                            io.dolby.rtscomponentkit.R.string.statisticsScreen_video_jitter_bufffer_target_delay,
-                            String.format("%.2f s",jbd)
+                            R.string.statisticsScreen_video_jitter_bufffer_target_delay,
+                            String.format("%.2f ms", msNormalised(jbd, jbec.toDouble()))
                         )
                     )
+                }
+            }
+
+            currentVideo?.jitterBufferMinimumDelay?.let { jbmd ->
+                currentVideo.jitterBufferEmittedCount.let { jbec ->
+                    statisticsValuesList.add(
+                        Pair(
+                            R.string.statisticsScreen_jitter_bufffer_min_delay,
+                            String.format("%.2f ms", msNormalised(jbmd, jbec.toDouble()))
+                        )
+                    )
+                }
             }
 
             currentVideo?.packetsLost?.let {

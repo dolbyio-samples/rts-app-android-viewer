@@ -58,7 +58,7 @@ object DataModule {
             websocket = LogLevel.MC_VERBOSE
         )
         Logger.setLoggerListener { msg, level ->
-            Log.d(TAG, "millicast sdk: $level / $msg")
+            Log.i(TAG, "millicast sdk: $level / $msg")
         }
 
         return result
