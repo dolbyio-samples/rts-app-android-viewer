@@ -220,7 +220,6 @@ class MultiStreamingRepository(
         var options = Option(
             statsDelayMs = 10_000,
             disableAudio = connectOptions.disableAudio,
-            forcePlayoutDelay = connectOptions.forcePlayOutDelay,
             jitterMinimumDelayMs = connectOptions.videoJitterMinimumDelayMs
         )
 
