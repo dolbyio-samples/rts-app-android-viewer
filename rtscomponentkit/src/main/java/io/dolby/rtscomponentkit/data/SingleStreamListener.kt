@@ -3,6 +3,8 @@ package io.dolby.rtscomponentkit.data
 import android.util.Log
 import com.millicast.Subscriber
 import com.millicast.clients.stats.RtsReport
+import com.millicast.subscribers.ForcePlayoutDelay
+import com.millicast.subscribers.Option
 import com.millicast.subscribers.remote.RemoteAudioTrack
 import com.millicast.subscribers.remote.RemoteVideoTrack
 import com.millicast.subscribers.state.LayerDataSelection
@@ -142,7 +144,15 @@ class SingleStreamListener(
         subscriptionJob?.cancel()
         subscriptionJob = CoroutineScope(Dispatchers.IO).safeLaunch(block = {
             Log.d(TAG, "Start Subscribing")
-            subscriber.subscribe()
+            subscriber.subscribe(
+                options = Option(
+                    forcePlayoutDelay = ForcePlayoutDelay(
+                        minimumDelay = 0,
+                        maximumDelay = 1
+                    ),
+                    jitterMinimumDelayMs = 0
+                )
+            )
         })
     }
     fun release() {
