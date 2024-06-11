@@ -299,71 +299,35 @@ class StreamingViewModel @Inject constructor(
             }
 
             currentVideo?.processingDelay?.let { pd ->
-                currentVideo.framesDecoded?.let { fd ->
                     statisticsValuesList.add(
                         Pair(
                             io.dolby.rtscomponentkit.R.string.statisticsScreen_processing_delay,
-                            String.format("%.2f ms",
-                                StatsInboundRtp.msNormalised(pd, fd.toDouble())
+                            String.format("%.2f s",
+                               pd
                             )
                         )
                     )
-                }
             }
             currentVideo?.jitterBufferMinimumDelay?.let { jbmd ->
-                currentVideo.jitterBufferEmittedCount.let { jbec ->
                     statisticsValuesList.add(
                         Pair(
                             io.dolby.rtscomponentkit.R.string.statisticsScreen_jitter_bufffer_min_delay,
-                            String.format("%.2f ms",
-                                StatsInboundRtp.msNormalised(jbmd, jbec.toDouble())
+                            String.format("%.2f s",
+                                jbmd
                             )
                         )
                     )
-                }
             }
-
+//
             currentVideo?.jitterBufferDelay?.let { jbd ->
-                currentVideo.jitterBufferEmittedCount.let { jbec ->
                     statisticsValuesList.add(
                         Pair(
                             io.dolby.rtscomponentkit.R.string.statisticsScreen_video_jitter_bufffer_target_delay,
-                            String.format("%.2f ms",
-                                StatsInboundRtp.msNormalised(jbd, jbec.toDouble())
-                            )
+                            String.format("%.2f s",jbd)
                         )
                     )
-                }
-            }
-            currentVideo?.decodeTime?.let { dt ->
-                currentVideo.framesDecoded?.let { fd ->
-                    statisticsValuesList.add(
-                        Pair(
-                            io.dolby.rtscomponentkit.R.string.statisticsScreen_decode_time,
-                            String.format("%.2f ms",
-                                StatsInboundRtp.msNormalised(dt, fd.toDouble())
-                            )
-                        )
-                    )
-                }
             }
 
-            currentVideo?.bytesReceived?.let {
-                statisticsValuesList.add(
-                    Pair(
-                        R.string.statisticsScreen_videoTotal,
-                        formattedByteCount(it.toLong())
-                    )
-                )
-            }
-            currentAudio?.bytesReceived?.let {
-                statisticsValuesList.add(
-                    Pair(
-                        R.string.statisticsScreen_audioTotal,
-                        formattedByteCount(it.toLong())
-                    )
-                )
-            }
             currentVideo?.packetsLost?.let {
                 statisticsValuesList.add(Pair(R.string.statisticsScreen_videoLoss, "$it"))
             }
