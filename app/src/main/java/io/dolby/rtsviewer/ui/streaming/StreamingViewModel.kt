@@ -49,7 +49,7 @@ class StreamingViewModel @Inject constructor(
     val showToolbarState = _showToolbarState.asStateFlow()
     private val _showToolbarDelayState = MutableStateFlow(0L)
 
-    private val _showStatistics = MutableStateFlow(true)
+    private val _showStatistics = MutableStateFlow(false)
     val showStatistics = _showStatistics.asStateFlow()
 
     private val _showSettings = MutableStateFlow(false)
