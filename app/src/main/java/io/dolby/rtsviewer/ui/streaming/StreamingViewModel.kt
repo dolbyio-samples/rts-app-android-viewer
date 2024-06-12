@@ -338,6 +338,11 @@ class StreamingViewModel @Inject constructor(
             currentAudio?.packetsLost?.let {
                 statisticsValuesList.add(Pair(R.string.statisticsScreen_audioLoss, "$it"))
             }
+
+            currentVideo?.framesDropped?.let {
+                statisticsValuesList.add(Pair(R.string.statisticsScreen_video_packets_dropped, "$it"))
+            }
+
             currentVideo?.jitter?.let {
                 statisticsValuesList.add(
                     Pair(

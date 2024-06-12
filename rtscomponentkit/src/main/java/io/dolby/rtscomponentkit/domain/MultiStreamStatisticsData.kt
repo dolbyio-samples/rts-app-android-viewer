@@ -4,6 +4,7 @@ import android.icu.text.SimpleDateFormat
 import android.util.Log
 import com.millicast.clients.stats.Codecs
 import com.millicast.clients.stats.InboundRtpStream
+import com.millicast.clients.stats.RemoteInboundRtpStream
 import com.millicast.clients.stats.RemoteOutboundRtpStream
 import com.millicast.clients.stats.RtsReport
 import com.millicast.clients.stats.StatsType
@@ -150,7 +151,7 @@ data class StatsInboundRtp(
                 fps = statsMembers.getOrDefault("framesPerSecond", null) as Double?,
                 bytesReceived = statsMembers["bytesReceived"] as BigInteger,
                 jitter = statsMembers["jitter"] as Double,
-                packetsLost = statsMembers["packetsLost"] as Long,
+                packetsLost = (statsMembers["packetsLost"] as UInt?)?.toLong(),
                 codecName = codecName,
                 decoderImplementation = statsMembers["decoderImplementation"] as String?, //
                 trackIdentifier = statsMembers["trackIdentifier"] as String,
@@ -185,7 +186,7 @@ data class StatsInboundRtp(
                 fps = statsMembers.framesPerSecond,
                 bytesReceived = BigInteger.valueOf(statsMembers.bytesReceived?.toLong() ?: 0),
                 jitter = statsMembers.jitter,
-                packetsLost = statsMembers.packetsLost,
+                packetsLost = statsMembers.packetsLost?.toLong(),
                 codecName = codecName,
                 decoderImplementation = statsMembers.decoderImplementation,
                 trackIdentifier = statsMembers.trackIdentifier,
@@ -496,8 +497,15 @@ data class MultiStreamStatisticsData(
                     audio.add(statsInboundRtp)
                 }
             }
+            var roundTripTime = 0.0
+            val lastRemoteInBoundRTPStream = report.stats()
+                .filter { it is RemoteInboundRtpStream && it.statsType() == StatsType.REMOTE_INBOUND_RTP }
+                .lastOrNull()
+            lastRemoteInBoundRTPStream?.let {
+                roundTripTime = (it as RemoteInboundRtpStream).roundTripTime
+            }
             return MultiStreamStatisticsData(
-                rtt,
+                roundTripTime,
                 bitrate,
                 timestamp,
                 audio.toList(),
