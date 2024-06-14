@@ -294,7 +294,7 @@ class StreamingViewModel @Inject constructor(
             currentVideo?.videoResolution?.let {
                 statisticsValuesList.add(Pair(R.string.statisticsScreen_videoResolution, it))
             }
-            _uiState.value.selectedStreamQualityType.layerData?.targetBitrate?.let {
+            _uiState.value.selectedStreamQualityType.layerData?.original?.targetBitrate?.let {
                 statisticsValuesList.add(
                     Pair(
                         io.dolby.rtsviewer.R.string.statisticsScreen_targetBitrate,
