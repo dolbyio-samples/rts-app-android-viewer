@@ -15,9 +15,12 @@ jobs:
     steps:
       - name: print
         run: |
-          echo "$ALLMYSECRETS"
-          echo "$ALLMYVARS"
-          shell: bash
-          env:
-            ALLMYSECRETS: ${{ toJSON(secrets) }}
-            ALLMYVARS: ${{ toJSON(vars) }}
+          DISTRIBUTION_CERTIFICATE_ANDROID_BASE64: ${{ secrets.RELEASE_KEYSTORE_BASE64 }}
+          KEYSTORE_PASSWORD: ${{ secrets.RELEASE_KEYSTORE_STORE_PASSWORD }}
+          KEY_ALIAS: ${{ secrets.RELEASE_KEYSTORE_KEY_ALIAS }}
+          KEY_PASSWORD: ${{ secrets.RELEASE_KEYSTORE_KEY_PASSWORD }}
+          GIT_PAT: ${{ secrets.GITHUB_TOKEN }}
+          ANDROID_PUBLISHER_CREDENTIALS: ${{ secrets.ANDROID_PUBLISHER_CREDENTIALS }}
+          GIT_PAT: ${{ secrets.GITHUB_TOKEN }}
+
+          echo -n "$DISTRIBUTION_CERTIFICATE_ANDROID_BASE64" | base64 --decode
