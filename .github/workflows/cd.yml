@@ -12,7 +12,7 @@ env:
 jobs:
   Android-App-Build:
     runs-on: ubuntu-latest
-      - steps:
+    steps:
       - name: print
         run: |
           echo "$ALLMYSECRETS"
