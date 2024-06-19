@@ -12,7 +12,9 @@ env:
 jobs:
   Android-App-Build:
     runs-on: ubuntu-latest
-      - run: |
+      - steps:
+      - name: print
+        run: |
           echo "$ALLMYSECRETS"
           echo "$ALLMYVARS"
           shell: bash
