@@ -6,11 +6,11 @@ import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.millicast.video.TextureViewRenderer
 import dagger.hilt.android.lifecycle.HiltViewModel
+import io.dolby.rtscomponentkit.R
 import io.dolby.rtscomponentkit.data.RTSViewerDataStore
 import io.dolby.rtscomponentkit.domain.MultiStreamStatisticsData
 import io.dolby.rtscomponentkit.domain.StatsInboundRtp.Companion.msNormalised
 import io.dolby.rtscomponentkit.utils.DispatcherProvider
-import io.dolby.rtscomponentkit.R
 import io.dolby.rtsviewer.preferenceStore.PrefsStore
 import io.dolby.rtsviewer.utils.NetworkStatusObserver
 import kotlinx.coroutines.delay
@@ -308,7 +308,6 @@ class StreamingViewModel @Inject constructor(
 
             currentVideo?.processingDelay?.let { pd ->
                 currentVideo.framesDecoded?.let { fd ->
-                    Log.i("Shaaban", "processingDelay ${pd} frames decoded ${fd}")
                     statisticsValuesList.add(
                         Pair(
                             R.string.statisticsScreen_processing_delay,
