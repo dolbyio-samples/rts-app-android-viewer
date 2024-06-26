@@ -1,6 +1,7 @@
 package io.dolby.interactiveplayer.streaming.multiview
 
 import androidx.activity.compose.BackHandler
+import androidx.compose.foundation.lazy.grid.rememberLazyGridState
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.collectAsState
 import androidx.hilt.navigation.compose.hiltViewModel
@@ -25,6 +26,10 @@ fun MultiStreamingScreen(
         viewModel.disconnect()
         onBack()
     }
+    val audioTrack =
+        uiState.value.audioTracks.firstOrNull { it.sourceId == uiState.value.selectedAudioTrack }
+    AudioTrackLifecycleObserver(audioTrack)
+    val lazyVerticalGridState = rememberLazyGridState()
     when (multiviewLayout.value) {
         MultiviewLayout.GridView -> {
             GridViewScreen(

@@ -4,6 +4,7 @@ import androidx.annotation.StringRes
 import androidx.lifecycle.SavedStateHandle
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
+import com.millicast.subscribers.remote.RemoteAudioTrack
 import dagger.hilt.android.lifecycle.HiltViewModel
 import io.dolby.interactiveplayer.R
 import io.dolby.interactiveplayer.navigation.Screen
@@ -12,7 +13,6 @@ import io.dolby.rtscomponentkit.data.multistream.prefs.AudioSelection
 import io.dolby.rtscomponentkit.data.multistream.prefs.MultiStreamPrefsStore
 import io.dolby.rtscomponentkit.data.multistream.prefs.MultiviewLayout
 import io.dolby.rtscomponentkit.data.multistream.prefs.StreamSortOrder
-import io.dolby.rtscomponentkit.domain.MultiStreamingData
 import io.dolby.rtscomponentkit.domain.StreamingData
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.asStateFlow
@@ -27,8 +27,8 @@ class SettingsViewModel @Inject constructor(
     private val preferencesStore: MultiStreamPrefsStore
 ) : ViewModel() {
 
-    private val _audioTracks = MutableStateFlow<List<MultiStreamingData.Audio>>(emptyList())
-    val videoTracks = _audioTracks.asStateFlow()
+    private val _audioTracks = MutableStateFlow<List<RemoteAudioTrack>>(emptyList())
+    val audioTracks = _audioTracks.asStateFlow()
 
     private val _showDebugOptioins = MutableStateFlow(false)
     val showDebugOptions = _showDebugOptioins.asStateFlow()

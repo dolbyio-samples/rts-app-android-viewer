@@ -12,6 +12,7 @@ import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.collectLatest
 import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
+import kotlinx.coroutines.withContext
 import javax.inject.Inject
 
 @HiltViewModel
@@ -44,14 +45,16 @@ class DetailInputViewModel @Inject constructor(
         }
     }
 
-    fun connect() {
-        defaultCoroutineScope.launch {
-            repository.connect(streamName.value, accountId.value)
+    suspend fun connect(): Boolean =
+        withContext(dispatcherProvider.default) {
+            val connected = repository.connect(streamName.value, accountId.value)
 
-            // Save the stream detail
-            recentStreamsDataStore.addStreamDetail(streamName.value, accountId.value)
+            if (connected) {
+                // Save the stream detail
+                recentStreamsDataStore.addStreamDetail(streamName.value, accountId.value)
+            }
+            return@withContext connected
         }
-    }
 
     fun clearAllStreams() {
         defaultCoroutineScope.launch {

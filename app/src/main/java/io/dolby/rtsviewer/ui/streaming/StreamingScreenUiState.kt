@@ -1,7 +1,7 @@
 package io.dolby.rtsviewer.ui.streaming
 
-import com.millicast.devices.track.AudioTrack
-import com.millicast.devices.track.VideoTrack
+import com.millicast.subscribers.remote.RemoteAudioTrack
+import com.millicast.subscribers.remote.RemoteVideoTrack
 import io.dolby.rtscomponentkit.data.RTSViewerDataStore
 
 enum class Error {
@@ -17,11 +17,12 @@ data class StreamingScreenUiState(
     val disconnected: Boolean = false,
     val subscribed: Boolean = false,
 
-    val audioTrack: AudioTrack? = null,
-    val videoTrack: VideoTrack? = null,
+    val audioTrack: RemoteAudioTrack? = null,
+    val videoTrack: RemoteVideoTrack? = null,
     val viewerCount: Int = 0,
     val error: Error? = null,
 
     val streamQualityTypes: List<RTSViewerDataStore.StreamQualityType> = emptyList(),
-    val selectedStreamQualityType: RTSViewerDataStore.StreamQualityType = RTSViewerDataStore.StreamQualityType.Auto
+    val selectedStreamQualityType: RTSViewerDataStore.StreamQualityType = RTSViewerDataStore.StreamQualityType.Auto,
+    val pendingSelectedStreamQualityType: RTSViewerDataStore.StreamQualityType? = null
 )

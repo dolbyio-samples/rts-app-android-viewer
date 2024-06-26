@@ -55,6 +55,7 @@
     <string name="statisticsScreen_videoResolution">Video Resolution</string>
     <string name="statisticsScreen_fps">FPS</string>
     <string name="statisticsScreen_outgoingBitrate">Outgoing Bitrate</string>
+    <string name="statisticsScreen_targetBitrate">Target Bitrate</string>
     <string name="statisticsScreen_videoBitrate">Video Bitrate</string>
     <string name="statisticsScreen_audioBitrate">Audio Bitrate</string>
     <string name="statisticsScreen_videoTotal">Video Total Received</string>
