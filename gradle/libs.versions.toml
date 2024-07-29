@@ -17,7 +17,7 @@ androidx-test-ext-junit = "1.1.5"
 espresso-core = "3.5.1"
 appcompat = "1.6.1"
 material = "1.8.0"
-millicast-sdk = "1.8.5"
+millicast-sdk = "1.8.7"
 
 [libraries]
 androidx-appcompat = "androidx.appcompat:appcompat:1.6.1"
