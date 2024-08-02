@@ -18,7 +18,7 @@ fun AppNavigation(navController: NavHostController) {
         composable(
             route = Screen.DetailInputScreen.route
         ) { backStackEntry ->
-            val streamNameToPlay = "AminoFPS25"
+            val streamNameToPlay = "Amino1080pFPS50"
             val accountIDToPlay = "sjf6bf"
             var streamingData: StreamingData? = null
 

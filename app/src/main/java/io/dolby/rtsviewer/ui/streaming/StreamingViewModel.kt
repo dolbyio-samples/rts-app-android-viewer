@@ -62,10 +62,10 @@ class StreamingViewModel @Inject constructor(
     var showSimulcastSettings = _showSimulcastSettings.asStateFlow()
 
     private var channels = arrayListOf(
-        StreamingData("sjf6bf", "AminoFPS50"),
-        StreamingData("sjf6bf", "AminoFPS25"),
-        StreamingData("sjf6bf", "AminoFPS30"),
-        StreamingData("sjf6bf", "AminoFPS60"),
+        StreamingData("sjf6bf", "Amino1080pFPS50"),
+        StreamingData("sjf6bf", "Amino1080pFPS25"),
+        StreamingData("sjf6bf", "Amino1080pFPS30"),
+        StreamingData("sjf6bf", "Amino1080pFPS60"),
         StreamingData("MG2zym", "amino60fps"),
         StreamingData("MG2zym", "amino50fps"),
         StreamingData("MG2zym", "amino30fps"),
@@ -248,7 +248,6 @@ class StreamingViewModel @Inject constructor(
                     (currentStreamIndex - 1).coerceInLoop(allChannels.indices)
                 }
                 startTimer()
-                Log.i("Mostafa", "switchChannel currentIndex $currentStreamIndex")
             }
         }
     }
@@ -308,6 +307,7 @@ class StreamingViewModel @Inject constructor(
     }
 
     fun subscribeToNewChannel() {
+        Log.i(TAG, "subscribeToNewChannel channelIndex $currentStreamIndex streamName ${channels[currentStreamIndex].streamName} accountId ${channels[currentStreamIndex].accountId}")
         viewModelScope.safeLaunch(block = {
             repository.connect(
                 channels[currentStreamIndex].streamName,

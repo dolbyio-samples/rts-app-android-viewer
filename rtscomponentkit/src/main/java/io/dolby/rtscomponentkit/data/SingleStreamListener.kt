@@ -141,6 +141,7 @@ class SingleStreamListener(
 
     fun release() {
         Log.d(TAG, "Release Millicast $this $subscriber")
+        subscriber.disconnect()
         subscriber.release()
         coroutineScope.cancel()
     }
@@ -155,7 +156,7 @@ class SingleStreamListener(
     }
 
     private fun onSubscribed() {
-        Log.i("Mostafa", "onSubscribed")
+        Log.i(TAG, "onSubscribed")
         coroutineScope.launch {
             state.emit(RTSViewerDataStore.State.Subscribed)
         }
@@ -199,7 +200,7 @@ class SingleStreamListener(
     }
 
     private suspend fun onConnected() {
-        Log.d("Mostafa", "onConnected")
+        Log.d(TAG, "onConnected")
         try {
             subscriber.subscribe(Option(statsDelayMs = 1_000))
         } catch (e: MillicastException) {
