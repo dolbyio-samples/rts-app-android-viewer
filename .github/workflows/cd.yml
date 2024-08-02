@@ -2,8 +2,6 @@ name: CD Android build and distribution
 
 on:
   push:
-    branches:
-      - main
     tags:
       - '*'
 env:
