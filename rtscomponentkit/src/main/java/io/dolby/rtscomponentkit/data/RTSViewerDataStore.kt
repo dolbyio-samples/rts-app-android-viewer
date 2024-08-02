@@ -3,6 +3,7 @@ package io.dolby.rtscomponentkit.data
 import android.util.Log
 import com.millicast.Core
 import com.millicast.Media
+import com.millicast.Subscriber
 import com.millicast.clients.ConnectionOptions
 import com.millicast.devices.playback.AudioPlayback
 import com.millicast.devices.track.AudioTrack
@@ -46,6 +47,7 @@ class RTSViewerDataStore constructor(
         _selectedStreamQualityType.asStateFlow()
 
     private var listener: SingleStreamListener? = null
+    private lateinit var subscriber: Subscriber
 
     init {
         media = millicastSdk.getMedia()
@@ -58,7 +60,6 @@ class RTSViewerDataStore constructor(
         }
 
         _state.emit(State.Connecting)
-        Core.initialize()
 
         val subscriber = Core.createSubscriber()
 

@@ -18,6 +18,7 @@ import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.FlowCollector
 import kotlinx.coroutines.flow.MutableSharedFlow
 import kotlinx.coroutines.flow.MutableStateFlow
+import kotlinx.coroutines.flow.cancellable
 import kotlinx.coroutines.flow.distinctUntilChanged
 import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.launch
@@ -35,7 +36,7 @@ class SingleStreamListener(
     private fun <T> Flow<T>.collectInLocalScope(
         collector: FlowCollector<T>
     ) = this.let {
-        coroutineScope.launch { it.collect(collector) }
+        coroutineScope.launch { it.cancellable().collect(collector) }
     }
 
     fun start() {
@@ -154,6 +155,7 @@ class SingleStreamListener(
     }
 
     private fun onSubscribed() {
+        Log.i("Mostafa", "onSubscribed")
         coroutineScope.launch {
             state.emit(RTSViewerDataStore.State.Subscribed)
         }
@@ -197,7 +199,7 @@ class SingleStreamListener(
     }
 
     private suspend fun onConnected() {
-        Log.d(TAG, "onConnected")
+        Log.d("Mostafa", "onConnected")
         try {
             subscriber.subscribe(Option(statsDelayMs = 1_000))
         } catch (e: MillicastException) {
