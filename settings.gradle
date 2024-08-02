@@ -12,9 +12,9 @@ def prop = { String key ->
     properties.containsKey(key) ? properties[key] as String : null
 }
 
-def internalRepo = prop("DOLBY_INTERNAL_MAVEN_URL")
-def internalUser = prop("DOLBY_INTERNAL_MAVEN_USER")
-def internalPassword = prop("DOLBY_INTERNAL_MAVEN_PASSWORD")
+def internalRepo =  System.env.JFROG_MAVEN_URL
+def internalUser =  System.env.JFROG_USERNAME
+def internalPassword = System.env.JFROG_PASSWORD
 
 def gitUserName = System.env.GIT_USERNAME ?: getGithubUsername()
 def gitPat = System.env.GIT_PAT ?: getGithubUserPassword()
