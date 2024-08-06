@@ -69,7 +69,9 @@ class StreamingViewModel @Inject constructor(
         StreamingData("MG2zym", "amino60fps"),
         StreamingData("MG2zym", "amino50fps"),
         StreamingData("MG2zym", "amino30fps"),
-        StreamingData("MG2zym", "amino25fps")
+        StreamingData("MG2zym", "amino25fps"),
+        StreamingData("MG2zym", "bciac_amino_0"),
+        StreamingData("7csQUs", "game")
     )
     private var alreadyCleared = false
     private var switchingChannelsTimer: CountDownTimer? = object : CountDownTimer(1000, 1000) {
