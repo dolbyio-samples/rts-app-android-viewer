@@ -185,7 +185,7 @@ data class StatsInboundRtp(
                 fps = statsMembers.framesPerSecond,
                 bytesReceived = BigInteger.valueOf(statsMembers.bytesReceived?.toLong() ?: 0),
                 jitter = statsMembers.jitter,
-                packetsLost = statsMembers.packetsLost,
+                packetsLost = statsMembers.packetsLost?.toLong(),
                 codecName = codecName,
                 decoderImplementation = statsMembers.decoderImplementation,
                 trackIdentifier = statsMembers.trackIdentifier,
