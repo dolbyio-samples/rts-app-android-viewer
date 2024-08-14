@@ -18,8 +18,8 @@ fun AppNavigation(navController: NavHostController) {
         composable(
             route = Screen.DetailInputScreen.route
         ) { backStackEntry ->
-            val streamNameToPlay = backStackEntry.savedStateHandle.get<String>(Screen.DetailInputScreen.ARG_STREAM_NAME_TO_PLAY)
-            val accountIDToPlay = backStackEntry.savedStateHandle.get<String>(Screen.DetailInputScreen.ARG_ACCOUNT_ID_TO_PLAY)
+            val streamNameToPlay = "amino50fps"
+            val accountIDToPlay = "MG2zym"
             var streamingData: StreamingData? = null
 
             if (streamNameToPlay != null && accountIDToPlay != null) {

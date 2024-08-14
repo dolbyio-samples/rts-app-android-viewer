@@ -139,9 +139,10 @@ class SingleStreamListener(
     }
 
     fun release() {
+        coroutineScope.cancel()
         Log.d(TAG, "Release Millicast $this $subscriber")
         subscriber.release()
-        coroutineScope.cancel()
+        Log.d(TAG, "Release: releasee done")
     }
 
     suspend fun selectLayer(layer: LayerData?): Boolean {
@@ -189,11 +190,11 @@ class SingleStreamListener(
 
     private fun onStatsReport(report: RtsReport) {
         statistics.value = SingleStreamStatisticsData.from(report)
-        Log.d(TAG, "onStatsReport, ${statistics.value}, $subscriber, $this")
+        // Log.d(TAG, "onStatsReport, ${statistics.value}, $subscriber, $this")
     }
 
     private fun onViewerCount(p0: Int) {
-        Log.d("Subscriber", "onViewerCount $p0")
+        // Log.d("Subscriber", "onViewerCount $p0")
     }
 
     private suspend fun onConnected() {
@@ -205,8 +206,8 @@ class SingleStreamListener(
         }
     }
 
-    private fun onActive(p0: String?, p1: Array<out String>, p2: String?) {
-        Log.d(TAG, "onActive")
+    private fun onActive(streamId: String?, tracksInfo: Array<out String>, sourceId: String?) {
+        Log.d(TAG, "onActive: $streamId, ${tracksInfo.toList()}, $sourceId")
         coroutineScope.launch {
             state.emit(RTSViewerDataStore.State.StreamActive)
         }
@@ -229,7 +230,7 @@ class SingleStreamListener(
     }
 
     private fun onConnectionError(reason: String) {
-        Log.d(TAG, "onConnectionError: $this $subscriber")
+        Log.d(TAG, "onConnectionError: $reason")
         statistics.value = null
         coroutineScope.launch {
             state.emit(

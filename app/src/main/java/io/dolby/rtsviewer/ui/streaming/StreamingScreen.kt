@@ -1,13 +1,24 @@
 package io.dolby.rtsviewer.ui.streaming
 
+import android.view.KeyEvent
 import androidx.activity.compose.BackHandler
+import androidx.compose.foundation.focusable
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.padding
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
+import androidx.compose.runtime.remember
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.focus.FocusRequester
+import androidx.compose.ui.focus.focusRequester
+import androidx.compose.ui.input.key.KeyEventType
+import androidx.compose.ui.input.key.key
+import androidx.compose.ui.input.key.nativeKeyCode
+import androidx.compose.ui.input.key.onKeyEvent
+import androidx.compose.ui.input.key.type
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.semantics.contentDescription
@@ -32,12 +43,31 @@ fun StreamingScreen(viewModel: StreamingViewModel = hiltViewModel(), onBack: () 
     val showSettings = viewModel.showSettings.collectAsState()
     val showStatistics = viewModel.showStatistics.collectAsState()
     val showSimulcastSettings = viewModel.showSimulcastSettings.collectAsState()
-
+    val focusRequester = remember { FocusRequester() }
+    LaunchedEffect(showSettings.value, showSimulcastSettings.value) {
+        // always focus at the top level so we get key events
+        if (!showSettings.value && !showSimulcastSettings.value) {
+            focusRequester.requestFocus() // Ensure gaining focus after returning from settings
+        }
+    }
     val screenContentDescription = stringResource(id = R.string.streaming_screen_contentDescription)
     DolbyBackgroundBox(
-        modifier = Modifier.semantics {
-            contentDescription = screenContentDescription
-        }
+        modifier = Modifier
+            .semantics {
+                contentDescription = screenContentDescription
+            }
+            .focusRequester(focusRequester)
+            .onKeyEvent {
+                if (it.type == KeyEventType.KeyUp && (it.key.nativeKeyCode == KeyEvent.KEYCODE_PAGE_DOWN || it.key.nativeKeyCode == KeyEvent.KEYCODE_CHANNEL_DOWN)) {
+                    viewModel.switchChannel(ChannelNavDirection.DOWN)
+                    return@onKeyEvent true
+                } else if (it.type == KeyEventType.KeyUp && (it.key.nativeKeyCode == KeyEvent.KEYCODE_PAGE_UP || it.key.nativeKeyCode == KeyEvent.KEYCODE_CHANNEL_UP)) {
+                    viewModel.switchChannel(ChannelNavDirection.UP)
+                    return@onKeyEvent true
+                }
+                return@onKeyEvent false
+            }
+            .focusable()
     ) {
         val context = LocalContext.current
         when {
@@ -52,11 +82,15 @@ fun StreamingScreen(viewModel: StreamingViewModel = hiltViewModel(), onBack: () 
                         factory = { context ->
                             val view = TextureViewRenderer(context)
                             view.init(Media.eglBaseContext, null)
+                            uiState.videoTrack?.setVideoSink(view)
                             view
                         },
                         update = { view ->
                             view.setScalingType(RendererCommon.ScalingType.SCALE_ASPECT_FIT)
-                            uiState.videoTrack?.setVideoSink(view)
+                        },
+                        onRelease = {
+                            uiState.videoTrack?.removeVideoSink(it)
+                            it.release()
                         }
                     )
                     SetupVolumeControlAudioStream()

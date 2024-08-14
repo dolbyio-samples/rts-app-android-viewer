@@ -1,12 +1,15 @@
 package io.dolby.rtsviewer.ui.streaming
 
 import android.icu.text.SimpleDateFormat
+import android.os.CountDownTimer
 import android.util.Log
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import dagger.hilt.android.lifecycle.HiltViewModel
 import io.dolby.rtscomponentkit.data.RTSViewerDataStore
 import io.dolby.rtscomponentkit.data.SingleStreamStatisticsData
+import io.dolby.rtscomponentkit.data.multistream.safeLaunch
+import io.dolby.rtscomponentkit.domain.StreamingData
 import io.dolby.rtscomponentkit.utils.DispatcherProvider
 import io.dolby.rtsviewer.R
 import io.dolby.rtsviewer.preferenceStore.PrefsStore
@@ -42,7 +45,7 @@ class StreamingViewModel @Inject constructor(
 
     private val _showLiveIndicator = MutableStateFlow(false)
     val showLiveIndicator = _showLiveIndicator.asStateFlow()
-
+    private var currentStreamIndex = 0
     private val _showToolbarState = MutableStateFlow(false)
     val showToolbarState = _showToolbarState.asStateFlow()
     private val _showToolbarDelayState = MutableStateFlow(0L)
@@ -58,7 +61,20 @@ class StreamingViewModel @Inject constructor(
     private val _showSimulcastSettings = MutableStateFlow(false)
     var showSimulcastSettings = _showSimulcastSettings.asStateFlow()
 
+    private var channels = arrayListOf(
+        StreamingData("MG2zym", "amino50fps"),
+        StreamingData("MG2zym", "amino25fps"),
+        StreamingData("7csQUs", "game")
+    )
     private var alreadyCleared = false
+    private var switchingChannelsTimer: CountDownTimer? = object : CountDownTimer(50, 1000) {
+        override fun onTick(millisUntilFinished: Long) {
+        }
+
+        override fun onFinish() {
+            subscribeToNewChannel()
+        }
+    }
 
     init {
         viewModelScope.launch {
@@ -73,9 +89,9 @@ class StreamingViewModel @Inject constructor(
                                 )
                             }
                         }
+
                         NetworkStatusObserver.Status.Available -> when (dataStoreState) {
                             RTSViewerDataStore.State.Connecting -> {
-                                Log.d(TAG, "Connecting")
                                 withContext(dispatcherProvider.main) {
                                     _uiState.update { state ->
                                         state.copy(
@@ -84,6 +100,7 @@ class StreamingViewModel @Inject constructor(
                                     }
                                 }
                             }
+
                             RTSViewerDataStore.State.Subscribed -> {
                                 Log.d(TAG, "Subscribed")
                                 repository.audioPlaybackStart()
@@ -98,6 +115,7 @@ class StreamingViewModel @Inject constructor(
                                     }
                                 }
                             }
+
                             RTSViewerDataStore.State.StreamActive -> {
                                 Log.d(TAG, "StreamActive")
                                 withContext(dispatcherProvider.main) {
@@ -111,6 +129,7 @@ class StreamingViewModel @Inject constructor(
                                     }
                                 }
                             }
+
                             RTSViewerDataStore.State.StreamInactive -> {
                                 Log.d(TAG, "StreamInactive")
                                 withContext(dispatcherProvider.main) {
@@ -122,6 +141,7 @@ class StreamingViewModel @Inject constructor(
                                     }
                                 }
                             }
+
                             is RTSViewerDataStore.State.AudioTrackReady -> {
                                 Log.d(TAG, "AudioTrackReady")
                                 withContext(dispatcherProvider.main) {
@@ -132,6 +152,7 @@ class StreamingViewModel @Inject constructor(
                                     }
                                 }
                             }
+
                             is RTSViewerDataStore.State.VideoTrackReady -> {
                                 Log.d(TAG, "VideoTrackReady")
                                 withContext(dispatcherProvider.main) {
@@ -142,6 +163,7 @@ class StreamingViewModel @Inject constructor(
                                     }
                                 }
                             }
+
                             RTSViewerDataStore.State.Disconnecting,
                             RTSViewerDataStore.State.Disconnected -> {
                                 Log.d(
@@ -159,6 +181,7 @@ class StreamingViewModel @Inject constructor(
                                     }
                                 }
                             }
+
                             is RTSViewerDataStore.State.Error -> {
                                 Log.d(TAG, "Error")
                                 withContext(dispatcherProvider.main) {
@@ -208,7 +231,27 @@ class StreamingViewModel @Inject constructor(
         }
     }
 
+    fun switchChannel(navDirection: ChannelNavDirection) {
+        channels.let { allChannels ->
+            if (allChannels.isNotEmpty()) {
+                viewModelScope.launch {
+                    _uiState.emit(StreamingScreenUiState())
+                }
+                _uiState.value.videoTrack?.setEnabled(false)
+                _uiState.value.audioTrack?.setEnabled(false)
+                Log.e(TAG, "SwitchChanneeeel removeAllVideoSinksFinished")
+                currentStreamIndex = if (navDirection == ChannelNavDirection.DOWN) {
+                    (currentStreamIndex + 1).coerceInLoop(allChannels.indices)
+                } else {
+                    (currentStreamIndex - 1).coerceInLoop(allChannels.indices)
+                }
+                startTimer()
+            }
+        }
+    }
+
     override fun onCleared() {
+        releaseTimer()
         clear()
     }
 
@@ -249,6 +292,28 @@ class StreamingViewModel @Inject constructor(
 
     fun settingsVisibility(visible: Boolean) {
         _showSettings.update { visible }
+    }
+
+    private fun startTimer() {
+        switchingChannelsTimer?.cancel()
+        switchingChannelsTimer?.start()
+    }
+
+    private fun releaseTimer() {
+        switchingChannelsTimer?.cancel()
+        switchingChannelsTimer = null
+    }
+
+    fun subscribeToNewChannel() {
+        viewModelScope.safeLaunch(block = {
+            repository.disconnect()
+            repository.connect(
+                channels[currentStreamIndex].streamName,
+                channels[currentStreamIndex].accountId
+            )
+            updateShowSimulcastSettings(false)
+            settingsVisibility(false)
+        })
     }
 
     private fun streamingStatistics(): Flow<List<Pair<Int, String>>?> =
@@ -367,5 +432,17 @@ class StreamingViewModel @Inject constructor(
 
     fun selectStreamQualityType(streamQualityType: RTSViewerDataStore.StreamQualityType) {
         repository.selectStreamQualityType(streamQualityType)
+    }
+}
+
+fun Int.coerceInLoop(range: ClosedRange<Int>): Int {
+    if (range is ClosedFloatingPointRange) {
+        return this.coerceIn<Int>(range)
+    }
+    if (range.isEmpty()) throw IllegalArgumentException("Cannot coerce value to an empty range: $range.")
+    return when {
+        this < range.start -> range.endInclusive
+        this > range.endInclusive -> range.start
+        else -> this
     }
 }
