@@ -114,7 +114,7 @@ class RTSViewerDataStore constructor(
     ) = credentials.copy(
         streamName = streamingData.streamName,
         accountId = streamingData.accountId,
-        apiUrl = "https://director-staging.millicast.com/api/director/subscribe"
+        apiUrl = "https://director.millicast.com/api/director/subscribe"
     )
 
     fun disconnect() {
