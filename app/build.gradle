@@ -35,7 +35,7 @@ android {
 
     defaultConfig {
         applicationId "io.dolby.rtsviewer"
-        minSdk 25
+        minSdk 26
         targetSdk 33
         versionCode appVersionCode
         versionName appVersionName
@@ -135,7 +135,7 @@ dependencies {
 
     implementation 'androidx.lifecycle:lifecycle-runtime-ktx:2.6.1'
     implementation 'androidx.lifecycle:lifecycle-runtime-compose:2.6.1'
-    implementation "androidx.activity:activity-compose:1.7.0"
+    implementation "androidx.activity:activity-compose:1.9.1"
 
     implementation "androidx.datastore:datastore:1.0.0"
     implementation 'com.google.protobuf:protobuf-kotlin-lite:3.21.2'
