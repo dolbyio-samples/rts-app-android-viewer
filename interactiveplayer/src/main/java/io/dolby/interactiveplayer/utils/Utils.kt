@@ -1,5 +1,6 @@
 package io.dolby.interactiveplayer.utils
 
+import android.app.PictureInPictureParams
 import android.content.Context
 import android.content.ContextWrapper
 import android.view.WindowManager
@@ -9,6 +10,7 @@ import androidx.compose.runtime.DisposableEffect
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
+import androidx.compose.runtime.rememberUpdatedState
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.platform.LocalConfiguration
 import androidx.compose.ui.platform.LocalContext
@@ -40,6 +42,28 @@ internal fun Context.findActivity(): ComponentActivity {
         context = context.baseContext
     }
     throw IllegalStateException("Picture in picture should be called in the context of an Activity")
+}
+
+@Composable
+fun EnablePipMode(enablePipMode: Boolean) {
+    val currentShouldEnterPipMode = rememberUpdatedState(newValue = enablePipMode)
+    val context = LocalContext.current
+    DisposableEffect(context) {
+        val onUserLeaveBehavior: () -> Unit = {
+            if (currentShouldEnterPipMode.value) {
+                context.findActivity()
+                    .enterPictureInPictureMode(PictureInPictureParams.Builder().build())
+            }
+        }
+        context.findActivity().addOnUserLeaveHintListener(
+            onUserLeaveBehavior
+        )
+        onDispose {
+            context.findActivity().removeOnUserLeaveHintListener(
+                onUserLeaveBehavior
+            )
+        }
+    }
 }
 
 @Composable

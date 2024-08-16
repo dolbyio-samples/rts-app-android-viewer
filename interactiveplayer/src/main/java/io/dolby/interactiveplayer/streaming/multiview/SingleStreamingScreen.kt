@@ -1,6 +1,5 @@
 package io.dolby.interactiveplayer.streaming.multiview
 
-import android.app.PictureInPictureParams
 import androidx.activity.compose.BackHandler
 import androidx.compose.foundation.ExperimentalFoundationApi
 import androidx.compose.foundation.layout.Box
@@ -41,12 +40,12 @@ import com.millicast.Media
 import com.millicast.subscribers.remote.RemoteVideoTrack
 import com.millicast.video.TextureViewRenderer
 import io.dolby.interactiveplayer.R
+import io.dolby.interactiveplayer.navigation.AppViewModel
 import io.dolby.interactiveplayer.rts.ui.DolbyBackgroundBox
 import io.dolby.interactiveplayer.rts.ui.LiveIndicator
 import io.dolby.interactiveplayer.rts.ui.TopAppBar
 import io.dolby.interactiveplayer.streaming.StatisticsView
 import io.dolby.interactiveplayer.utils.KeepScreenOn
-import io.dolby.interactiveplayer.utils.findActivity
 import io.dolby.interactiveplayer.utils.rememberIsInPipMode
 import io.dolby.rtscomponentkit.data.multistream.prefs.MultiviewLayout
 import io.dolby.rtscomponentkit.domain.StreamingData
@@ -58,6 +57,7 @@ import org.webrtc.VideoSink
 @Composable
 fun SingleStreamingScreen(
     viewModel: MultiStreamingViewModel = hiltViewModel(),
+    appViewModel: AppViewModel,
     onBack: () -> Unit,
     onSettingsClick: (StreamingData?) -> Unit
 ) {
@@ -71,32 +71,31 @@ fun SingleStreamingScreen(
     val defaultLayout = viewModel.multiviewLayout.collectAsState()
     val showSourceLabels = viewModel.showSourceLabels.collectAsState()
     val inPipMode = rememberIsInPipMode()
-    var currentShouldEnterPipMode by remember { mutableStateOf(true) }
     val currentSourceId = remember { mutableStateOf(selectedItem?.sourceId) }
     val streamingData = uiState.accountId?.let { accountId ->
         uiState.streamName?.let { streamName ->
             StreamingData(accountId, streamName)
         }
     }
-
+    LaunchedEffect(Unit) {
+        appViewModel.enablePip(true)
+    }
     KeepScreenOn(enabled = uiState.error == null && uiState.videoTracks.isNotEmpty())
 
     Scaffold(
         topBar = {
-            if (!inPipMode) {
-                TopAppBar(
-                    title = if (defaultLayout.value == MultiviewLayout.SingleStreamView) {
-                        uiState.streamName ?: screenContentDescription
-                    } else "",
-                    onBack = {
-                        onBack()
-                        if (defaultLayout.value == MultiviewLayout.SingleStreamView) {
-                            viewModel.disconnect()
-                        }
-                    },
-                    onAction = { onSettingsClick(streamingData) }
-                )
-            }
+            TopAppBar(
+                title = if (defaultLayout.value == MultiviewLayout.SingleStreamView) {
+                    uiState.streamName ?: screenContentDescription
+                } else "",
+                onBack = {
+                    onBack()
+                    if (defaultLayout.value == MultiviewLayout.SingleStreamView) {
+                        viewModel.disconnect()
+                    }
+                },
+                onAction = { onSettingsClick(streamingData) }
+            )
         }
     ) { paddingValues ->
         DolbyBackgroundBox(
@@ -160,27 +159,7 @@ fun SingleStreamingScreen(
                 )
             }
 
-            Statistics(viewModel, uiState, pagerState.currentPage, onBack = {
-                currentShouldEnterPipMode = false
-                onBack()
-            })
-        }
-    }
-    val context = LocalContext.current
-    DisposableEffect(context) {
-        val onUserLeaveBehavior: () -> Unit = {
-            if (currentShouldEnterPipMode) {
-                context.findActivity()
-                    .enterPictureInPictureMode(PictureInPictureParams.Builder().build())
-            }
-        }
-        context.findActivity().addOnUserLeaveHintListener(
-            onUserLeaveBehavior
-        )
-        onDispose {
-            context.findActivity().removeOnUserLeaveHintListener(
-                onUserLeaveBehavior
-            )
+            Statistics(viewModel, uiState, pagerState.currentPage, onBack)
         }
     }
 }
