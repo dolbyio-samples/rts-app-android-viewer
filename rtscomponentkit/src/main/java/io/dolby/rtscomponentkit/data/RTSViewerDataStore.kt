@@ -51,7 +51,7 @@ class RTSViewerDataStore constructor(
         _selectedStreamQualityType.asStateFlow()
 
     private var listener: SingleStreamListener? = null
-    lateinit var subscriber:Subscriber
+    lateinit var subscriber: Subscriber
     private var connectionJob: Job? = null
 
     init {
@@ -60,13 +60,10 @@ class RTSViewerDataStore constructor(
     }
 
     suspend fun connect(streamName: String, accountId: String) {
-        if (listener?.connected() == true) {
-            return
-        }
-
         _state.emit(State.Connecting)
-
-        if(!this::subscriber.isInitialized) {
+        if (this::subscriber.isInitialized) {
+            subscriber.disconnect()
+        } else {
             subscriber = Core.createSubscriber()
         }
         subscriber.setCredentials(
@@ -75,13 +72,15 @@ class RTSViewerDataStore constructor(
                 StreamingData(accountId = accountId, streamName = streamName)
             )
         )
-        listener = SingleStreamListener(
-            subscriber = subscriber,
-            state = _state,
-            statistics = _statistics,
-            streamQualityTypes = _streamQualityTypes,
-            selectedStreamQualityType = _selectedStreamQualityType
-        ).apply { start() }
+        if (listener == null) {
+            listener = SingleStreamListener(
+                subscriber = subscriber,
+                state = _state,
+                statistics = _statistics,
+                streamQualityTypes = _streamQualityTypes,
+                selectedStreamQualityType = _selectedStreamQualityType
+            ).apply { start() }
+        }
 
         subscriber.enableStats(true)
 
@@ -123,11 +122,16 @@ class RTSViewerDataStore constructor(
     )
 
     fun disconnect() {
-        listener?.release()
-        listener = null
+        subscriber.disconnect()
         connectionJob?.cancelChildren()
         connectionJob?.cancel()
         resetStreamQualityTypes()
+    }
+
+    fun release() {
+        listener?.release()
+        listener = null
+        disconnect()
     }
 
     /**
@@ -228,8 +232,8 @@ class RTSViewerDataStore constructor(
 
 fun LayerData.isEqualTo(other: LayerData): Boolean {
     return other.spatialLayerId == this.spatialLayerId &&
-        other.temporalLayerId == this.temporalLayerId &&
-        other.encodingId == this.encodingId &&
-        other.maxSpatialLayerId == this.maxSpatialLayerId &&
-        other.maxTemporalLayerId == this.maxTemporalLayerId
+            other.temporalLayerId == this.temporalLayerId &&
+            other.encodingId == this.encodingId &&
+            other.maxSpatialLayerId == this.maxSpatialLayerId &&
+            other.maxTemporalLayerId == this.maxTemporalLayerId
 }

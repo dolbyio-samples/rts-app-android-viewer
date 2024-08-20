@@ -92,8 +92,8 @@ fun StreamingScreen(viewModel: StreamingViewModel = hiltViewModel(), onBack: () 
                             uiState.videoTrack?.setVideoSink(view)
                         },
                         onRelease = {
-//                            uiState.videoTrack?.removeVideoSink(it)
-//                            it.release()
+                            uiState.videoTrack?.removeVideoSink(it)
+                            it.release()
                             Log.i("MOSTAFA_VIDEO", "RELEASE Video View for uiState.videoTrack? ${uiState.videoTrack?.name}")
                         }
                     )

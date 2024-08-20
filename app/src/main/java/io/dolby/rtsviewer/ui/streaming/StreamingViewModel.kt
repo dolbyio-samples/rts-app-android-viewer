@@ -80,7 +80,7 @@ class StreamingViewModel @Inject constructor(
     init {
         viewModelScope.launch {
             repository.state.combine(networkStatusObserver.status) { f1, f2 -> Pair(f1, f2) }
-                .distinctUntilChanged().collect { (dataStoreState, networkStatus) ->
+                .distinctUntilChanged().collectLatest { (dataStoreState, networkStatus) ->
                     when (networkStatus) {
                         NetworkStatusObserver.Status.Unavailable -> withContext(dispatcherProvider.main) {
                             Log.d(TAG, "Internet connection error")
@@ -260,7 +260,7 @@ class StreamingViewModel @Inject constructor(
     fun clear() {
         if (!alreadyCleared) {
             alreadyCleared = true
-            repository.disconnect()
+            repository.release()
         }
     }
 

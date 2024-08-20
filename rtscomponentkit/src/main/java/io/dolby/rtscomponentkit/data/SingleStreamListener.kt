@@ -22,6 +22,11 @@ import kotlinx.coroutines.flow.distinctUntilChanged
 import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.launch
 import java.util.Optional
+import kotlinx.coroutines.SupervisorJob
+import kotlinx.coroutines.cancelChildren
+import kotlinx.coroutines.channels.BufferOverflow
+import kotlinx.coroutines.ensureActive
+import kotlinx.coroutines.flow.buffer
 
 class SingleStreamListener(
     private val subscriber: Subscriber,
@@ -35,12 +40,13 @@ class SingleStreamListener(
     private fun <T> Flow<T>.collectInLocalScope(
         collector: FlowCollector<T>
     ) = this.let {
-        coroutineScope.launch { it.distinctUntilChanged().collect(collector) }
+        coroutineScope.launch { ensureActive()
+            it.buffer(1, BufferOverflow.DROP_OLDEST).collect(collector) }
     }
 
     fun start() {
         Log.d(TAG, "Listener start $this")
-        coroutineScope = CoroutineScope(Dispatchers.IO)
+        coroutineScope = CoroutineScope(Dispatchers.IO + SupervisorJob())
 
         subscriber.state.map { it.connectionState }.collectInLocalScope { state ->
             when (state) {
@@ -139,10 +145,9 @@ class SingleStreamListener(
     }
 
     fun release() {
+        coroutineScope.coroutineContext.cancel()
         coroutineScope.cancel()
         Log.d(TAG, "Release Millicast $this $subscriber")
-        subscriber.disconnect()
-        Log.d(TAG, "Release: releasee done")
     }
 
     suspend fun selectLayer(layer: LayerData?): Boolean {
@@ -198,7 +203,7 @@ class SingleStreamListener(
     }
 
     private suspend fun onConnected() {
-        Log.d(TAG, "onConnected")
+        Log.d(TAG, "onConnected instance singleStreamInstance ${this.hashCode()}")
         try {
             subscriber.subscribe(Option(statsDelayMs = 1_000))
         } catch (e: MillicastException) {
@@ -253,12 +258,12 @@ class SingleStreamListener(
         activeLayers: Array<out LayerData>,
         inactiveLayers: Array<String>
     ) {
-//        Log.d(
-//            TAG,
-//            "onLayers: $mid, ${activeLayers.contentToString()}, ${
-//                inactiveLayers.contentToString()
-//            }"
-//        )
+        Log.d(
+            TAG,
+            "onLayers: $mid, ${activeLayers.contentToString()}, ${
+                inactiveLayers.contentToString()
+            }"
+        )
         val filteredActiveLayers = mutableListOf<LayerData>()
         var simulcastLayers = activeLayers.filter { it.encodingId.isNotEmpty() }
         if (simulcastLayers.isNotEmpty()) {
