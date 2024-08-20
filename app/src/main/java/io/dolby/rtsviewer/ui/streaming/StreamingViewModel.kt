@@ -29,8 +29,9 @@ import java.text.CharacterIterator
 import java.text.StringCharacterIterator
 import java.util.Date
 import javax.inject.Inject
+import kotlinx.coroutines.flow.distinctUntilChanged
 
-private const val TAG = "StreamingViewModel"
+private const val TAG = "Mostafa_ViewModel"
 private const val SHOW_TOOLBAR_TIMEOUT: Long = 5_000
 
 @HiltViewModel
@@ -79,7 +80,7 @@ class StreamingViewModel @Inject constructor(
     init {
         viewModelScope.launch {
             repository.state.combine(networkStatusObserver.status) { f1, f2 -> Pair(f1, f2) }
-                .collect { (dataStoreState, networkStatus) ->
+                .distinctUntilChanged().collect { (dataStoreState, networkStatus) ->
                     when (networkStatus) {
                         NetworkStatusObserver.Status.Unavailable -> withContext(dispatcherProvider.main) {
                             Log.d(TAG, "Internet connection error")
@@ -136,7 +137,8 @@ class StreamingViewModel @Inject constructor(
                                     _uiState.update { state ->
                                         state.copy(
                                             subscribed = false,
-                                            disconnected = true
+                                            disconnected = true,
+                                            error = Error.STREAM_NOT_ACTIVE
                                         )
                                     }
                                 }
@@ -154,7 +156,7 @@ class StreamingViewModel @Inject constructor(
                             }
 
                             is RTSViewerDataStore.State.VideoTrackReady -> {
-                                Log.d(TAG, "VideoTrackReady")
+                                Log.d(TAG, "VideoTrackReady ${dataStoreState.videoTrack.name}")
                                 withContext(dispatcherProvider.main) {
                                     _uiState.update { state ->
                                         state.copy(
@@ -237,8 +239,8 @@ class StreamingViewModel @Inject constructor(
                 viewModelScope.launch {
                     _uiState.emit(StreamingScreenUiState())
                 }
-                _uiState.value.videoTrack?.setEnabled(false)
-                _uiState.value.audioTrack?.setEnabled(false)
+//                _uiState.value.videoTrack?.setEnabled(false)
+//                _uiState.value.audioTrack?.setEnabled(false)
                 Log.e(TAG, "SwitchChanneeeel removeAllVideoSinksFinished")
                 currentStreamIndex = if (navDirection == ChannelNavDirection.DOWN) {
                     (currentStreamIndex + 1).coerceInLoop(allChannels.indices)

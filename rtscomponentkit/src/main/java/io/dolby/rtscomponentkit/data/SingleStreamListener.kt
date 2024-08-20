@@ -35,14 +35,14 @@ class SingleStreamListener(
     private fun <T> Flow<T>.collectInLocalScope(
         collector: FlowCollector<T>
     ) = this.let {
-        coroutineScope.launch { it.collect(collector) }
+        coroutineScope.launch { it.distinctUntilChanged().collect(collector) }
     }
 
     fun start() {
         Log.d(TAG, "Listener start $this")
         coroutineScope = CoroutineScope(Dispatchers.IO)
 
-        subscriber.state.map { it.connectionState }.distinctUntilChanged().collectInLocalScope { state ->
+        subscriber.state.map { it.connectionState }.collectInLocalScope { state ->
             when (state) {
                 SubscriberConnectionState.Connected -> {
                     onConnected()
@@ -141,7 +141,7 @@ class SingleStreamListener(
     fun release() {
         coroutineScope.cancel()
         Log.d(TAG, "Release Millicast $this $subscriber")
-        subscriber.release()
+        subscriber.disconnect()
         Log.d(TAG, "Release: releasee done")
     }
 
@@ -175,7 +175,7 @@ class SingleStreamListener(
     }
 
     private fun onTrack(track: VideoTrack, p1: Optional<String>?) {
-        Log.d(TAG, "onVideoTrack")
+        Log.d(TAG, "onVideoTrack ${track.name} mide ${p1}")
         coroutineScope.launch {
             state.emit(RTSViewerDataStore.State.VideoTrackReady(track))
         }
@@ -214,7 +214,7 @@ class SingleStreamListener(
     }
 
     private fun onInactive(p0: String?, p1: String?) {
-        Log.d(TAG, "onInactive")
+        Log.d(TAG, "onInactive for streamID ${p0} & source ${p1}")
         onConnectionError("Stream Inactive")
         coroutineScope.launch {
             state.emit(RTSViewerDataStore.State.StreamInactive)
@@ -253,12 +253,12 @@ class SingleStreamListener(
         activeLayers: Array<out LayerData>,
         inactiveLayers: Array<String>
     ) {
-        Log.d(
-            TAG,
-            "onLayers: $mid, ${activeLayers.contentToString()}, ${
-            inactiveLayers.contentToString()
-            }"
-        )
+//        Log.d(
+//            TAG,
+//            "onLayers: $mid, ${activeLayers.contentToString()}, ${
+//                inactiveLayers.contentToString()
+//            }"
+//        )
         val filteredActiveLayers = mutableListOf<LayerData>()
         var simulcastLayers = activeLayers.filter { it.encodingId.isNotEmpty() }
         if (simulcastLayers.isNotEmpty()) {

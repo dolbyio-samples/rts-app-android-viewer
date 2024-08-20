@@ -313,12 +313,12 @@ class MultiStreamListener(
         activeLayers: Array<out LayerData>,
         inactiveLayers: Array<String>
     ) {
-        Log.d(
-            TAG,
-            "onLayers: $mid, ${activeLayers.contentToString()}, ${
-            inactiveLayers.contentToString()
-            }"
-        )
+//        Log.d(
+//            TAG,
+//            "onLayers: $mid, ${activeLayers.contentToString()}, ${
+//            inactiveLayers.contentToString()
+//            }"
+//        )
         val filteredActiveLayers = mutableListOf<LayerData>()
         var simulcastLayers = activeLayers.filter { it.encodingId.isNotEmpty() }
         if (simulcastLayers.isNotEmpty()) {

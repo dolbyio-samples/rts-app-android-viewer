@@ -51,6 +51,7 @@ class RTSViewerDataStore constructor(
         _selectedStreamQualityType.asStateFlow()
 
     private var listener: SingleStreamListener? = null
+    lateinit var subscriber:Subscriber
     private var connectionJob: Job? = null
 
     init {
@@ -65,8 +66,9 @@ class RTSViewerDataStore constructor(
 
         _state.emit(State.Connecting)
 
-        val subscriber = Core.createSubscriber()
-
+        if(!this::subscriber.isInitialized) {
+            subscriber = Core.createSubscriber()
+        }
         subscriber.setCredentials(
             credential(
                 subscriber.credentials,
@@ -220,7 +222,7 @@ class RTSViewerDataStore constructor(
     }
 
     companion object {
-        const val TAG = "io.dolby.rtscomponentkit"
+        const val TAG = "Mostafa_RTSViewerDataStore"
     }
 }
 

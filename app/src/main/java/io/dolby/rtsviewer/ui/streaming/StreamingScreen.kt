@@ -1,5 +1,6 @@
 package io.dolby.rtsviewer.ui.streaming
 
+import android.util.Log
 import android.view.KeyEvent
 import androidx.activity.compose.BackHandler
 import androidx.compose.foundation.focusable
@@ -39,7 +40,7 @@ import org.webrtc.RendererCommon
 
 @Composable
 fun StreamingScreen(viewModel: StreamingViewModel = hiltViewModel(), onBack: () -> Unit) {
-    val uiState by viewModel.uiState.collectAsStateWithLifecycle()
+    val uiState by viewModel.uiState.collectAsState()
     val showSettings = viewModel.showSettings.collectAsState()
     val showStatistics = viewModel.showStatistics.collectAsState()
     val showSimulcastSettings = viewModel.showSimulcastSettings.collectAsState()
@@ -70,6 +71,7 @@ fun StreamingScreen(viewModel: StreamingViewModel = hiltViewModel(), onBack: () 
             .focusable()
     ) {
         val context = LocalContext.current
+        Log.i("MOSTAFA_VIDEO", "isSubscribeddd ${uiState.subscribed} ERROR is  ${uiState.error}")
         when {
             uiState.error != null -> {
                 ErrorView(error = uiState.error!!)
@@ -80,17 +82,19 @@ fun StreamingScreen(viewModel: StreamingViewModel = hiltViewModel(), onBack: () 
                 ) {
                     AndroidView(
                         factory = { context ->
+                            Log.i("MOSTAFA_VIDEO", "Create Video View for uiState.videoTrack? ${uiState.videoTrack?.name} ")
                             val view = TextureViewRenderer(context)
                             view.init(Media.eglBaseContext, null)
-                            uiState.videoTrack?.setVideoSink(view)
                             view
                         },
                         update = { view ->
                             view.setScalingType(RendererCommon.ScalingType.SCALE_ASPECT_FIT)
+                            uiState.videoTrack?.setVideoSink(view)
                         },
                         onRelease = {
-                            uiState.videoTrack?.removeVideoSink(it)
-                            it.release()
+//                            uiState.videoTrack?.removeVideoSink(it)
+//                            it.release()
+                            Log.i("MOSTAFA_VIDEO", "RELEASE Video View for uiState.videoTrack? ${uiState.videoTrack?.name}")
                         }
                     )
                     SetupVolumeControlAudioStream()
