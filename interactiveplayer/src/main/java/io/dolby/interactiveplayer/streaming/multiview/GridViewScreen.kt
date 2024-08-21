@@ -53,7 +53,6 @@ fun GridViewScreen(
     val focusManager = LocalFocusManager.current
     focusManager.clearFocus()
     val showSourceLabels = viewModel.showSourceLabels.collectAsState()
-
     Scaffold(
         topBar = {
             TopAppBar(
@@ -140,7 +139,6 @@ private fun Grid(
             modifier = Modifier.align(Alignment.TopStart),
             on = uiState.videoTracks.isNotEmpty() || uiState.audioTracks.isNotEmpty()
         )
-
         QualitySelector(viewModel = viewModel)
     }
 }
@@ -174,7 +172,7 @@ private fun VideoView(
                 video.enableAsync(videoSink = view)
             }
         )
-        VideoTrackLifecycleObserver(video = video, videoSink = videoRenderer)
+        VideoTrackLifecycleObserver(video = video, videoSink = videoRenderer, viewModel)
         if (displayLabel) {
             LabelIndicator(
                 modifier = Modifier.align(Alignment.BottomStart),

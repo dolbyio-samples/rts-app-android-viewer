@@ -10,22 +10,25 @@ import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.unit.dp
-import io.dolby.interactiveplayer.R
+import io.dolby.interactiveplayer.utils.rememberIsInPipMode
 import io.dolby.rtsviewer.uikit.text.Text
 
 @Composable
 fun LabelIndicator(modifier: Modifier, label: String?) {
-    Box(
-        modifier = modifier
-            .padding(3.dp)
-            .clip(shape = RoundedCornerShape(2.dp))
-            .background(Color.Gray)
-            .padding(horizontal = 8.dp, vertical = 2.dp)
-    ) {
-        Text(
-            text = label?.uppercase()
-                ?: stringResource(id = io.dolby.rtscomponentkit.R.string.main_source_name),
-            color = Color.White
-        )
+    val inPipMode = rememberIsInPipMode()
+    if (!inPipMode) {
+        Box(
+            modifier = modifier
+                .padding(3.dp)
+                .clip(shape = RoundedCornerShape(2.dp))
+                .background(Color.Gray)
+                .padding(horizontal = 8.dp, vertical = 2.dp)
+        ) {
+            Text(
+                text = label?.uppercase()
+                    ?: stringResource(id = io.dolby.rtscomponentkit.R.string.main_source_name),
+                color = Color.White
+            )
+        }
     }
 }

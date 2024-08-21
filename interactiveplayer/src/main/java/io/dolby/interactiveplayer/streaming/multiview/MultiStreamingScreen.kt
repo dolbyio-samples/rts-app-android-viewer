@@ -3,14 +3,20 @@ package io.dolby.interactiveplayer.streaming.multiview
 import androidx.activity.compose.BackHandler
 import androidx.compose.foundation.lazy.grid.rememberLazyGridState
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.collectAsState
+import androidx.compose.runtime.getValue
+import androidx.compose.runtime.setValue
 import androidx.hilt.navigation.compose.hiltViewModel
+import io.dolby.interactiveplayer.navigation.AppViewModel
+import io.dolby.interactiveplayer.utils.KeepScreenOn
 import io.dolby.rtscomponentkit.data.multistream.prefs.MultiviewLayout
 import io.dolby.rtscomponentkit.domain.StreamingData
 
 @Composable
 fun MultiStreamingScreen(
     viewModel: MultiStreamingViewModel = hiltViewModel(),
+    appViewModel: AppViewModel,
     onBack: () -> Unit,
     onMainClick: (String?) -> Unit,
     onSettingsClick: (StreamingData?) -> Unit
@@ -22,6 +28,10 @@ fun MultiStreamingScreen(
             StreamingData(accountId, streamName)
         }
     }
+    LaunchedEffect(Unit) {
+        appViewModel.enablePip(true)
+    }
+    KeepScreenOn(true)
     BackHandler(true) {
         viewModel.disconnect()
         onBack()
@@ -46,6 +56,7 @@ fun MultiStreamingScreen(
         MultiviewLayout.SingleStreamView -> {
             SingleStreamingScreen(
                 viewModel = viewModel,
+                appViewModel = appViewModel,
                 onBack = onBack,
                 onSettingsClick = { onSettingsClick(streamingData) }
             )
