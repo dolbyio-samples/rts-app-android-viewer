@@ -27,7 +27,7 @@
     <string name="statisticsScreen_video_packets_received">Video Packets rec.</string>
     <string name="statisticsScreen_audio_packets_received">Audio Packets rec.</string>
     <string name="statisticsScreen_frames_decoded">Frames dec.</string>
-    <string name="statisticsScreen_video_packets_dropped">Video Packets dropped</string>
+    <string name="statisticsScreen_video_packets_dropped">Frames dropped</string>
     <string name="statisticsScreen_audio_packets_dropped">Audio Packets dropped</string>
     <string name="statisticsScreen_jitter_bufffer_ec">Jitter buffer est count</string>
     <string name="statisticsScreen_audio_jitter_bufffer_delay">Audio Jitter buffer delay</string>

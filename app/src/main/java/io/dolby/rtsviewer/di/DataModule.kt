@@ -53,12 +53,12 @@ object DataModule {
 
         // set millicast logs
         Logger.setLogLevels(
-            sdk = LogLevel.MC_DEBUG,
-            webrtc = LogLevel.MC_LOG,
-            websocket = LogLevel.MC_DEBUG
+            sdk = LogLevel.MC_VERBOSE,
+            webrtc = LogLevel.MC_VERBOSE,
+            websocket = LogLevel.MC_VERBOSE
         )
         Logger.setLoggerListener { msg, level ->
-            Log.d(TAG, "millicast sdk: $level / $msg")
+            Log.i(TAG, "millicast sdk: $level / $msg")
         }
 
         return result
