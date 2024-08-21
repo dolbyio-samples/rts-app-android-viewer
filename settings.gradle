@@ -12,12 +12,12 @@ def prop = { String key ->
     properties.containsKey(key) ? properties[key] as String : null
 }
 
-def internalRepo = System.env.DOLBY_INTERNAL_MAVEN_URL ?: null
-def internalUser = System.env.DOLBY_INTERNAL_MAVEN_USER ?: null
-def internalPassword = System.env.DOLBY_INTERNAL_MAVEN_PASSWORD ?: null
-
-def gitUserName = System.env.GIT_USERNAME ?: getGithubUsername()
-def gitPat = System.env.GIT_PAT ?: getGithubUserPassword()
+//def internalRepo = System.env.DOLBY_INTERNAL_MAVEN_URL ?: null
+//def internalUser = System.env.DOLBY_INTERNAL_MAVEN_USER ?: null
+//def internalPassword = System.env.DOLBY_INTERNAL_MAVEN_PASSWORD ?: null
+//
+//def gitUserName = System.env.GIT_USERNAME ?: getGithubUsername()
+//def gitPat = System.env.GIT_PAT ?: getGithubUserPassword()
 
 dependencyResolutionManagement {
     repositoriesMode.set(RepositoriesMode.FAIL_ON_PROJECT_REPOS)
@@ -26,29 +26,29 @@ dependencyResolutionManagement {
         mavenCentral()
         mavenLocal()
 
-        maven {
-            name = "GitHubPackages"
-            url = uri("https://maven.pkg.github.com/millicast/maven")
-            credentials {
-                username = gitUserName
-                logger.lifecycle("User name: ${gitUserName}")
-                password = gitPat
-            }
-        }
-
-        if (null != internalRepo && null != internalUser && null != internalPassword) {
-            maven {
-                name = "Snapshots"
-                url = uri(internalRepo)
-                credentials {
-                    username = internalUser
-                    password = internalPassword
-                }
-                authentication {
-                    digest(BasicAuthentication)
-                }
-            }
-        }
+//        maven {
+//            name = "GitHubPackages"
+//            url = uri("https://maven.pkg.github.com/millicast/maven")
+//            credentials {
+//                username = gitUserName
+//                logger.lifecycle("User name: ${gitUserName}")
+//                password = gitPat
+//            }
+//        }
+//
+//        if (null != internalRepo && null != internalUser && null != internalPassword) {
+//            maven {
+//                name = "Snapshots"
+//                url = uri(internalRepo)
+//                credentials {
+//                    username = internalUser
+//                    password = internalPassword
+//                }
+//                authentication {
+//                    digest(BasicAuthentication)
+//                }
+//            }
+//        }
     }
 }
 
