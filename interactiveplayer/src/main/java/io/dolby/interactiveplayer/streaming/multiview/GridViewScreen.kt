@@ -53,7 +53,6 @@ fun GridViewScreen(
     val focusManager = LocalFocusManager.current
     focusManager.clearFocus()
     val showSourceLabels = viewModel.showSourceLabels.collectAsState()
-
     Scaffold(
         topBar = {
             TopAppBar(

@@ -448,8 +448,11 @@ fun QualitySelector(
 
 @Composable
 fun LiveIndicatorComponent(modifier: Modifier, on: Boolean) {
-    LiveIndicator(
-        modifier = modifier,
-        on = on
-    )
+    val inPipMode = rememberIsInPipMode()
+    if (!inPipMode) {
+        LiveIndicator(
+            modifier = modifier,
+            on = on
+        )
+    }
 }
