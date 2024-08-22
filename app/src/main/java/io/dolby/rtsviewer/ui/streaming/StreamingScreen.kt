@@ -2,6 +2,7 @@ package io.dolby.rtsviewer.ui.streaming
 
 import android.view.KeyEvent
 import androidx.activity.compose.BackHandler
+import androidx.compose.foundation.clickable
 import androidx.compose.foundation.focusable
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.padding
@@ -66,6 +67,9 @@ fun StreamingScreen(viewModel: StreamingViewModel = hiltViewModel(), onBack: () 
                     return@onKeyEvent true
                 }
                 return@onKeyEvent false
+            }
+            .clickable {
+                viewModel.switchChannel(ChannelNavDirection.DOWN)
             }
             .focusable()
     ) {
