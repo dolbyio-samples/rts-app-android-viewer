@@ -234,6 +234,7 @@ class StreamingViewModel @Inject constructor(
     fun switchChannel(navDirection: ChannelNavDirection) {
         channels.let { allChannels ->
             if (allChannels.isNotEmpty()) {
+                repository.disconnect()
                 viewModelScope.launch {
                     _uiState.emit(StreamingScreenUiState())
                 }
@@ -306,7 +307,6 @@ class StreamingViewModel @Inject constructor(
 
     fun subscribeToNewChannel() {
         viewModelScope.safeLaunch(block = {
-            repository.disconnect()
             repository.connect(
                 channels[currentStreamIndex].streamName,
                 channels[currentStreamIndex].accountId
