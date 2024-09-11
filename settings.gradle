@@ -26,15 +26,15 @@ dependencyResolutionManagement {
         mavenCentral()
         mavenLocal()
 
-//        maven {
-//            name = "GitHubPackages"
-//            url = uri("https://maven.pkg.github.com/millicast/maven")
-//            credentials {
-//                username = gitUserName
-//                logger.lifecycle("User name: ${gitUserName}")
-//                password = gitPat
-//            }
-//        }
+        maven {
+            name = "GitHubPackages"
+            url = uri("https://maven.pkg.github.com/millicast/maven")
+            credentials {
+                username = gitUserName
+                logger.lifecycle("User name: ${gitUserName}")
+                password = gitPat
+            }
+        }
 
 //        if (null != internalRepo && null != internalUser && null != internalPassword) {
 //            maven {
