@@ -56,7 +56,7 @@ fun StreamingScreen(viewModel: StreamingViewModel = hiltViewModel(), onBack: () 
                         },
                         update = { view ->
                             view.setScalingType(RendererCommon.ScalingType.SCALE_ASPECT_FIT)
-                            uiState.videoTrack?.setVideoSink(view)
+                            //uiState.videoTrack?.setVideoSink(view)
                         }
                     )
                     SetupVolumeControlAudioStream()
