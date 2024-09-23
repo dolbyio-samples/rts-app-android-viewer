@@ -16,7 +16,7 @@ androidx-test-ext-junit = "1.1.5"
 espresso-core = "3.5.1"
 appcompat = "1.6.1"
 material = "1.8.0"
-millicast-sdk = "1.8.9"
+millicast-sdk = "2.0.0"
 
 [libraries]
 androidx-appcompat = "androidx.appcompat:appcompat:1.6.1"
@@ -46,6 +46,7 @@ espresso-core = { group = "androidx.test.espresso", name = "espresso-core", vers
 appcompat = { group = "androidx.appcompat", name = "appcompat", version.ref = "appcompat" }
 material = { group = "com.google.android.material", name = "material", version.ref = "material" }
 millicast-sdk = { module = "com.millicast:millicast-sdk-android", version.ref = "millicast-sdk" }
+android-threeten = "org.threeten:threetenbp:1.6.8"
 
 [plugins]
 com-android-application = { id = "com.android.application", version.ref = "agp" }

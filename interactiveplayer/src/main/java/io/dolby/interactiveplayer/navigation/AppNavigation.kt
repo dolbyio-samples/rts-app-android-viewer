@@ -1,6 +1,10 @@
 package io.dolby.interactiveplayer.navigation
 
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.getValue
+import androidx.compose.runtime.setValue
+import androidx.hilt.navigation.compose.hiltViewModel
+import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import androidx.navigation.NavHostController
 import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
@@ -10,10 +14,15 @@ import io.dolby.interactiveplayer.savedStreams.SavedStreamScreen
 import io.dolby.interactiveplayer.settings.SettingsScreen
 import io.dolby.interactiveplayer.streaming.multiview.MultiStreamingScreen
 import io.dolby.interactiveplayer.streaming.multiview.SingleStreamingScreen
+import io.dolby.interactiveplayer.utils.EnablePipMode
 import io.dolby.rtscomponentkit.domain.StreamingData
 
 @Composable
-fun AppNavigation(navController: NavHostController) {
+fun AppNavigation(
+    navController: NavHostController,
+    appViewModel: AppViewModel = hiltViewModel()
+) {
+    val currentShouldEnterPipMode by appViewModel.isPipEnabled.collectAsStateWithLifecycle()
     NavHost(
         navController = navController,
         startDestination = Screen.RecentStreams.route
@@ -48,7 +57,11 @@ fun AppNavigation(navController: NavHostController) {
                 throw IllegalArgumentException()
             }
             MultiStreamingScreen(
-                onBack = { navController.popBackStack() },
+                appViewModel = appViewModel,
+                onBack = {
+                    navController.popBackStack()
+                    appViewModel.enablePip(false)
+                },
                 onMainClick = {
                     navController.navigate(
                         Screen.SingleStreamingScreen.route(
@@ -69,8 +82,10 @@ fun AppNavigation(navController: NavHostController) {
                 throw IllegalArgumentException()
             }
             SingleStreamingScreen(
+                appViewModel = appViewModel,
                 onBack = {
                     navController.popBackStack()
+                    appViewModel.enablePip(false)
                 },
                 onSettingsClick = { navController.navigate(Screen.StreamSettings.route(StreamingData(accountId, streamName))) }
             )
@@ -114,4 +129,5 @@ fun AppNavigation(navController: NavHostController) {
             )
         }
     }
+    EnablePipMode(enablePipMode = currentShouldEnterPipMode)
 }

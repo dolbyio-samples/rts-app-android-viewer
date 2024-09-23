@@ -22,20 +22,30 @@ import androidx.compose.foundation.lazy.items
 import androidx.compose.material.CircularProgressIndicator
 import androidx.compose.material.Scaffold
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.DisposableEffect
+import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
+import androidx.compose.runtime.remember
+import androidx.compose.runtime.rememberUpdatedState
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.platform.LocalConfiguration
+import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.platform.LocalFocusManager
+import androidx.compose.ui.platform.LocalLifecycleOwner
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.semantics.contentDescription
 import androidx.compose.ui.semantics.semantics
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.viewinterop.AndroidView
+import androidx.lifecycle.Lifecycle
+import androidx.lifecycle.LifecycleEventObserver
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import com.millicast.Media
+import com.millicast.subscribers.remote.RemoteAudioTrack
+import com.millicast.subscribers.remote.RemoteVideoTrack
 import com.millicast.video.TextureViewRenderer
 import io.dolby.interactiveplayer.R
 import io.dolby.interactiveplayer.rts.ui.DolbyBackgroundBox
@@ -43,10 +53,11 @@ import io.dolby.interactiveplayer.rts.ui.LabelIndicator
 import io.dolby.interactiveplayer.rts.ui.LiveIndicator
 import io.dolby.interactiveplayer.rts.ui.TopAppBar
 import io.dolby.interactiveplayer.streaming.ErrorView
+import io.dolby.interactiveplayer.utils.rememberIsInPipMode
 import io.dolby.rtscomponentkit.data.multistream.VideoQuality
-import io.dolby.rtscomponentkit.domain.MultiStreamingData
 import io.dolby.rtsviewer.uikit.text.Text
 import org.webrtc.RendererCommon
+import org.webrtc.VideoSink
 
 @Composable
 fun ListViewScreen(
@@ -55,10 +66,8 @@ fun ListViewScreen(
     onMainClick: (String?) -> Unit,
     onSettingsClick: () -> Unit
 ) {
-    val uiState by viewModel.uiState.collectAsStateWithLifecycle()
-
+    val uiState by viewModel.uiState.collectAsState()
     val screenContentDescription = stringResource(id = R.string.streaming_screen_contentDescription)
-
     val focusManager = LocalFocusManager.current
     focusManager.clearFocus()
 
@@ -69,8 +78,8 @@ fun ListViewScreen(
             TopAppBar(
                 title = uiState.streamName ?: screenContentDescription,
                 onBack = {
-                    onBack()
                     viewModel.disconnect()
+                    onBack()
                 },
                 onAction = onSettingsClick
             )
@@ -94,7 +103,7 @@ fun ListViewScreen(
 
                 uiState.videoTracks.isNotEmpty() -> {
                     val configuration = LocalConfiguration.current
-                    val onOtherClick = { videoTrack: MultiStreamingData.Video ->
+                    val onOtherClick = { videoTrack: RemoteVideoTrack ->
                         viewModel.selectVideoTrack(videoTrack.sourceId)
                     }
 
@@ -130,7 +139,7 @@ fun HorizontalEndListView(
     uiState: MultiStreamingUiState,
     displayLabel: Boolean,
     onMainClick: (String?) -> Unit,
-    onOtherClick: (MultiStreamingData.Video) -> Unit
+    onOtherClick: (RemoteVideoTrack) -> Unit
 ) {
     Box(
         modifier = modifier
@@ -138,56 +147,29 @@ fun HorizontalEndListView(
         Row {
             val selectedVideo =
                 uiState.videoTracks.firstOrNull { it.sourceId == uiState.selectedVideoTrackId }
-            val mainVideo: MultiStreamingData.Video? =
+            val mainVideo: RemoteVideoTrack? =
                 selectedVideo ?: uiState.videoTracks.firstOrNull()?.also {
                     viewModel.selectVideoTrack(it.sourceId)
                 }
             Box(
                 modifier = Modifier.clickable {
-                    onMainClick(uiState.videoTracks.find { it.sourceId == uiState.selectedVideoTrackId }?.id)
+                    onMainClick(uiState.videoTracks.find { it.sourceId == uiState.selectedVideoTrackId }?.currentMid)
                 }
             ) {
-                AndroidView(
-                    modifier = Modifier.aspectRatio(16F / 9),
-                    factory = { context ->
-                        val view = TextureViewRenderer(context)
-                        view.init(Media.eglBaseContext, null)
-//                        view.setZOrderOnTop(true)
-//                        view.setZOrderMediaOverlay(true)
-                        view
-                    },
-                    update = { view ->
-                        view.setScalingType(RendererCommon.ScalingType.SCALE_ASPECT_FIT)
-                        mainVideo?.play(
-                            view = view,
-                            viewModel = viewModel,
-                            videoQuality = uiState.connectOptions?.primaryVideoQuality
-                                ?: VideoQuality.AUTO
-                        )
-                    },
-                    onRelease = {
-                        mainVideo?.let {
-                            viewModel.stopVideo(it)
-                        }
-                        it.release()
-                    }
-                )
-                if (displayLabel) {
-                    LabelIndicator(
-                        modifier = Modifier.align(Alignment.BottomStart),
-                        label = uiState.selectedVideoTrackId
+                mainVideo?.let {
+                    VideoView(
+                        viewModel = viewModel,
+                        video = it,
+                        displayLabel = displayLabel,
+                        videoQuality = VideoQuality.LOW,
+                        onClick = { onMainClick(uiState.videoTracks.find { it.sourceId == uiState.selectedVideoTrackId }?.currentMid) },
+                        modifier = Modifier.aspectRatio(16F / 9)
                     )
                 }
-//                QualityLabel(
-//                    viewModel = viewModel,
-//                    video = mainVideo,
-//                    modifier = Modifier.align(
-//                        Alignment.BottomEnd
-//                    )
-//                )
             }
             val otherTracks =
                 uiState.videoTracks.filter { it.sourceId != mainVideo?.sourceId }
+
             LazyColumn(
                 modifier = Modifier
                     .fillMaxHeight()
@@ -220,7 +202,7 @@ fun VerticalTopListView(
     uiState: MultiStreamingUiState,
     displayLabel: Boolean,
     onMainClick: (String?) -> Unit,
-    onOtherClick: (MultiStreamingData.Video) -> Unit
+    onOtherClick: (RemoteVideoTrack) -> Unit
 ) {
     Box(
         modifier = modifier
@@ -228,44 +210,23 @@ fun VerticalTopListView(
         Column {
             val selectedVideo =
                 uiState.videoTracks.firstOrNull { it.sourceId == uiState.selectedVideoTrackId }
-            val mainVideo: MultiStreamingData.Video? =
+            val mainVideo: RemoteVideoTrack? =
                 selectedVideo ?: uiState.videoTracks.firstOrNull()?.also {
                     viewModel.selectVideoTrack(it.sourceId)
                 }
             Box(
                 modifier = Modifier.clickable {
-                    onMainClick(uiState.videoTracks.find { it.sourceId == uiState.selectedVideoTrackId }?.id)
+                    onMainClick(uiState.videoTracks.find { it.sourceId == uiState.selectedVideoTrackId }?.currentMid)
                 }
             ) {
-                AndroidView(
-                    modifier = Modifier.aspectRatio(16F / 9),
-                    factory = { context ->
-                        val view = TextureViewRenderer(context)
-                        view.init(Media.eglBaseContext, null)
-//                        view.setZOrderOnTop(true)
-//                        view.setZOrderMediaOverlay(true)
-                        view
-                    },
-                    update = { view ->
-                        view.setScalingType(RendererCommon.ScalingType.SCALE_ASPECT_FIT)
-                        mainVideo?.play(
-                            view = view,
-                            viewModel = viewModel,
-                            videoQuality = uiState.connectOptions?.primaryVideoQuality
-                                ?: VideoQuality.AUTO
-                        )
-                    },
-                    onRelease = {
-                        mainVideo?.let {
-                            viewModel.stopVideo(mainVideo)
-                        }
-                        it.release()
-                    }
-                )
-                if (displayLabel) {
-                    LabelIndicator(
-                        modifier = Modifier.align(Alignment.BottomStart),
-                        label = mainVideo?.sourceId
+                mainVideo?.let {
+                    VideoView(
+                        viewModel = viewModel,
+                        video = it,
+                        displayLabel = displayLabel,
+                        videoQuality = VideoQuality.LOW,
+                        onClick = { onMainClick(uiState.videoTracks.find { it.sourceId == uiState.selectedVideoTrackId }?.currentMid) },
+                        modifier = Modifier.aspectRatio(16F / 9)
                     )
                 }
 //                QualityLabel(
@@ -276,7 +237,9 @@ fun VerticalTopListView(
             }
             val otherTracks =
                 uiState.videoTracks.filter { it.sourceId != mainVideo?.sourceId }
+
             val lazyVerticalGridState = rememberLazyGridState()
+
             LazyVerticalGrid(
                 state = lazyVerticalGridState,
                 columns = GridCells.Fixed(count = 2),
@@ -310,33 +273,31 @@ fun VerticalTopListView(
 @Composable
 fun VideoView(
     viewModel: MultiStreamingViewModel,
-    video: MultiStreamingData.Video,
+    video: RemoteVideoTrack,
     displayLabel: Boolean = true,
     displayQuality: Boolean = false,
     videoQuality: VideoQuality = VideoQuality.AUTO,
-    onClick: ((MultiStreamingData.Video) -> Unit)? = null,
+    onClick: ((RemoteVideoTrack) -> Unit)? = null,
     modifier: Modifier
 ) {
     val updatedModifier = onClick?.let {
         modifier.clickable { onClick(video) }
     } ?: modifier
+    val context = LocalContext.current
+    val videoRenderer = remember(context) {
+        TextureViewRenderer(context).apply {
+            init(Media.eglBaseContext, null)
+        }
+    }
     Box {
         AndroidView(
             modifier = updatedModifier,
-            factory = { context ->
-                val view = TextureViewRenderer(context)
-                view.init(Media.eglBaseContext, null)
-                view
-            },
+            factory = { videoRenderer },
             update = { view ->
                 view.setScalingType(RendererCommon.ScalingType.SCALE_ASPECT_FIT)
-                video.play(view, viewModel, videoQuality)
-            },
-            onRelease = {
-                viewModel.stopVideo(video)
-                it.release()
             }
         )
+        VideoTrackLifecycleObserver(video = video, videoSink = videoRenderer, viewModel = viewModel)
         if (displayLabel) {
             LabelIndicator(modifier = Modifier.align(Alignment.BottomStart), label = video.sourceId)
         }
@@ -351,17 +312,92 @@ fun VideoView(
 }
 
 @Composable
+fun VideoTrackLifecycleObserver(
+    video: RemoteVideoTrack,
+    videoSink: VideoSink,
+    viewModel: MultiStreamingViewModel
+) {
+    val uiState by viewModel.uiState.collectAsState()
+    val inPipMode = rememberIsInPipMode()
+    val lifecycleOwner = rememberUpdatedState(LocalLifecycleOwner.current)
+    LaunchedEffect(inPipMode) {
+        if (inPipMode && uiState.selectedVideoTrackId == video.sourceId) {
+            video.enableAsync(videoSink = videoSink)
+        }
+    }
+    DisposableEffect(video) {
+        val observer = LifecycleEventObserver { _, event ->
+            when (event) {
+                Lifecycle.Event.ON_PAUSE -> {
+                    video.disableAsync()
+                }
+
+                Lifecycle.Event.ON_RESUME -> {
+                    video.enableAsync(videoSink = videoSink)
+                }
+
+                else -> {
+                }
+            }
+        }
+        val lifecycle = lifecycleOwner.value.lifecycle
+        lifecycle.addObserver(observer)
+        onDispose {
+            lifecycle.removeObserver(observer)
+            video.disableAsync()
+        }
+    }
+}
+
+@Composable
+fun AudioTrackLifecycleObserver(audioTrack: RemoteAudioTrack?) {
+    audioTrack?.let { audio ->
+        val inPipMode = rememberIsInPipMode()
+        val lifecycleOwner = rememberUpdatedState(LocalLifecycleOwner.current)
+        LaunchedEffect(inPipMode) {
+            if (inPipMode) {
+                audio.enableAsync()
+            } else {
+                audio.disableAsync()
+            }
+        }
+        DisposableEffect(audioTrack) {
+            val observer = LifecycleEventObserver { _, event ->
+                when (event) {
+                    Lifecycle.Event.ON_PAUSE -> {
+                        audio.disableAsync()
+                    }
+
+                    Lifecycle.Event.ON_RESUME -> {
+                        audio.enableAsync()
+                    }
+
+                    else -> {
+                    }
+                }
+            }
+            val lifecycle = lifecycleOwner.value.lifecycle
+            lifecycle.addObserver(observer)
+            onDispose {
+                lifecycle.removeObserver(observer)
+                audio.disableAsync()
+            }
+        }
+    }
+}
+
+@Composable
 fun QualityLabel(
     viewModel: MultiStreamingViewModel,
-    video: MultiStreamingData.Video?,
+    video: RemoteVideoTrack?,
     modifier: Modifier
 ) {
     val videoQualityState by viewModel.videoQualityState.collectAsStateWithLifecycle()
     Text(
-        text = videoQualityState.videoQualities[video?.id]?.name ?: "null",
+        text = videoQualityState.videoQualities[video?.currentMid]?.name ?: "null",
         modifier = modifier.clickable {
             video?.let {
-                viewModel.showVideoQualitySelection(it.id, true)
+                viewModel.showVideoQualitySelection(it.currentMid, true)
             }
         }
     )
@@ -412,21 +448,11 @@ fun QualitySelector(
 
 @Composable
 fun LiveIndicatorComponent(modifier: Modifier, on: Boolean) {
-    LiveIndicator(
-        modifier = modifier,
-        on = on
-    )
-}
-
-fun MultiStreamingData.Video.play(
-    view: TextureViewRenderer,
-    viewModel: MultiStreamingViewModel,
-    videoQuality: VideoQuality = VideoQuality.AUTO
-) {
-    videoTrack.removeVideoSink()
-    videoTrack.setVideoSink(view)
-    viewModel.playVideo(
-        this,
-        videoQuality
-    )
+    val inPipMode = rememberIsInPipMode()
+    if (!inPipMode) {
+        LiveIndicator(
+            modifier = modifier,
+            on = on
+        )
+    }
 }

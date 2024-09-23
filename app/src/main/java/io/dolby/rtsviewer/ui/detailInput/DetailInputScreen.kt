@@ -41,6 +41,7 @@ import io.dolby.rtscomponentkit.ui.DolbyBackgroundBox
 import io.dolby.rtscomponentkit.ui.DolbyCopyrightFooterView
 import io.dolby.rtscomponentkit.ui.TopActionBar
 import io.dolby.rtsviewer.R
+import io.dolby.rtsviewer.ui.DetailInputConnectionAlert
 import io.dolby.rtsviewer.ui.alert.ClearStreamConfirmationAlert
 import io.dolby.rtsviewer.ui.alert.DetailInputValidationAlert
 import io.dolby.rtsviewer.uikit.button.ButtonType
@@ -60,6 +61,7 @@ fun DetailInputScreen(
     viewModel: DetailInputViewModel = hiltViewModel()
 ) {
     var showMissingStreamDetailDialog by remember { mutableStateOf(false) }
+    var showStreamConnectionErrorDialog by remember { mutableStateOf(false) }
     var showClearStreamsConfirmationDialog by remember { mutableStateOf(false) }
 
     val streamName = viewModel.streamName.collectAsState()
@@ -77,15 +79,18 @@ fun DetailInputScreen(
         if (!viewModel.shouldPlayStream) {
             showMissingStreamDetailDialog = true
         } else {
-            viewModel.connect()
-
             coroutineScope.launch(Dispatchers.Main) {
-                onPlayClick(
-                    StreamingData(
-                        streamName = streamName.value,
-                        accountId = accountId.value
+                val connected = viewModel.connect()
+                if (connected) {
+                    onPlayClick(
+                        StreamingData(
+                            streamName = streamName.value,
+                            accountId = accountId.value
+                        )
                     )
-                )
+                } else {
+                    showStreamConnectionErrorDialog = true
+                }
             }
         }
     }
@@ -110,6 +115,13 @@ fun DetailInputScreen(
     if (showMissingStreamDetailDialog) {
         DetailInputValidationAlert(
             onDismiss = { showMissingStreamDetailDialog = false },
+            modifier = modifier
+        )
+    }
+
+    if (showStreamConnectionErrorDialog) {
+        DetailInputConnectionAlert(
+            onDismiss = { showStreamConnectionErrorDialog = false },
             modifier = modifier
         )
     }

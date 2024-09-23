@@ -9,6 +9,7 @@ import androidx.compose.runtime.Composable
 import androidx.compose.runtime.DisposableEffect
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
+import androidx.compose.runtime.remember
 import androidx.compose.runtime.rememberUpdatedState
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
@@ -35,12 +36,19 @@ fun StreamScreen(streamInfo: StreamInfo) {
         }
     )
     val tag = "StreamScreen - ${streamInfo.index}"
+    val context = LocalContext.current
     val lifecycleOwner = rememberUpdatedState(LocalLifecycleOwner.current)
     val uiState by viewModel.uiState.collectAsStateWithLifecycle()
 
+    val videoRenderer = remember(context) {
+        TextureViewRenderer(context).apply {
+            init(Media.eglBaseContext, null)
+        }
+    }
+
     LaunchedEffect(Unit) {
         Log.i(tag, "Screen subscribe")
-        viewModel.onUiAction(StreamAction.CONNECT)
+        viewModel.onUiAction(StreamAction.Connect)
     }
 
     DisposableEffect(viewModel) {
@@ -56,7 +64,7 @@ fun StreamScreen(streamInfo: StreamInfo) {
 
                 Lifecycle.Event.ON_DESTROY -> {
                     Log.d(tag, "Lifecycle onDestroy")
-                    viewModel.onUiAction(StreamAction.RELEASE)
+                    viewModel.onUiAction(StreamAction.Release)
                 }
 
                 else -> {
@@ -67,7 +75,7 @@ fun StreamScreen(streamInfo: StreamInfo) {
         lifecycle.addObserver(observer)
         onDispose {
             lifecycle.removeObserver(observer)
-            viewModel.onUiAction(StreamAction.RELEASE)
+            viewModel.onUiAction(StreamAction.Release)
         }
     }
 
@@ -76,7 +84,6 @@ fun StreamScreen(streamInfo: StreamInfo) {
             .fillMaxWidth()
             .aspectRatio(16 / 9f)
     ) {
-        val context = LocalContext.current
         uiState.streamError?.let {
             ErrorView(error = it)
         } ?: run {
@@ -85,16 +92,33 @@ fun StreamScreen(streamInfo: StreamInfo) {
                     modifier = Modifier.align(Alignment.Center)
                 ) {
                     AndroidView(
-                        factory = { context ->
-                            val view = TextureViewRenderer(context)
-                            view.init(Media.eglBaseContext, null)
-                            view
-                        },
+                        factory = { videoRenderer },
                         update = { view ->
                             view.setScalingType(RendererCommon.ScalingType.SCALE_ASPECT_FIT)
-                            uiState.videoTrack?.setVideoSink(view)
                         }
                     )
+                }
+                uiState.videoTrack?.let {
+                    DisposableEffect(uiState.videoTrack, uiState.selectedStreamQuality) {
+                        val observer = LifecycleEventObserver { _, event ->
+                            when (event) {
+                                Lifecycle.Event.ON_PAUSE -> {
+                                    viewModel.onUiAction(StreamAction.Pause)
+                                }
+
+                                Lifecycle.Event.ON_RESUME -> {
+                                    viewModel.onUiAction(StreamAction.Play(videoRenderer))
+                                }
+                                else -> {}
+                            }
+                        }
+                        val lifecycle = lifecycleOwner.value.lifecycle
+                        lifecycle.addObserver(observer)
+                        onDispose {
+                            lifecycle.removeObserver(observer)
+                            viewModel.onUiAction(StreamAction.Pause)
+                        }
+                    }
                 }
             }
         }

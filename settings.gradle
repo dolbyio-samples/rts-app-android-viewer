@@ -6,18 +6,18 @@ pluginManagement {
     }
 }
 
-//def prop = { String key ->
-//    Properties properties = new Properties()
-//    properties.load(new File(rootDir.absolutePath + "/local.properties").newDataInputStream())
-//    properties.containsKey(key) ? properties[key] as String : null
-//}
+def prop = { String key ->
+    Properties properties = new Properties()
+    properties.load(new File(rootDir.absolutePath + "/local.properties").newDataInputStream())
+    properties.containsKey(key) ? properties[key] as String : null
+}
 
-//def internalRepo = prop("DOLBY_INTERNAL_MAVEN_URL")
-//def internalUser = prop("DOLBY_INTERNAL_MAVEN_USER")
-//def internalPassword = prop("DOLBY_INTERNAL_MAVEN_PASSWORD")
-
-def gitUserName = System.env.GIT_USERNAME ?: getGithubUsername()
-def gitPat = System.env.GIT_PAT ?: getGithubUserPassword()
+//def internalRepo = System.env.DOLBY_INTERNAL_MAVEN_URL ?: null
+//def internalUser = System.env.DOLBY_INTERNAL_MAVEN_USER ?: null
+//def internalPassword = System.env.DOLBY_INTERNAL_MAVEN_PASSWORD ?: null
+//
+//def gitUserName = System.env.GIT_USERNAME ?: getGithubUsername()
+//def gitPat = System.env.GIT_PAT ?: getGithubUserPassword()
 
 dependencyResolutionManagement {
     repositoriesMode.set(RepositoriesMode.FAIL_ON_PROJECT_REPOS)
@@ -26,16 +26,16 @@ dependencyResolutionManagement {
         mavenCentral()
         mavenLocal()
 
-        maven {
-            name = "GitHubPackages"
-            url = uri("https://maven.pkg.github.com/millicast/maven")
-            credentials {
-                username = gitUserName
-                logger.lifecycle("User name: ${gitUserName}")
-                password = gitPat
-            }
-        }
-
+//        maven {
+//            name = "GitHubPackages"
+//            url = uri("https://maven.pkg.github.com/millicast/maven")
+//            credentials {
+//                username = gitUserName
+//                logger.lifecycle("User name: ${gitUserName}")
+//                password = gitPat
+//            }
+//        }
+//
 //        if (null != internalRepo && null != internalUser && null != internalPassword) {
 //            maven {
 //                name = "Snapshots"

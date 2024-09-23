@@ -311,7 +311,7 @@ fun selectionItems(
         )
 
         viewModel.streamingData()?.let {
-            viewModel.videoTracks.value.forEach {
+            viewModel.audioTracks.value.forEach {
                 val isMainSource = it.sourceId == null
                 allAudioSelections.add(
                     if (isMainSource) {
