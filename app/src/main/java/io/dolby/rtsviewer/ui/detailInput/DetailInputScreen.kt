@@ -53,6 +53,7 @@ import kotlinx.coroutines.launch
 @Composable
 fun DetailInputScreen(
     onPlayClick: (StreamingData) -> Unit,
+    onPlayFromConfigClick: () -> Unit,
     onSavedStreamsClick: () -> Unit,
     modifier: Modifier = Modifier,
     streamingData: StreamingData? = null,
@@ -86,6 +87,12 @@ fun DetailInputScreen(
                     )
                 )
             }
+        }
+    }
+
+    fun playStreamFromConfig() {
+        coroutineScope.launch(Dispatchers.Main) {
+            onPlayFromConfigClick()
         }
     }
     LaunchedEffect(Unit) {
@@ -218,6 +225,16 @@ fun DetailInputScreen(
                         }
                     }
                 }
+
+                Spacer(modifier = modifier.height(8.dp))
+
+                StyledButton(
+                    buttonText = stringResource(id = R.string.play_config_button),
+                    onClickAction = {
+                        playStreamFromConfig()
+                    },
+                    buttonType = ButtonType.PRIMARY
+                )
             }
         }
     }

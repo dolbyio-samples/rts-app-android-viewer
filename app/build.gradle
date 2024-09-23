@@ -31,12 +31,12 @@ protobuf {
 
 android {
     namespace 'io.dolby.rtsviewer'
-    compileSdk 33
+    compileSdk 34
 
     defaultConfig {
         applicationId "io.dolby.rtsviewer"
         minSdk 27
-        targetSdk 33
+        targetSdk 34
         versionCode appVersionCode
         versionName appVersionName
 
@@ -121,9 +121,10 @@ dependencies {
 
     implementation libs.android.coroutines
 
-    implementation "com.google.dagger:hilt-android:2.44"
-    kapt "com.google.dagger:hilt-compiler:2.44"
-    implementation "androidx.hilt:hilt-navigation-compose:1.0.0"
+    implementation libs.hilt.android
+    kapt libs.hilt.compiler
+    implementation libs.androidx.hilt.navigation.compose
+    implementation libs.androidx.lifecycle.runtime
 
     tvImplementation 'androidx.leanback:leanback:1.0.0'
 
@@ -151,15 +152,15 @@ dependencies {
     testImplementation "org.mockito.kotlin:mockito-kotlin:4.1.0"
     testImplementation 'org.mockito:mockito-inline:5.2.0'
     debugImplementation libs.androidx.compose.ui.tooling
-    testImplementation("com.google.dagger:hilt-android-testing:2.44")
-    kaptTest("com.google.dagger:hilt-android-compiler:2.44")
-    testAnnotationProcessor("com.google.dagger:hilt-android-compiler:2.44")
+    testImplementation("com.google.dagger:hilt-android-testing:2.49")
+    kaptTest("com.google.dagger:hilt-android-compiler:2.49")
+    testAnnotationProcessor("com.google.dagger:hilt-android-compiler:2.49")
 
     androidTestImplementation 'androidx.test.ext:junit:1.1.5'
     androidTestImplementation 'androidx.test.espresso:espresso-core:3.5.1'
     androidTestImplementation libs.androidx.compose.ui.test.junit
-    androidTestImplementation("com.google.dagger:hilt-android-testing:2.44")
-    kaptAndroidTest("com.google.dagger:hilt-android-compiler:2.44")
+    androidTestImplementation("com.google.dagger:hilt-android-testing:2.49")
+    kaptAndroidTest("com.google.dagger:hilt-android-compiler:2.49")
     androidTestImplementation "androidx.navigation:navigation-testing:2.5.3"
     androidTestImplementation "org.mockito.kotlin:mockito-kotlin:4.1.0"
     androidTestImplementation 'org.mockito:mockito-android:3.10.0'

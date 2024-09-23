@@ -1,4 +1,4 @@
-package io.dolby.rtsviewer.ui.streaming
+package io.dolby.rtsviewer.ui.streaming.container
 
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Box
@@ -33,13 +33,10 @@ import io.dolby.rtsviewer.uikit.button.StateButton
 import io.dolby.rtsviewer.uikit.switch.SwitchComponent
 import io.dolby.rtsviewer.uikit.text.Text
 import io.dolby.rtsviewer.uikit.theme.DarkThemeColors
-import io.dolby.rtsviewer.utils.titleResourceId
 
 @Composable
-fun SettingsScreen(viewModel: StreamingViewModel) {
+fun SettingsScreen(viewModel: StreamingContainerViewModel) {
     val uiState by viewModel.uiState.collectAsStateWithLifecycle()
-    val showLiveIndicator = viewModel.showLiveIndicator.collectAsStateWithLifecycle()
-    val showStatistics = viewModel.showStatistics.collectAsStateWithLifecycle()
 
     val focusRequester = remember { FocusRequester() }
     val screenContentDescription = stringResource(id = R.string.settingsScreen_contentDescription)
@@ -48,7 +45,7 @@ fun SettingsScreen(viewModel: StreamingViewModel) {
         focusRequester.requestFocus()
     }
     SideEffect {
-        if (!uiState.subscribed) {
+        if (uiState.requestSettingsFocus) {
             focusRequester.requestFocus()
         }
     }
@@ -80,25 +77,43 @@ fun SettingsScreen(viewModel: StreamingViewModel) {
                 text = stringResource(id = R.string.simulcast_title),
                 startIcon = painterResource(id = io.dolby.uikit.R.drawable.icon_simulcast),
                 endIcon = painterResource(id = io.dolby.uikit.R.drawable.ic_arrow_right),
-                stateText = stringResource(id = uiState.selectedStreamQualityType.titleResourceId()),
-                isEnabled = uiState.streamQualityTypes.isNotEmpty(),
-                onClick = { viewModel.updateShowSimulcastSettings(true) }
+                stateText = stringResource(id = uiState.selectedStreamQualityTitleId),
+                isEnabled = uiState.simulcastSettingsEnabled,
+                onClick = {
+                    viewModel.onUiAction(
+                        StreamingContainerAction.UpdateSimulcastSettingsVisibility(
+                            true
+                        )
+                    )
+                }
             )
             Spacer(modifier = Modifier.height(12.dp))
             SwitchComponent(
                 text = stringResource(id = R.string.streaming_statistics_title),
                 startIcon = painterResource(id = io.dolby.uikit.R.drawable.icon_info),
-                checked = showStatistics.value,
-                isEnabled = uiState.subscribed,
-                onCheckedChange = { viewModel.updateStatistics(state = it) }
+                checked = uiState.showStatistics,
+                isEnabled = uiState.statisticsEnabled,
+                onCheckedChange = {
+                    viewModel.onUiAction(
+                        StreamingContainerAction.UpdateStatisticsVisibility(
+                            it
+                        )
+                    )
+                }
             )
             Spacer(modifier = Modifier.height(12.dp))
             SwitchComponent(
                 text = stringResource(id = R.string.live_indicator_title),
                 startIcon = painterResource(id = io.dolby.uikit.R.drawable.icon_live_indicator),
-                checked = showLiveIndicator.value,
+                checked = uiState.showLiveIndicator,
                 isEnabled = true,
-                onCheckedChange = { viewModel.updateShowLiveIndicator(it) }
+                onCheckedChange = {
+                    viewModel.onUiAction(
+                        StreamingContainerAction.UpdateShowLiveVisibility(
+                            it
+                        )
+                    )
+                }
             )
         }
     }

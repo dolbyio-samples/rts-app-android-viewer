@@ -1,4 +1,4 @@
-package io.dolby.rtsviewer.ui.streaming
+package io.dolby.rtsviewer.ui.streaming.legacy
 
 import com.millicast.devices.track.AudioTrack
 import com.millicast.devices.track.VideoTrack

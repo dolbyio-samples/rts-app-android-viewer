@@ -1,4 +1,4 @@
-package io.dolby.rtsviewer.ui.streaming
+package io.dolby.rtsviewer.ui.streaming.legacy
 
 import android.view.KeyEvent
 import androidx.compose.animation.AnimatedVisibility

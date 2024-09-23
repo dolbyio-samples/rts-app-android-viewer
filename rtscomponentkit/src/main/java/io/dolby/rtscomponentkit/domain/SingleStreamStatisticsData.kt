@@ -73,7 +73,7 @@ data class SingleStreamStatisticsData(
                     fps = inboundData.framesPerSecond,
                     bytesReceived = BigInteger.valueOf(inboundData.bytesReceived?.toLong() ?: 0),
                     jitter = inboundData.jitter,
-                    packetsLost = inboundData.packetsLost,
+                    packetsLost = inboundData.packetsLost?.toLong(),
                     codecName = codecName
                 )
                 if (statsInboundRtp.isVideo) {

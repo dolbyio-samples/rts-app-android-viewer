@@ -1,4 +1,4 @@
-package io.dolby.rtsviewer.ui.streaming
+package io.dolby.rtsviewer.ui.streaming.legacy
 
 import androidx.activity.compose.BackHandler
 import androidx.compose.foundation.layout.Box
