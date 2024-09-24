@@ -90,19 +90,23 @@ class StreamViewModel @AssistedInject constructor(
                 subscriber?.onRemoteTrack?.distinctUntilChanged()?.collect { track ->
                     when (track) {
                         is RemoteAudioTrack -> {
-                            Log.d(TAG, "Received Audio Track for ${streamInfo.index}")
-                            if (streamInfo.index == 0) {
-                                track.setVolume(1.0)
-                                track.enableAsync()
-                            } else {
-                                track.setVolume(0.0)
-                                track.disableAsync()
+                            if (state.value.audioTrack == null) {
+                                Log.d(TAG, "Received Audio Track for ${streamInfo.index}")
+                                if (streamInfo.index == 0) {
+                                    track.setVolume(1.0)
+                                    track.enableAsync()
+                                } else {
+                                    track.setVolume(0.0)
+                                    track.disableAsync()
+                                }
                             }
                         }
                         is RemoteVideoTrack -> {
-                            Log.d(TAG, "Received Video Track for ${streamInfo.index}")
-                            _state.update { it.copy(videoTrack = track) }
-                            updateRenderState()
+                            if (state.value.videoTrack == null) {
+                                Log.d(TAG, "Received Video Track for ${streamInfo.index}")
+                                _state.update { it.copy(videoTrack = track) }
+                                updateRenderState()
+                            }
                         }
                     }
                 }
