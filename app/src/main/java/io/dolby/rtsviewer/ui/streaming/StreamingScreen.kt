@@ -1,5 +1,6 @@
 package io.dolby.rtsviewer.ui.streaming
 
+import android.util.Log
 import androidx.activity.compose.BackHandler
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.padding
@@ -58,17 +59,12 @@ fun StreamingScreen(viewModel: StreamingViewModel = hiltViewModel(), onBack: () 
             }
 
             uiState.subscribed && uiState.error == null && uiState.videoTrack != null -> {
-                DisposableEffect(uiState.videoTrack, uiState.pendingSelectedStreamQualityType) {
+                DisposableEffect(Unit) {
                     val observer = LifecycleEventObserver { _, event ->
                         when (event) {
                             Lifecycle.Event.ON_PAUSE -> {
                                 viewModel.pauseVideo()
                             }
-
-                            Lifecycle.Event.ON_RESUME -> {
-                                viewModel.playVideo(videoRenderer)
-                            }
-
                             else -> {
                             }
                         }
@@ -78,6 +74,21 @@ fun StreamingScreen(viewModel: StreamingViewModel = hiltViewModel(), onBack: () 
                     onDispose {
                         lifecycle.removeObserver(observer)
                         viewModel.pauseVideo()
+                    }
+                }
+                DisposableEffect(uiState.videoTrack, uiState.pendingSelectedStreamQualityType) {
+                    val observer = LifecycleEventObserver { _, event ->
+                        when (event) {
+                            Lifecycle.Event.ON_RESUME -> {
+                                viewModel.playVideo(videoRenderer)
+                            }
+                            else -> {}
+                        }
+                    }
+                    val lifecycle = lifecycleOwner.value.lifecycle
+                    lifecycle.addObserver(observer)
+                    onDispose {
+                        lifecycle.removeObserver(observer)
                     }
                 }
                 Box(

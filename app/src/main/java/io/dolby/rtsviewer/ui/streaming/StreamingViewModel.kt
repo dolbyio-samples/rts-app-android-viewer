@@ -430,8 +430,7 @@ class StreamingViewModel @Inject constructor(
         streamQualityType?.let { qualityType ->
             _uiState.update {
                 it.copy(
-                    selectedStreamQualityType = qualityType,
-                    pendingSelectedStreamQualityType = null
+                    selectedStreamQualityType = qualityType
                 )
             }
         } ?: { streamQualityType = _uiState.value.selectedStreamQualityType }
