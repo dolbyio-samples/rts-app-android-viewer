@@ -76,7 +76,7 @@ fun StreamingScreen(viewModel: StreamingViewModel = hiltViewModel(), onBack: () 
                         viewModel.pauseVideo()
                     }
                 }
-                DisposableEffect(uiState.videoTrack, uiState.pendingSelectedStreamQualityType) {
+                DisposableEffect(uiState.videoTrack, uiState.selectedStreamQualityType) {
                     val observer = LifecycleEventObserver { _, event ->
                         when (event) {
                             Lifecycle.Event.ON_RESUME -> {

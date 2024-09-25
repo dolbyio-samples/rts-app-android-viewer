@@ -417,25 +417,16 @@ class StreamingViewModel @Inject constructor(
 
     fun selectStreamQualityType(streamQualityType: RTSViewerDataStore.StreamQualityType) {
         _uiState.update { state ->
-            state.copy(pendingSelectedStreamQualityType = streamQualityType)
+            state.copy(selectedStreamQualityType = streamQualityType)
         }
     }
 
     fun playVideo(
-        view: TextureViewRenderer,
-        preferredQuality: RTSViewerDataStore.StreamQualityType? = null
+        view: TextureViewRenderer
     ) {
-        var streamQualityType: RTSViewerDataStore.StreamQualityType? =
-            _uiState.value.pendingSelectedStreamQualityType ?: _uiState.value.selectedStreamQualityType
-        streamQualityType?.let { qualityType ->
-            _uiState.update {
-                it.copy(
-                    selectedStreamQualityType = qualityType
-                )
-            }
-        } ?: { streamQualityType = _uiState.value.selectedStreamQualityType }
-        val qualityToApply = (streamQualityType ?: preferredQuality ?: RTSViewerDataStore.StreamQualityType.Auto).layerData
-        Log.d(TAG, "playVideo $qualityToApply $streamQualityType $preferredQuality")
+        val streamQualityType = _uiState.value.selectedStreamQualityType
+        val qualityToApply = (streamQualityType).layerData
+        Log.d(TAG, "playVideo $qualityToApply $streamQualityType")
         _uiState.value.videoTrack?.enableAsync(
             promote = true,
             layer = qualityToApply,
