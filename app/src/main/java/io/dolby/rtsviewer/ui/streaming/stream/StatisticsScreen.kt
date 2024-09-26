@@ -1,4 +1,4 @@
-package io.dolby.rtsviewer.ui.streaming
+package io.dolby.rtsviewer.ui.streaming.stream
 
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Box
@@ -13,7 +13,6 @@ import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.MaterialTheme
 import androidx.compose.runtime.Composable
-import androidx.compose.runtime.getValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
@@ -22,16 +21,14 @@ import androidx.compose.ui.semantics.contentDescription
 import androidx.compose.ui.semantics.semantics
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
-import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import io.dolby.rtsviewer.R
 import io.dolby.rtsviewer.uikit.text.Text
 import io.dolby.rtsviewer.uikit.theme.getColorPalette
 
-private const val TAG = "StatisticsView"
-
+// move to its own package?
 @Composable
-fun StatisticsView(viewModel: StreamingViewModel, modifier: Modifier = Modifier) {
-    val statistics by viewModel.streamingStatistics.collectAsStateWithLifecycle(initialValue = null)
+fun StatisticsScreen(viewModel: StreamViewModel, modifier: Modifier = Modifier) {
+//    val statistics by viewModel.streamingStatistics.collectAsStateWithLifecycle(initialValue = null)
     val statisticsTitle = stringResource(id = R.string.streaming_statistics_title)
 
     Box(
@@ -74,46 +71,49 @@ fun StatisticsView(viewModel: StreamingViewModel, modifier: Modifier = Modifier)
                 )
             }
             Spacer(modifier = Modifier.height(10.dp))
-
-            statistics?.forEach {
-                StatisticsRow(
-                    title = stringResource(id = it.first),
-                    value = it.second
-                )
-            }
-        }
-
-        if (statistics.isNullOrEmpty()) {
-            Text(
-                text = stringResource(id = R.string.statisticsScreen_no_data),
-                style = MaterialTheme.typography.body2,
-                color = getColorPalette().grayLight,
-                modifier = Modifier.align(Alignment.Center)
-            )
         }
     }
 }
-
-@Composable
-fun StatisticsRow(title: String, value: String, modifier: Modifier = Modifier) {
-    Row(modifier = modifier) {
-        Text(
-            text = title,
-            style = MaterialTheme.typography.body1,
-            color = getColorPalette().grayLight,
-            textAlign = TextAlign.Left,
-            modifier = Modifier
-                .width(160.dp)
-                .align(Alignment.CenterVertically)
-        )
-        Spacer(modifier = Modifier.width(15.dp))
-        Text(
-            text = value,
-            style = MaterialTheme.typography.body1,
-            color = MaterialTheme.colors.onBackground,
-            textAlign = TextAlign.Left,
-            modifier = Modifier
-                .align(Alignment.CenterVertically)
-        )
-    }
-}
+//
+//            statistics?.forEach {
+//                StatisticsRow(
+//                    title = stringResource(id = it.first),
+//                    value = it.second
+//                )
+//            }
+//        }
+//
+//        if (statistics.isNullOrEmpty()) {
+//            Text(
+//                text = stringResource(id = R.string.statisticsScreen_no_data),
+//                style = MaterialTheme.typography.body2,
+//                color = getColorPalette().grayLight,
+//                modifier = Modifier.align(Alignment.Center)
+//            )
+//        }
+//    }
+// }
+//
+// @Composable
+// fun StatisticsRow(title: String, value: String, modifier: Modifier = Modifier) {
+//    Row(modifier = modifier) {
+//        Text(
+//            text = title,
+//            style = MaterialTheme.typography.body1,
+//            color = getColorPalette().grayLight,
+//            textAlign = TextAlign.Left,
+//            modifier = Modifier
+//                .width(160.dp)
+//                .align(Alignment.CenterVertically)
+//        )
+//        Spacer(modifier = Modifier.width(15.dp))
+//        Text(
+//            text = value,
+//            style = MaterialTheme.typography.body1,
+//            color = MaterialTheme.colors.onBackground,
+//            textAlign = TextAlign.Left,
+//            modifier = Modifier
+//                .align(Alignment.CenterVertically)
+//        )
+//    }
+// }

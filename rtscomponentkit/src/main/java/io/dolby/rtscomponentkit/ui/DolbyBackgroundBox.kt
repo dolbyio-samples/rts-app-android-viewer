@@ -8,6 +8,7 @@ import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.material.MaterialTheme
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.res.stringResource
@@ -17,6 +18,7 @@ import io.dolby.rtscomponentkit.R
 fun DolbyBackgroundBox(
     showGradientBackground: Boolean = true,
     modifier: Modifier = Modifier,
+    color: Color = MaterialTheme.colors.background,
     content: @Composable BoxScope.() -> Unit
 ) {
     Box(

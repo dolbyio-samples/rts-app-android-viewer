@@ -26,7 +26,7 @@ import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.isActive
 import kotlinx.coroutines.launch
 
-class RTSViewerDataStore constructor(
+class RTSViewerDataStore(
     millicastSdk: MillicastSdk,
     private val dispatcherProvider: DispatcherProvider = DispatcherProviderImpl
 ) {
@@ -114,7 +114,7 @@ class RTSViewerDataStore constructor(
     ) = credentials.copy(
         streamName = streamingData.streamName,
         accountId = streamingData.accountId,
-        apiUrl = "https://director.millicast.com/api/director/subscribe"
+        apiUrl = streamingData.apiUrl
     )
 
     fun disconnect() {

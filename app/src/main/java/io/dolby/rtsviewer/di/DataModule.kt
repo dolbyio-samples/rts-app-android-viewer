@@ -34,6 +34,8 @@ import io.dolby.rtsviewer.datastore.RecentStreamsDataStore
 import io.dolby.rtsviewer.datastore.RecentStreamsDataStoreImpl
 import io.dolby.rtsviewer.preferenceStore.PrefsStore
 import io.dolby.rtsviewer.preferenceStore.PrefsStoreImpl
+import io.dolby.rtsviewer.ui.streaming.common.StreamingBridge
+import io.dolby.rtsviewer.ui.streaming.common.StreamingBridgeImpl
 import io.dolby.rtsviewer.utils.NetworkStatusObserver
 import io.dolby.rtsviewer.utils.NetworkStatusObserverImpl
 import javax.inject.Singleton
@@ -90,4 +92,8 @@ object DataModule {
     fun provideNetworkStatusObserver(@ApplicationContext context: Context): NetworkStatusObserver {
         return NetworkStatusObserverImpl(context)
     }
+
+    @Provides
+    @Singleton
+    fun provideStreamingBridge(): StreamingBridge = StreamingBridgeImpl()
 }

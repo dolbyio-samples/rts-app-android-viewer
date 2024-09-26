@@ -4,7 +4,8 @@ import io.dolby.rtscomponentkit.data.multistream.VideoQuality
 
 data class StreamingData(
     val accountId: String,
-    val streamName: String
+    val streamName: String,
+    val apiUrl: String = "https://director.millicast.com/api/director/subscribe"
 )
 
 data class ConnectOptions(

@@ -1,4 +1,4 @@
-package io.dolby.rtsviewer.ui.streaming
+package io.dolby.rtsviewer.ui.streaming.container
 
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Box
@@ -29,15 +29,14 @@ import io.dolby.rtsviewer.R
 import io.dolby.rtsviewer.uikit.checkbox.CheckBoxComponent
 import io.dolby.rtsviewer.uikit.text.Text
 import io.dolby.rtsviewer.uikit.theme.DarkThemeColors
-import io.dolby.rtsviewer.utils.titleResourceId
 
 @Composable
-fun SimulcastScreen(viewModel: StreamingViewModel) {
+fun SimulcastScreen(viewModel: StreamingContainerViewModel) {
     val uiState by viewModel.uiState.collectAsStateWithLifecycle()
     val focusRequester = remember { FocusRequester() }
     val screenContentDescription = stringResource(id = R.string.simulcastScreen_contentDescription)
 
-    LaunchedEffect(uiState.streamQualityTypes) {
+    LaunchedEffect(uiState.simulcastSettingsEnabled) {
         try {
             focusRequester.requestFocus()
         } catch (e: IllegalStateException) {
@@ -70,19 +69,22 @@ fun SimulcastScreen(viewModel: StreamingViewModel) {
             }
 
             items(
-                items = uiState.streamQualityTypes,
+                items = uiState.availableStreamQualityItems,
                 key = { it.hashCode() }
             ) { streamQualityType ->
                 CheckBoxComponent(
-                    text = stringResource(id = streamQualityType.titleResourceId()),
-                    checked = streamQualityType == uiState.selectedStreamQualityType,
+                    text = stringResource(id = streamQualityType.titleResId),
+                    checked = streamQualityType.titleResId == uiState.selectedStreamQualityTitleId,
                     onCheckedChange = {
-                        viewModel.selectStreamQualityType(streamQualityType)
-                        viewModel.updateShowSimulcastSettings(false)
+                        viewModel.onUiAction(
+                            StreamingContainerAction.UpdateSelectedStreamQuality(
+                                streamQualityType
+                            )
+                        )
                     },
                     modifier = Modifier
                         .let {
-                            if (streamQualityType == uiState.selectedStreamQualityType) {
+                            if (streamQualityType.titleResId == uiState.selectedStreamQualityTitleId) {
                                 return@let it.focusRequester(focusRequester)
                             }
                             return@let it

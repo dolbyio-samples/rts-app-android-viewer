@@ -1,4 +1,4 @@
-package io.dolby.rtsviewer.ui.streaming
+package io.dolby.rtsviewer.ui.streaming.legacy
 
 import androidx.activity.compose.BackHandler
 import androidx.compose.foundation.layout.Box
@@ -51,7 +51,6 @@ fun StreamingScreen(viewModel: StreamingViewModel = hiltViewModel(), onBack: () 
             contentDescription = screenContentDescription
         }
     ) {
-        val context = LocalContext.current
         when {
             uiState.error != null -> {
                 ErrorView(error = uiState.error!!)
