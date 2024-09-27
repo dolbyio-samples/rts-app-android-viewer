@@ -26,7 +26,6 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.focus.FocusRequester
-import androidx.compose.ui.focus.focusRequester
 import androidx.compose.ui.platform.LocalFocusManager
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.semantics.contentDescription
@@ -198,6 +197,17 @@ fun DetailInputScreen(
                 StyledButton(
                     buttonText = stringResource(id = R.string.play_button),
                     onClickAction = {
+                        playStream()
+                    },
+                    buttonType = ButtonType.PRIMARY
+                )
+
+                Spacer(modifier = modifier.height(8.dp))
+                
+                StyledButton(
+                    buttonText = stringResource(id = R.string.demo_stream_title),
+                    onClickAction = {
+                        viewModel.useDemoStream()
                         playStream()
                     },
                     buttonType = ButtonType.PRIMARY
