@@ -11,6 +11,7 @@ import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.verticalScroll
+import androidx.compose.material.DropdownMenu
 import androidx.compose.material.DropdownMenuItem
 import androidx.compose.material.ExperimentalMaterialApi
 import androidx.compose.material.ExposedDropdownMenuBox
@@ -80,13 +81,13 @@ fun DetailInputScreen(
 
     var envMenuExpanded by remember { mutableStateOf(false) }
     val env = viewModel.listOfEnv()
-    var selectedEnvText by remember { mutableStateOf(env[0]) }
+    var selectedEnv by remember { mutableStateOf(env[0]) }
 
     fun playStream() {
         if (!viewModel.shouldPlayStream) {
             showMissingStreamDetailDialog = true
         } else {
-            viewModel.connect(selectedEnvText)
+            viewModel.connect(selectedEnv)
 
             coroutineScope.launch(Dispatchers.Main) {
                 onPlayClick(
@@ -205,28 +206,14 @@ fun DetailInputScreen(
 
                 Spacer(modifier = modifier.height(8.dp))
 
-                ExposedDropdownMenuBox(expanded = envMenuExpanded,
-                    onExpandedChange = { envMenuExpanded = !envMenuExpanded }) {
-                    TextField(
-                        readOnly = true,
-                        value = stringResource(id = R.string.env) + "- $selectedEnvText",
-                        onValueChange = {},
-                        trailingIcon = {ExposedDropdownMenuDefaults.TrailingIcon(expanded = envMenuExpanded)},
-                        colors = ExposedDropdownMenuDefaults.textFieldColors()
-                    )
-                    ExposedDropdownMenu(
-                        expanded = envMenuExpanded,
-                        onDismissRequest = { envMenuExpanded = false }) {
-                        env.forEach { option ->
-                            DropdownMenuItem(onClick = {
-                                selectedEnvText = option
-                                envMenuExpanded = false
-                            }) {
-                                Text(text = option.name)
-                            }
-                        }
-                    }
-                }
+                StyledButton(
+                    buttonText = stringResource(id = R.string.env) + "- $selectedEnv",
+                    onClickAction = {
+                        val idx = env.indexOf(selectedEnv)
+                        selectedEnv = env[(idx + 1) % env.size]
+                    },
+                    buttonType = ButtonType.SECONDARY
+                )
 
                 Spacer(modifier = modifier.height(8.dp))
 
