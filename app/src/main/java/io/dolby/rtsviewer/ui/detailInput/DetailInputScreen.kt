@@ -11,9 +11,14 @@ import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.verticalScroll
+import androidx.compose.material.DropdownMenuItem
+import androidx.compose.material.ExperimentalMaterialApi
+import androidx.compose.material.ExposedDropdownMenuBox
+import androidx.compose.material.ExposedDropdownMenuDefaults
 import androidx.compose.material.MaterialTheme
 import androidx.compose.material.Scaffold
 import androidx.compose.material.TextButton
+import androidx.compose.material.TextField
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.collectAsState
@@ -49,6 +54,7 @@ import io.dolby.rtsviewer.uikit.theme.fontColor
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
 
+@OptIn(ExperimentalMaterialApi::class)
 @Composable
 fun DetailInputScreen(
     onPlayClick: (StreamingData) -> Unit,
@@ -69,13 +75,18 @@ fun DetailInputScreen(
     val localFocusManager = LocalFocusManager.current
     val focusRequester = remember { FocusRequester() }
     val background = MaterialTheme.colors.background
+    val borderColor = MaterialTheme.colors.error
     val coroutineScope = rememberCoroutineScope()
+
+    var envMenuExpanded by remember { mutableStateOf(false) }
+    val env = viewModel.listOfEnv()
+    var selectedEnvText by remember { mutableStateOf(env[0]) }
 
     fun playStream() {
         if (!viewModel.shouldPlayStream) {
             showMissingStreamDetailDialog = true
         } else {
-            viewModel.connect()
+            viewModel.connect(selectedEnvText)
 
             coroutineScope.launch(Dispatchers.Main) {
                 onPlayClick(
@@ -194,6 +205,31 @@ fun DetailInputScreen(
 
                 Spacer(modifier = modifier.height(8.dp))
 
+                ExposedDropdownMenuBox(expanded = envMenuExpanded,
+                    onExpandedChange = { envMenuExpanded = !envMenuExpanded }) {
+                    TextField(
+                        readOnly = true,
+                        value = stringResource(id = R.string.env) + "- $selectedEnvText",
+                        onValueChange = {},
+                        trailingIcon = {ExposedDropdownMenuDefaults.TrailingIcon(expanded = envMenuExpanded)},
+                        colors = ExposedDropdownMenuDefaults.textFieldColors()
+                    )
+                    ExposedDropdownMenu(
+                        expanded = envMenuExpanded,
+                        onDismissRequest = { envMenuExpanded = false }) {
+                        env.forEach { option ->
+                            DropdownMenuItem(onClick = {
+                                selectedEnvText = option
+                                envMenuExpanded = false
+                            }) {
+                                Text(text = option.name)
+                            }
+                        }
+                    }
+                }
+
+                Spacer(modifier = modifier.height(8.dp))
+
                 StyledButton(
                     buttonText = stringResource(id = R.string.play_button),
                     onClickAction = {
@@ -203,7 +239,7 @@ fun DetailInputScreen(
                 )
 
                 Spacer(modifier = modifier.height(8.dp))
-                
+
                 StyledButton(
                     buttonText = stringResource(id = R.string.demo_stream_title),
                     onClickAction = {

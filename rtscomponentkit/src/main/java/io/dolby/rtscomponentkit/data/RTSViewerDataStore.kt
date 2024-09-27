@@ -52,7 +52,7 @@ class RTSViewerDataStore constructor(
         audioPlayback = media.audioPlayback
     }
 
-    suspend fun connect(streamName: String, accountId: String) {
+    suspend fun connect(env: ENV, streamingData: StreamingData) {
         if (listener?.connected() == true) {
             return
         }
@@ -63,9 +63,10 @@ class RTSViewerDataStore constructor(
         val subscriber = Core.createSubscriber()
 
         subscriber.setCredentials(
-            credential(
-                subscriber.credentials,
-                StreamingData(accountId = accountId, streamName = streamName)
+            Credential(
+                streamName = streamingData.streamName,
+                accountId = streamingData.accountId,
+                apiUrl = env.getURL()
             )
         )
         listener = SingleStreamListener(
@@ -84,15 +85,6 @@ class RTSViewerDataStore constructor(
             Log.e(TAG, "${e.message}")
         }
     }
-
-    private fun credential(
-        credentials: Credential,
-        streamingData: StreamingData
-    ) = credentials.copy(
-        streamName = streamingData.streamName,
-        accountId = streamingData.accountId,
-        apiUrl = "https://director.millicast.com/api/director/subscribe"
-    )
 
     fun disconnect() {
         listener?.release()
@@ -192,6 +184,18 @@ class RTSViewerDataStore constructor(
         }
     }
 
+    enum class ENV {
+        PROD, DEV, STAGE;
+
+        fun getURL() = when (this) {
+            PROD -> "https://director.millicast.com/api/director/subscribe"
+            DEV -> "https://director-dev.millicast.com/api/director/subscribe"
+            STAGE -> "https://director-staging.millicast.com/api/director/subscribe"
+        }
+    }
+
+    fun listOfEnv() = listOf(ENV.PROD, ENV.DEV, ENV.STAGE)
+
     companion object {
         const val TAG = "io.dolby.rtscomponentkit"
     }
@@ -199,8 +203,8 @@ class RTSViewerDataStore constructor(
 
 fun LayerData.isEqualTo(other: LayerData): Boolean {
     return other.spatialLayerId == this.spatialLayerId &&
-        other.temporalLayerId == this.temporalLayerId &&
-        other.encodingId == this.encodingId &&
-        other.maxSpatialLayerId == this.maxSpatialLayerId &&
-        other.maxTemporalLayerId == this.maxTemporalLayerId
+            other.temporalLayerId == this.temporalLayerId &&
+            other.encodingId == this.encodingId &&
+            other.maxSpatialLayerId == this.maxSpatialLayerId &&
+            other.maxTemporalLayerId == this.maxTemporalLayerId
 }

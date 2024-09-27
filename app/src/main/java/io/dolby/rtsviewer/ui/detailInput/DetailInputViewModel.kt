@@ -3,6 +3,7 @@ package io.dolby.rtsviewer.ui.detailInput
 import androidx.lifecycle.ViewModel
 import dagger.hilt.android.lifecycle.HiltViewModel
 import io.dolby.rtscomponentkit.data.RTSViewerDataStore
+import io.dolby.rtscomponentkit.domain.StreamingData
 import io.dolby.rtscomponentkit.utils.DispatcherProvider
 import io.dolby.rtsviewer.datastore.RecentStreamsDataStore
 import kotlinx.coroutines.CoroutineScope
@@ -52,11 +53,15 @@ class DetailInputViewModel @Inject constructor(
         }
     }
 
-    fun connect() {
+    fun connect(selectedEnv: RTSViewerDataStore.ENV) {
         defaultCoroutineScope.launch {
-            repository.connect(streamName.value, accountId.value)
 
-            if(!isDemo) {
+            repository.connect(
+                selectedEnv,
+                StreamingData(accountId = accountId.value, streamName = streamName.value)
+            )
+
+            if (!isDemo) {
                 // Save the stream detail
                 recentStreamsDataStore.addStreamDetail(streamName.value, accountId.value)
             }
@@ -86,4 +91,6 @@ class DetailInputViewModel @Inject constructor(
         _streamName.value = DEMO_STREAM_NAME
         _accountId.value = DEMO_ACCOUNT_ID
     }
+
+    fun listOfEnv() = repository.listOfEnv()
 }
