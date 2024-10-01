@@ -20,6 +20,7 @@ import io.dolby.rtscomponentkit.data.multistream.prefs.MultiStreamPrefsStore
 import io.dolby.rtscomponentkit.domain.ConnectOptions
 import io.dolby.rtscomponentkit.domain.MultiStreamingData
 import io.dolby.rtscomponentkit.domain.StreamingData
+import io.dolby.rtscomponentkit.domain.listOfMediaServerEnv
 import io.dolby.rtscomponentkit.utils.DispatcherProvider
 import io.dolby.rtscomponentkit.utils.adjustTrackVolume
 import kotlinx.coroutines.CoroutineScope
@@ -294,6 +295,8 @@ class MultiStreamingRepository(
         }
         volumeObserver = null
     }
+
+    fun listOfEnv() = listOfMediaServerEnv()
 
     companion object {
         const val TAG = "MultiStreamingRepository"

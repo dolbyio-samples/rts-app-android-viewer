@@ -79,7 +79,6 @@ fun DetailInputScreen(
     val borderColor = MaterialTheme.colors.error
     val coroutineScope = rememberCoroutineScope()
 
-    var envMenuExpanded by remember { mutableStateOf(false) }
     val env = viewModel.listOfEnv()
     var selectedEnv by remember { mutableStateOf(env[0]) }
 

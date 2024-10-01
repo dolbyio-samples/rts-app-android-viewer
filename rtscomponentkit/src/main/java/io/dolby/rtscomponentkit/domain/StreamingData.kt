@@ -1,11 +1,17 @@
 package io.dolby.rtscomponentkit.domain
 
+import io.dolby.rtscomponentkit.data.RTSViewerDataStore.ENV
 import io.dolby.rtscomponentkit.data.multistream.VideoQuality
 
 data class StreamingData(
     val accountId: String,
     val streamName: String
-)
+) {
+    companion object {
+        const val DEMO_STREAM_NAME = "multiview"
+        const val DEMO_ACCOUNT_ID = "k9Mwad"
+    }
+}
 
 data class ConnectOptions(
     val useDevEnv: Boolean = false,
@@ -34,3 +40,5 @@ data class ConnectOptions(
             )
     }
 }
+
+fun listOfMediaServerEnv() = listOf(ENV.PROD, ENV.DEV, ENV.STAGE)

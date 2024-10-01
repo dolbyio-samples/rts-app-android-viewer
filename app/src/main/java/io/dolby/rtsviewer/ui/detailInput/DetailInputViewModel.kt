@@ -23,8 +23,8 @@ class DetailInputViewModel @Inject constructor(
 ) : ViewModel() {
 
     companion object {
-        const val DEMO_STREAM_NAME = "multiview"
-        const val DEMO_ACCOUNT_ID = "k9Mwad"
+        const val DEMO_STREAM_NAME = StreamingData.DEMO_STREAM_NAME
+        const val DEMO_ACCOUNT_ID = StreamingData.DEMO_ACCOUNT_ID
     }
 
     private val defaultCoroutineScope = CoroutineScope(dispatcherProvider.default)

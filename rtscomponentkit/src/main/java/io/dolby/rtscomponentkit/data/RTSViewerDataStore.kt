@@ -10,6 +10,7 @@ import com.millicast.devices.track.VideoTrack
 import com.millicast.subscribers.Credential
 import com.millicast.subscribers.state.LayerData
 import io.dolby.rtscomponentkit.domain.StreamingData
+import io.dolby.rtscomponentkit.domain.listOfMediaServerEnv
 import io.dolby.rtscomponentkit.utils.DispatcherProvider
 import io.dolby.rtscomponentkit.utils.DispatcherProviderImpl
 import kotlinx.coroutines.CoroutineScope
@@ -194,7 +195,7 @@ class RTSViewerDataStore constructor(
         }
     }
 
-    fun listOfEnv() = listOf(ENV.PROD, ENV.DEV, ENV.STAGE)
+    fun listOfEnv() = listOfMediaServerEnv()
 
     companion object {
         const val TAG = "io.dolby.rtscomponentkit"
