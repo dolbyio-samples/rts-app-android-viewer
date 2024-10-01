@@ -57,7 +57,10 @@ class DetailInputViewModel @Inject constructor(
 
     suspend fun connect(selectedEnv: ENV): Boolean =
         withContext(dispatcherProvider.default) {
-            val connected = repository.connect(streamName.value, accountId.value)
+            val connected = repository.connect(
+                selectedEnv,
+                StreamingData(accountId = accountId.value, streamName = streamName.value)
+            )
 
             if (connected && !isDemo) {
                 // Save the stream detail

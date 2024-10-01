@@ -199,6 +199,27 @@ fun DetailInputScreen(
                 Spacer(modifier = modifier.height(8.dp))
 
                 StyledButton(
+                    buttonText = stringResource(id = R.string.env) + "- $selectedEnv",
+                    onClickAction = {
+                        val idx = env.indexOf(selectedEnv)
+                        selectedEnv = env[(idx + 1) % env.size]
+                    },
+                    buttonType = ButtonType.SECONDARY
+                )
+
+                Spacer(modifier = modifier.height(8.dp))
+
+                StyledButton(
+                    buttonText = stringResource(id = R.string.play_button),
+                    onClickAction = {
+                        playStream()
+                    },
+                    buttonType = ButtonType.PRIMARY
+                )
+
+                Spacer(modifier = modifier.height(8.dp))
+
+                StyledButton(
                     buttonText = stringResource(id = R.string.demo_stream_title),
                     onClickAction = {
                         viewModel.useDemoStream()
@@ -218,27 +239,6 @@ fun DetailInputScreen(
                         buttonType = ButtonType.SECONDARY
                     )
                 }
-
-                Spacer(modifier = modifier.height(8.dp))
-
-                StyledButton(
-                    buttonText = stringResource(id = R.string.env) + "- $selectedEnv",
-                    onClickAction = {
-                        val idx = env.indexOf(selectedEnv)
-                        selectedEnv = env[(idx + 1) % env.size]
-                    },
-                    buttonType = ButtonType.SECONDARY
-                )
-
-                Spacer(modifier = modifier.height(8.dp))
-
-                StyledButton(
-                    buttonText = stringResource(id = R.string.play_button),
-                    onClickAction = {
-                        playStream()
-                    },
-                    buttonType = ButtonType.PRIMARY
-                )
 
                 if (uiState.recentStreams.isNotEmpty()) {
                     Row(
