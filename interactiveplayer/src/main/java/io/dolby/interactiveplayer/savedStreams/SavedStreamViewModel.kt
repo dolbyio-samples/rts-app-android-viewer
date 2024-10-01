@@ -73,6 +73,7 @@ class SavedStreamViewModel @Inject constructor(
                 ),
                 ConnectOptions.from(
                     useDevEnv = streamDetail.useDevEnv,
+                    serverEnv = streamDetail.serverEnv,
                     forcePlayOutDelay = streamDetail.forcePlayOutDelay,
                     disableAudio = streamDetail.disableAudio,
                     rtcLogs = streamDetail.rtcLogs,

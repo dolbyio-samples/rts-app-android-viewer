@@ -4,10 +4,12 @@ import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import dagger.hilt.android.lifecycle.HiltViewModel
 import io.dolby.interactiveplayer.datastore.RecentStreamsDataStore
+import io.dolby.rtscomponentkit.data.RTSViewerDataStore
 import io.dolby.rtscomponentkit.data.multistream.MultiStreamingRepository
 import io.dolby.rtscomponentkit.data.multistream.VideoQuality
 import io.dolby.rtscomponentkit.data.multistream.prefs.MultiStreamPrefsStore
 import io.dolby.rtscomponentkit.domain.ConnectOptions
+import io.dolby.rtscomponentkit.domain.ENV
 import io.dolby.rtscomponentkit.domain.StreamingData
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
@@ -106,9 +108,9 @@ class DetailInputViewModel @Inject constructor(
         }
     }
 
-    fun updateUseDevEnv(value: Boolean) {
+    fun updateUseEnv(value: ENV) {
         _selectedConnectionOptions.update {
-            it.copy(useDevEnv = value)
+            it.copy(serverEnv = value)
         }
     }
 

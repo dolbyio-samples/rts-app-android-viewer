@@ -9,8 +9,8 @@ import com.millicast.devices.track.AudioTrack
 import com.millicast.devices.track.VideoTrack
 import com.millicast.subscribers.Credential
 import com.millicast.subscribers.state.LayerData
+import io.dolby.rtscomponentkit.domain.ENV
 import io.dolby.rtscomponentkit.domain.StreamingData
-import io.dolby.rtscomponentkit.domain.listOfMediaServerEnv
 import io.dolby.rtscomponentkit.utils.DispatcherProvider
 import io.dolby.rtscomponentkit.utils.DispatcherProviderImpl
 import kotlinx.coroutines.CoroutineScope
@@ -184,18 +184,6 @@ class RTSViewerDataStore constructor(
             }
         }
     }
-
-    enum class ENV {
-        PROD, DEV, STAGE;
-
-        fun getURL() = when (this) {
-            PROD -> "https://director.millicast.com/api/director/subscribe"
-            DEV -> "https://director-dev.millicast.com/api/director/subscribe"
-            STAGE -> "https://director-staging.millicast.com/api/director/subscribe"
-        }
-    }
-
-    fun listOfEnv() = listOfMediaServerEnv()
 
     companion object {
         const val TAG = "io.dolby.rtscomponentkit"

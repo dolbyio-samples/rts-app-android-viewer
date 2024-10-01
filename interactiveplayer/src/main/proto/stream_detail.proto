@@ -16,6 +16,7 @@ message StreamDetail {
   bool rtcLogs = 7;
   int32 videoJitterMinimumDelayMs = 8;
   string primaryVideoQuality = 9;
+  string serverEnv = 10;
 }
 
 message RecentStreams {

@@ -243,6 +243,7 @@ fun DetailInputScreen(
                         recentDemoStream?.let {
                             ConnectOptions.from(
                                 it.useDevEnv,
+                                it.serverEnv,
                                 it.forcePlayOutDelay,
                                 it.disableAudio,
                                 it.rtcLogs,
@@ -400,7 +401,6 @@ private fun EnvSelection(viewModel: DetailInputViewModel) {
             readOnly = true,
             value = selectedEnv.name,
             onValueChange = { },
-            // label = { Text(stringResource(id = R.string.stream_connection_options_dev_server_title)) },
             trailingIcon = {
                 ExposedDropdownMenuDefaults.TrailingIcon(
                     expanded = envMenuExpanded
@@ -418,6 +418,7 @@ private fun EnvSelection(viewModel: DetailInputViewModel) {
                 DropdownMenuItem(
                     onClick = {
                         selectedEnv = selectionOption
+                        viewModel.updateUseEnv(selectionOption)
                         envMenuExpanded = false
                     }
                 ) {
@@ -463,7 +464,7 @@ private fun QualityLabel(viewModel: DetailInputViewModel) {
 
 @Composable
 fun connectionOptionsText(connectOptions: ConnectOptions) =
-    "${stringResource(id = R.string.stream_connection_options_dev_server_title)} ${connectOptions.useDevEnv}\n" +
+    "${stringResource(id = R.string.stream_connection_options_dev_server_title)} ${connectOptions.serverEnv}\n" +
             "${stringResource(id = R.string.stream_connection_options_video_jitter_buffer_ms_title)} ${connectOptions.videoJitterMinimumDelayMs}\n" +
             "${stringResource(id = R.string.stream_connection_options_force_playout_delay_title)} ${connectOptions.forcePlayOutDelay}\n" +
             "${stringResource(id = R.string.stream_connection_options_disable_audio_title)} ${connectOptions.disableAudio}\n" +

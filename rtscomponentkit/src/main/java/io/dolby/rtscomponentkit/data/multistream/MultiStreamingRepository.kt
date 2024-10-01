@@ -18,9 +18,9 @@ import io.dolby.rtscomponentkit.data.multistream.MultiStreamListener.Companion.T
 import io.dolby.rtscomponentkit.data.multistream.prefs.AudioSelection
 import io.dolby.rtscomponentkit.data.multistream.prefs.MultiStreamPrefsStore
 import io.dolby.rtscomponentkit.domain.ConnectOptions
+import io.dolby.rtscomponentkit.domain.ENV
 import io.dolby.rtscomponentkit.domain.MultiStreamingData
 import io.dolby.rtscomponentkit.domain.StreamingData
-import io.dolby.rtscomponentkit.domain.listOfMediaServerEnv
 import io.dolby.rtscomponentkit.utils.DispatcherProvider
 import io.dolby.rtscomponentkit.utils.adjustTrackVolume
 import kotlinx.coroutines.CoroutineScope
@@ -58,7 +58,7 @@ class MultiStreamingRepository(
             if (
                 addedDevices.firstOrNull {
                     it.type == AudioDeviceInfo.TYPE_BLUETOOTH_A2DP ||
-                        it.type == AudioDeviceInfo.TYPE_BLUETOOTH_SCO
+                            it.type == AudioDeviceInfo.TYPE_BLUETOOTH_SCO
                 } != null
             ) {
                 turnBluetoothHeadset()
@@ -67,9 +67,9 @@ class MultiStreamingRepository(
 
         override fun onAudioDevicesRemoved(removedDevices: Array<out AudioDeviceInfo>) {
             if (removedDevices.firstOrNull {
-                it.type == AudioDeviceInfo.TYPE_BLUETOOTH_A2DP ||
-                    it.type == AudioDeviceInfo.TYPE_BLUETOOTH_SCO
-            } != null
+                    it.type == AudioDeviceInfo.TYPE_BLUETOOTH_A2DP ||
+                            it.type == AudioDeviceInfo.TYPE_BLUETOOTH_SCO
+                } != null
             ) {
                 turnSpeakerPhone()
             }
@@ -87,9 +87,9 @@ class MultiStreamingRepository(
             Handler(handlerThread.looper)
         )
         if (audioManager.getDevices(AudioManager.GET_DEVICES_OUTPUTS).firstOrNull {
-            it.type == AudioDeviceInfo.TYPE_BLUETOOTH_A2DP ||
-                it.type == AudioDeviceInfo.TYPE_BLUETOOTH_SCO
-        } != null
+                it.type == AudioDeviceInfo.TYPE_BLUETOOTH_A2DP ||
+                        it.type == AudioDeviceInfo.TYPE_BLUETOOTH_SCO
+            } != null
         ) {
             turnBluetoothHeadset()
         } else {
@@ -178,10 +178,10 @@ class MultiStreamingRepository(
         subscriber.enableStats(true)
 
         subscriber.setCredentials(
-            credential(
-                subscriber.credentials,
-                streamingData,
-                connectOptions
+            Credential(
+                streamName = streamingData.streamName,
+                accountId = streamingData.accountId,
+                apiUrl = connectOptions.serverEnv.getURL()
             )
         )
 
@@ -239,11 +239,7 @@ class MultiStreamingRepository(
     ) = credentials.copy(
         streamName = streamingData.streamName,
         accountId = streamingData.accountId,
-        apiUrl = if (connectOptions.useDevEnv) {
-            "https://director-dev.millicast.com/api/director/subscribe"
-        } else {
-            "https://director.millicast.com/api/director/subscribe"
-        }
+        apiUrl = connectOptions.serverEnv.getURL()
     )
 
     fun updateSelectedVideoTrackId(sourceId: String?) {
@@ -296,7 +292,7 @@ class MultiStreamingRepository(
         volumeObserver = null
     }
 
-    fun listOfEnv() = listOfMediaServerEnv()
+    fun listOfEnv() = ENV.listOfEnv()
 
     companion object {
         const val TAG = "MultiStreamingRepository"

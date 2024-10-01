@@ -119,6 +119,7 @@ class MultiStreamingViewModel @Inject constructor(
             streamDetail?.let {
                 ConnectOptions.from(
                     streamDetail.useDevEnv,
+                    streamDetail.serverEnv,
                     streamDetail.forcePlayOutDelay,
                     streamDetail.disableAudio,
                     streamDetail.rtcLogs,
