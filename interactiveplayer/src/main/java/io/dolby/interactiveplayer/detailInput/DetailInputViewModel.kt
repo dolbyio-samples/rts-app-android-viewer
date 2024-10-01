@@ -4,9 +4,11 @@ import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import dagger.hilt.android.lifecycle.HiltViewModel
 import io.dolby.interactiveplayer.datastore.RecentStreamsDataStore
+import io.dolby.rtscomponentkit.data.multistream.MultiStreamingRepository
 import io.dolby.rtscomponentkit.data.multistream.VideoQuality
 import io.dolby.rtscomponentkit.data.multistream.prefs.MultiStreamPrefsStore
 import io.dolby.rtscomponentkit.domain.ConnectOptions
+import io.dolby.rtscomponentkit.domain.ENV
 import io.dolby.rtscomponentkit.domain.StreamingData
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
@@ -19,7 +21,8 @@ import javax.inject.Inject
 @HiltViewModel
 class DetailInputViewModel @Inject constructor(
     private val recentStreamsDataStore: RecentStreamsDataStore,
-    private val preferencesStore: MultiStreamPrefsStore
+    private val preferencesStore: MultiStreamPrefsStore,
+    private val repository: MultiStreamingRepository
 ) : ViewModel() {
     private val _uiState = MutableStateFlow(DetailInputScreenUiState())
     val uiState: StateFlow<DetailInputScreenUiState> = _uiState.asStateFlow()
@@ -104,9 +107,9 @@ class DetailInputViewModel @Inject constructor(
         }
     }
 
-    fun updateUseDevEnv(value: Boolean) {
+    fun updateUseEnv(value: ENV) {
         _selectedConnectionOptions.update {
-            it.copy(useDevEnv = value)
+            it.copy(serverEnv = value)
         }
     }
 
@@ -139,7 +142,9 @@ class DetailInputViewModel @Inject constructor(
             it.copy(primaryVideoQuality = videoQuality)
         }
     }
+
+    fun listOfEnv() = repository.listOfEnv()
 }
 
-const val DEMO_STREAM_NAME = "multiview"
-const val DEMO_ACCOUNT_ID = "k9Mwad"
+const val DEMO_STREAM_NAME = StreamingData.DEMO_STREAM_NAME
+const val DEMO_ACCOUNT_ID = StreamingData.DEMO_ACCOUNT_ID

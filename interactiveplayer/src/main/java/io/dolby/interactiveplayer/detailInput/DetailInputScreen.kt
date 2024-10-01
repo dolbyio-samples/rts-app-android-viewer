@@ -243,6 +243,7 @@ fun DetailInputScreen(
                         recentDemoStream?.let {
                             ConnectOptions.from(
                                 it.useDevEnv,
+                                it.serverEnv,
                                 it.forcePlayOutDelay,
                                 it.disableAudio,
                                 it.rtcLogs,
@@ -306,10 +307,7 @@ fun ConnectionOptions(viewModel: DetailInputViewModel) {
                     Row(verticalAlignment = Alignment.CenterVertically) {
                         Text(stringResource(id = R.string.stream_connection_options_dev_server_title))
                         Spacer(modifier = Modifier.weight(1.0f))
-                        Switch(
-                            checked = selectedConnectOptions.value.useDevEnv,
-                            onCheckedChange = { viewModel.updateUseDevEnv(it) }
-                        )
+                        EnvSelection(viewModel = viewModel)
                     }
                     Row(verticalAlignment = Alignment.CenterVertically) {
                         Text(stringResource(id = R.string.stream_connection_options_force_playout_delay_title))
@@ -385,6 +383,51 @@ fun ConnectionOptions(viewModel: DetailInputViewModel) {
 
 @OptIn(ExperimentalMaterialApi::class)
 @Composable
+private fun EnvSelection(viewModel: DetailInputViewModel) {
+    var envMenuExpanded by remember { mutableStateOf(false) }
+    val env = viewModel.listOfEnv()
+    var selectedEnv by remember { mutableStateOf(env[0]) }
+
+    ExposedDropdownMenuBox(
+        expanded = envMenuExpanded,
+        onExpandedChange = {
+            envMenuExpanded = !envMenuExpanded
+        }
+    ) {
+        TextField(
+            readOnly = true,
+            value = selectedEnv.name,
+            onValueChange = { },
+            trailingIcon = {
+                ExposedDropdownMenuDefaults.TrailingIcon(
+                    expanded = envMenuExpanded
+                )
+            },
+            colors = ExposedDropdownMenuDefaults.textFieldColors()
+        )
+        ExposedDropdownMenu(
+            expanded = envMenuExpanded,
+            onDismissRequest = {
+                envMenuExpanded = false
+            }
+        ) {
+            env.forEach { selectionOption ->
+                DropdownMenuItem(
+                    onClick = {
+                        selectedEnv = selectionOption
+                        viewModel.updateUseEnv(selectionOption)
+                        envMenuExpanded = false
+                    }
+                ) {
+                    Text(text = selectionOption.name)
+                }
+            }
+        }
+    }
+}
+
+@OptIn(ExperimentalMaterialApi::class)
+@Composable
 private fun QualityLabel(viewModel: DetailInputViewModel) {
     val selectedConnectionOptions = viewModel.selectedConnectionOptions.collectAsState()
     val showVideoQualitySelection = viewModel.showVideoQualityState.collectAsStateWithLifecycle()
@@ -418,7 +461,7 @@ private fun QualityLabel(viewModel: DetailInputViewModel) {
 
 @Composable
 fun connectionOptionsText(connectOptions: ConnectOptions) =
-    "${stringResource(id = R.string.stream_connection_options_dev_server_title)} ${connectOptions.useDevEnv}\n" +
+    "${stringResource(id = R.string.stream_connection_options_dev_server_title)} ${connectOptions.serverEnv}\n" +
         "${stringResource(id = R.string.stream_connection_options_video_jitter_buffer_ms_title)} ${connectOptions.videoJitterMinimumDelayMs}\n" +
         "${stringResource(id = R.string.stream_connection_options_force_playout_delay_title)} ${connectOptions.forcePlayOutDelay}\n" +
         "${stringResource(id = R.string.stream_connection_options_disable_audio_title)} ${connectOptions.disableAudio}\n" +

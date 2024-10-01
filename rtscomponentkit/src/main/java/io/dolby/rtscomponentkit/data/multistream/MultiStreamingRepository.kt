@@ -20,6 +20,7 @@ import io.dolby.rtscomponentkit.data.multistream.MultiStreamListener.Companion.T
 import io.dolby.rtscomponentkit.data.multistream.prefs.AudioSelection
 import io.dolby.rtscomponentkit.data.multistream.prefs.MultiStreamPrefsStore
 import io.dolby.rtscomponentkit.domain.ConnectOptions
+import io.dolby.rtscomponentkit.domain.ENV
 import io.dolby.rtscomponentkit.domain.MultiStreamingData
 import io.dolby.rtscomponentkit.domain.StreamingData
 import io.dolby.rtscomponentkit.utils.DispatcherProvider
@@ -210,10 +211,10 @@ class MultiStreamingRepository(
         subscriber.enableStats(true)
 
         subscriber.setCredentials(
-            credential(
-                subscriber.credentials,
-                streamingData,
-                connectOptions
+            Credential(
+                streamName = streamingData.streamName,
+                accountId = streamingData.accountId,
+                apiUrl = connectOptions.serverEnv.getURL()
             )
         )
 
@@ -303,20 +304,6 @@ class MultiStreamingRepository(
         _data.update { MultiStreamingData() }
     }
 
-    private fun credential(
-        credentials: Credential,
-        streamingData: StreamingData,
-        connectOptions: ConnectOptions
-    ) = credentials.copy(
-        streamName = streamingData.streamName,
-        accountId = streamingData.accountId,
-        apiUrl = if (connectOptions.useDevEnv) {
-            "https://director-dev.millicast.com/api/director/subscribe"
-        } else {
-            "https://director.millicast.com/api/director/subscribe"
-        }
-    )
-
     fun updateSelectedVideoTrackId(sourceId: String?) {
         _data.update { data ->
             data.copy(selectedVideoTrackId = sourceId)
@@ -351,6 +338,8 @@ class MultiStreamingRepository(
         }
         volumeObserver = null
     }
+
+    fun listOfEnv() = ENV.listOfEnv()
 
     companion object {
         const val TAG = "MultiStreamingRepository"

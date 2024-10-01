@@ -74,12 +74,15 @@ fun DetailInputScreen(
     val background = MaterialTheme.colors.background
     val coroutineScope = rememberCoroutineScope()
 
+    val env = viewModel.listOfEnv()
+    var selectedEnv by remember { mutableStateOf(env[0]) }
+
     fun playStream() {
         if (!viewModel.shouldPlayStream) {
             showMissingStreamDetailDialog = true
         } else {
             coroutineScope.launch(Dispatchers.Main) {
-                val connected = viewModel.connect()
+                val connected = viewModel.connect(selectedEnv)
                 if (connected) {
                     onPlayClick(
                         StreamingData(
@@ -195,6 +198,17 @@ fun DetailInputScreen(
 
                 Spacer(modifier = modifier.height(8.dp))
 
+                StyledButton(
+                    buttonText = stringResource(id = R.string.demo_stream_title),
+                    onClickAction = {
+                        viewModel.useDemoStream()
+                        playStream()
+                    },
+                    buttonType = ButtonType.PRIMARY
+                )
+
+                Spacer(modifier = modifier.height(8.dp))
+
                 if (uiState.recentStreams.isNotEmpty()) {
                     StyledButton(
                         buttonText = stringResource(id = R.string.saved_streams_button),
@@ -204,6 +218,17 @@ fun DetailInputScreen(
                         buttonType = ButtonType.SECONDARY
                     )
                 }
+
+                Spacer(modifier = modifier.height(8.dp))
+
+                StyledButton(
+                    buttonText = stringResource(id = R.string.env) + "- $selectedEnv",
+                    onClickAction = {
+                        val idx = env.indexOf(selectedEnv)
+                        selectedEnv = env[(idx + 1) % env.size]
+                    },
+                    buttonType = ButtonType.SECONDARY
+                )
 
                 Spacer(modifier = modifier.height(8.dp))
 

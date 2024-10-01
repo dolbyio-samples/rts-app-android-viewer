@@ -3,6 +3,8 @@ package io.dolby.rtsviewer.ui.detailInput
 import androidx.lifecycle.ViewModel
 import dagger.hilt.android.lifecycle.HiltViewModel
 import io.dolby.rtscomponentkit.data.RTSViewerDataStore
+import io.dolby.rtscomponentkit.domain.ENV
+import io.dolby.rtscomponentkit.domain.StreamingData
 import io.dolby.rtscomponentkit.utils.DispatcherProvider
 import io.dolby.rtsviewer.datastore.RecentStreamsDataStore
 import kotlinx.coroutines.CoroutineScope
@@ -21,6 +23,12 @@ class DetailInputViewModel @Inject constructor(
     private val dispatcherProvider: DispatcherProvider,
     private val recentStreamsDataStore: RecentStreamsDataStore
 ) : ViewModel() {
+
+    companion object {
+        const val DEMO_STREAM_NAME = StreamingData.DEMO_STREAM_NAME
+        const val DEMO_ACCOUNT_ID = StreamingData.DEMO_ACCOUNT_ID
+    }
+
     private val defaultCoroutineScope = CoroutineScope(dispatcherProvider.default)
 
     private val _uiState = MutableStateFlow(DetailInputScreenUiState())
@@ -31,6 +39,8 @@ class DetailInputViewModel @Inject constructor(
 
     private val _accountId = MutableStateFlow("")
     var accountId = _accountId.asStateFlow()
+
+    private var isDemo = false
 
     init {
         defaultCoroutineScope.launch {
@@ -45,14 +55,16 @@ class DetailInputViewModel @Inject constructor(
         }
     }
 
-    suspend fun connect(): Boolean =
+    suspend fun connect(selectedEnv: ENV): Boolean =
         withContext(dispatcherProvider.default) {
             val connected = repository.connect(streamName.value, accountId.value)
 
-            if (connected) {
+            if (connected && !isDemo) {
                 // Save the stream detail
                 recentStreamsDataStore.addStreamDetail(streamName.value, accountId.value)
             }
+
+            isDemo = false
             return@withContext connected
         }
 
@@ -72,4 +84,12 @@ class DetailInputViewModel @Inject constructor(
     fun updateAccountId(id: String) {
         _accountId.value = id
     }
+
+    fun useDemoStream() {
+        isDemo = true
+        _streamName.value = DEMO_STREAM_NAME
+        _accountId.value = DEMO_ACCOUNT_ID
+    }
+
+    fun listOfEnv() = ENV.listOfEnv()
 }
