@@ -270,10 +270,12 @@ fun DetailInputScreen(
     }
 }
 
+@OptIn(ExperimentalMaterialApi::class)
 @Composable
 fun ConnectionOptions(viewModel: DetailInputViewModel) {
     val selectedConnectOptions = viewModel.selectedConnectionOptions.collectAsState()
     var isExpanded by rememberSaveable { mutableStateOf(false) }
+
     Card(
         modifier = Modifier.clickable { isExpanded = !isExpanded }
     ) {
@@ -306,11 +308,9 @@ fun ConnectionOptions(viewModel: DetailInputViewModel) {
                     Row(verticalAlignment = Alignment.CenterVertically) {
                         Text(stringResource(id = R.string.stream_connection_options_dev_server_title))
                         Spacer(modifier = Modifier.weight(1.0f))
-                        Switch(
-                            checked = selectedConnectOptions.value.useDevEnv,
-                            onCheckedChange = { viewModel.updateUseDevEnv(it) }
-                        )
+                        EnvSelection(viewModel = viewModel)
                     }
+
                     Row(verticalAlignment = Alignment.CenterVertically) {
                         Text(stringResource(id = R.string.stream_connection_options_force_playout_delay_title))
                         Spacer(modifier = Modifier.weight(1.0f))
@@ -339,7 +339,7 @@ fun ConnectionOptions(viewModel: DetailInputViewModel) {
                     var sliderValue by remember { mutableFloatStateOf(selectedConnectOptions.value.videoJitterMinimumDelayMs.toFloat()) }
                     Text(
                         text = stringResource(id = R.string.connection_options_jitter_buffer_delay_title) +
-                            " - ${selectedConnectOptions.value.videoJitterMinimumDelayMs}ms"
+                                " - ${selectedConnectOptions.value.videoJitterMinimumDelayMs}ms"
                     )
                     Row(verticalAlignment = Alignment.CenterVertically) {
                         Text(
@@ -385,6 +385,51 @@ fun ConnectionOptions(viewModel: DetailInputViewModel) {
 
 @OptIn(ExperimentalMaterialApi::class)
 @Composable
+private fun EnvSelection(viewModel: DetailInputViewModel) {
+    var envMenuExpanded by remember { mutableStateOf(false) }
+    val env = viewModel.listOfEnv()
+    var selectedEnv by remember { mutableStateOf(env[0]) }
+
+    ExposedDropdownMenuBox(
+        expanded = envMenuExpanded,
+        onExpandedChange = {
+            envMenuExpanded = !envMenuExpanded
+        }
+    ) {
+        TextField(
+            readOnly = true,
+            value = selectedEnv.name,
+            onValueChange = { },
+            // label = { Text(stringResource(id = R.string.stream_connection_options_dev_server_title)) },
+            trailingIcon = {
+                ExposedDropdownMenuDefaults.TrailingIcon(
+                    expanded = envMenuExpanded
+                )
+            },
+            colors = ExposedDropdownMenuDefaults.textFieldColors()
+        )
+        ExposedDropdownMenu(
+            expanded = envMenuExpanded,
+            onDismissRequest = {
+                envMenuExpanded = false
+            }
+        ) {
+            env.forEach { selectionOption ->
+                DropdownMenuItem(
+                    onClick = {
+                        selectedEnv = selectionOption
+                        envMenuExpanded = false
+                    }
+                ) {
+                    Text(text = selectionOption.name)
+                }
+            }
+        }
+    }
+}
+
+@OptIn(ExperimentalMaterialApi::class)
+@Composable
 private fun QualityLabel(viewModel: DetailInputViewModel) {
     val selectedConnectionOptions = viewModel.selectedConnectionOptions.collectAsState()
     val showVideoQualitySelection = viewModel.showVideoQualityState.collectAsStateWithLifecycle()
@@ -419,8 +464,8 @@ private fun QualityLabel(viewModel: DetailInputViewModel) {
 @Composable
 fun connectionOptionsText(connectOptions: ConnectOptions) =
     "${stringResource(id = R.string.stream_connection_options_dev_server_title)} ${connectOptions.useDevEnv}\n" +
-        "${stringResource(id = R.string.stream_connection_options_video_jitter_buffer_ms_title)} ${connectOptions.videoJitterMinimumDelayMs}\n" +
-        "${stringResource(id = R.string.stream_connection_options_force_playout_delay_title)} ${connectOptions.forcePlayOutDelay}\n" +
-        "${stringResource(id = R.string.stream_connection_options_disable_audio_title)} ${connectOptions.disableAudio}\n" +
-        "${stringResource(id = R.string.stream_connection_options_primary_video_quality_title)} ${connectOptions.primaryVideoQuality}\n" +
-        "${stringResource(id = R.string.stream_connection_options_save_logs_title)} ${connectOptions.rtcLogs}"
+            "${stringResource(id = R.string.stream_connection_options_video_jitter_buffer_ms_title)} ${connectOptions.videoJitterMinimumDelayMs}\n" +
+            "${stringResource(id = R.string.stream_connection_options_force_playout_delay_title)} ${connectOptions.forcePlayOutDelay}\n" +
+            "${stringResource(id = R.string.stream_connection_options_disable_audio_title)} ${connectOptions.disableAudio}\n" +
+            "${stringResource(id = R.string.stream_connection_options_primary_video_quality_title)} ${connectOptions.primaryVideoQuality}\n" +
+            "${stringResource(id = R.string.stream_connection_options_save_logs_title)} ${connectOptions.rtcLogs}"
