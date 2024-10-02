@@ -3,7 +3,7 @@ package io.dolby.rtsviewer.ui.detailInput
 import androidx.lifecycle.ViewModel
 import dagger.hilt.android.lifecycle.HiltViewModel
 import io.dolby.rtscomponentkit.data.RTSViewerDataStore
-import io.dolby.rtscomponentkit.domain.ENV
+import io.dolby.rtscomponentkit.domain.MediaServerEnv
 import io.dolby.rtscomponentkit.domain.StreamingData
 import io.dolby.rtscomponentkit.utils.DispatcherProvider
 import io.dolby.rtsviewer.datastore.RecentStreamsDataStore
@@ -55,10 +55,10 @@ class DetailInputViewModel @Inject constructor(
         }
     }
 
-    suspend fun connect(selectedEnv: ENV): Boolean =
+    suspend fun connect(selectedMediaServerEnv: MediaServerEnv): Boolean =
         withContext(dispatcherProvider.default) {
             val connected = repository.connect(
-                selectedEnv,
+                selectedMediaServerEnv,
                 StreamingData(accountId = accountId.value, streamName = streamName.value)
             )
 
@@ -94,5 +94,5 @@ class DetailInputViewModel @Inject constructor(
         _accountId.value = DEMO_ACCOUNT_ID
     }
 
-    fun listOfEnv() = ENV.listOfEnv()
+    fun listOfEnv() = MediaServerEnv.listOfEnv()
 }

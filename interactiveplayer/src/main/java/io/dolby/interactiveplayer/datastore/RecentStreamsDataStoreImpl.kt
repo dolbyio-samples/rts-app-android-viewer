@@ -64,7 +64,7 @@ class RecentStreamsDataStoreImpl @Inject constructor(
                     .setRtcLogs(connectOptions.rtcLogs)
                     .setVideoJitterMinimumDelayMs(connectOptions.videoJitterMinimumDelayMs)
                     .setPrimaryVideoQuality(connectOptions.primaryVideoQuality.name)
-                    .setServerEnv(connectOptions.serverEnv.name)
+                    .setServerEnv(connectOptions.serverMediaServerEnv.name)
                     .build()
                 builder = builder.addStreamDetail(0, newStreamDetail)
 

@@ -8,7 +8,7 @@ import io.dolby.rtscomponentkit.data.multistream.MultiStreamingRepository
 import io.dolby.rtscomponentkit.data.multistream.VideoQuality
 import io.dolby.rtscomponentkit.data.multistream.prefs.MultiStreamPrefsStore
 import io.dolby.rtscomponentkit.domain.ConnectOptions
-import io.dolby.rtscomponentkit.domain.ENV
+import io.dolby.rtscomponentkit.domain.MediaServerEnv
 import io.dolby.rtscomponentkit.domain.StreamingData
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
@@ -107,9 +107,9 @@ class DetailInputViewModel @Inject constructor(
         }
     }
 
-    fun updateUseEnv(value: ENV) {
+    fun updateUseEnv(value: MediaServerEnv) {
         _selectedConnectionOptions.update {
-            it.copy(serverEnv = value)
+            it.copy(serverMediaServerEnv = value)
         }
     }
 

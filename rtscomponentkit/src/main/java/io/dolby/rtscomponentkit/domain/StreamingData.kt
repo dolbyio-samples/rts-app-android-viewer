@@ -14,7 +14,7 @@ data class StreamingData(
 
 data class ConnectOptions(
     val useDevEnv: Boolean = false,
-    val serverEnv: ENV = ENV.PROD,
+    val serverMediaServerEnv: MediaServerEnv = MediaServerEnv.PROD,
     val forcePlayOutDelay: Boolean = false,
     val disableAudio: Boolean = false,
     val rtcLogs: Boolean = false,
@@ -31,18 +31,18 @@ data class ConnectOptions(
             primaryVideoQuality: String,
             videoJitterMinimumDelayMs: Int
         ): ConnectOptions {
-            val env = if (serverEnv.isEmpty()) {
+            val mediaServerEnv = if (serverEnv.isEmpty()) {
                 if (useDevEnv) {
-                    ENV.DEV
+                    MediaServerEnv.DEV
                 } else {
-                    ENV.safeValueOf(serverEnv)
+                    MediaServerEnv.safeValueOf(serverEnv)
                 }
             } else {
-                ENV.safeValueOf(serverEnv)
+                MediaServerEnv.safeValueOf(serverEnv)
             }
             return ConnectOptions(
                 useDevEnv = useDevEnv,
-                serverEnv = env,
+                serverMediaServerEnv = mediaServerEnv,
                 forcePlayOutDelay = forcePlayOutDelay,
                 disableAudio = disableAudio,
                 rtcLogs = rtcLogs,
@@ -53,18 +53,18 @@ data class ConnectOptions(
     }
 }
 
-enum class ENV {
+enum class MediaServerEnv {
     PROD, DEV, STAGE;
     companion object {
-        fun safeValueOf(value: String): ENV {
+        fun safeValueOf(value: String): MediaServerEnv {
             return try {
-                ENV.valueOf(value)
+                MediaServerEnv.valueOf(value)
             } catch (ex: Exception) {
                 default
             }
         }
-        val default: ENV = PROD
-        fun listOfEnv() = listOf(PROD, DEV, STAGE)
+        val default: MediaServerEnv = PROD
+        fun listOfEnv() = MediaServerEnv.values()
     }
     fun getURL() = when (this) {
         PROD -> "https://director.millicast.com/api/director/subscribe"

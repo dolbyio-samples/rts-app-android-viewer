@@ -461,7 +461,7 @@ private fun QualityLabel(viewModel: DetailInputViewModel) {
 
 @Composable
 fun connectionOptionsText(connectOptions: ConnectOptions) =
-    "${stringResource(id = R.string.stream_connection_options_dev_server_title)} ${connectOptions.serverEnv}\n" +
+    "${stringResource(id = R.string.stream_connection_options_dev_server_title)} ${connectOptions.serverMediaServerEnv}\n" +
         "${stringResource(id = R.string.stream_connection_options_video_jitter_buffer_ms_title)} ${connectOptions.videoJitterMinimumDelayMs}\n" +
         "${stringResource(id = R.string.stream_connection_options_force_playout_delay_title)} ${connectOptions.forcePlayOutDelay}\n" +
         "${stringResource(id = R.string.stream_connection_options_disable_audio_title)} ${connectOptions.disableAudio}\n" +
