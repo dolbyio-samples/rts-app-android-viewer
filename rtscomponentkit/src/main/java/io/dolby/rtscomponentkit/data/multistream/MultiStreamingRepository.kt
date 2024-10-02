@@ -213,7 +213,7 @@ class MultiStreamingRepository(
             Credential(
                 streamName = streamingData.streamName,
                 accountId = streamingData.accountId,
-                apiUrl = connectOptions.serverMediaServerEnv.getURL()
+                apiUrl = connectOptions.mediaServerEnv.getURL()
             )
         )
 

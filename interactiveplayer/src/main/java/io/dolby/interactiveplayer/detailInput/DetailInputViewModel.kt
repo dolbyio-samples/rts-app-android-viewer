@@ -109,7 +109,7 @@ class DetailInputViewModel @Inject constructor(
 
     fun updateUseEnv(value: MediaServerEnv) {
         _selectedConnectionOptions.update {
-            it.copy(serverMediaServerEnv = value)
+            it.copy(mediaServerEnv = value)
         }
     }
 

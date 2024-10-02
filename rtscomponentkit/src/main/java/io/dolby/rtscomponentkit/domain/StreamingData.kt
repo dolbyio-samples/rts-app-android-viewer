@@ -14,7 +14,7 @@ data class StreamingData(
 
 data class ConnectOptions(
     val useDevEnv: Boolean = false,
-    val serverMediaServerEnv: MediaServerEnv = MediaServerEnv.PROD,
+    val mediaServerEnv: MediaServerEnv = MediaServerEnv.PROD,
     val forcePlayOutDelay: Boolean = false,
     val disableAudio: Boolean = false,
     val rtcLogs: Boolean = false,
@@ -42,7 +42,7 @@ data class ConnectOptions(
             }
             return ConnectOptions(
                 useDevEnv = useDevEnv,
-                serverMediaServerEnv = mediaServerEnv,
+                mediaServerEnv = mediaServerEnv,
                 forcePlayOutDelay = forcePlayOutDelay,
                 disableAudio = disableAudio,
                 rtcLogs = rtcLogs,
