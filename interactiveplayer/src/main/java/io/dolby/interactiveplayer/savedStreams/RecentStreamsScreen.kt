@@ -150,6 +150,7 @@ fun RecentStreamsScreen(
                                     connectionOptionsText(
                                         connectOptions = ConnectOptions.from(
                                             streamDetail.useDevEnv,
+                                            streamDetail.serverEnv,
                                             streamDetail.forcePlayOutDelay,
                                             streamDetail.disableAudio,
                                             streamDetail.rtcLogs,

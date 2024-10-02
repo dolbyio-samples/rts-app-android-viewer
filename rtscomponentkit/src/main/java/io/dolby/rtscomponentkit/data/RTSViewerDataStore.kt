@@ -11,6 +11,7 @@ import com.millicast.subscribers.remote.RemoteAudioTrack
 import com.millicast.subscribers.remote.RemoteVideoTrack
 import com.millicast.subscribers.state.LayerData
 import com.millicast.subscribers.state.LayerDataSelection
+import io.dolby.rtscomponentkit.domain.MediaServerEnv
 import io.dolby.rtscomponentkit.domain.MultiStreamStatisticsData
 import io.dolby.rtscomponentkit.domain.StreamingData
 import io.dolby.rtscomponentkit.utils.DispatcherProvider
@@ -58,7 +59,7 @@ class RTSViewerDataStore constructor(
         audioPlayback = media.audioPlayback
     }
 
-    suspend fun connect(streamName: String, accountId: String): Boolean {
+    suspend fun connect(mediaServerEnv: MediaServerEnv, streamingData: StreamingData): Boolean {
         if (listener?.connected() == true) {
             return true
         }
@@ -68,9 +69,10 @@ class RTSViewerDataStore constructor(
         val subscriber = Core.createSubscriber()
 
         subscriber.setCredentials(
-            credential(
-                subscriber.credentials,
-                StreamingData(accountId = accountId, streamName = streamName)
+            Credential(
+                streamName = streamingData.streamName,
+                accountId = streamingData.accountId,
+                apiUrl = mediaServerEnv.getURL()
             )
         )
         listener = SingleStreamListener(
