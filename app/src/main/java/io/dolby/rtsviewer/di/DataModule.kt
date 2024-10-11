@@ -21,6 +21,8 @@ import com.millicast.Core
 import com.millicast.Media
 import com.millicast.utils.LogLevel
 import com.millicast.utils.Logger
+import com.squareup.moshi.Moshi
+import com.squareup.moshi.kotlin.reflect.KotlinJsonAdapterFactory
 import dagger.Module
 import dagger.Provides
 import dagger.hilt.InstallIn
@@ -30,6 +32,7 @@ import io.dolby.rtscomponentkit.data.MillicastSdk
 import io.dolby.rtscomponentkit.data.RTSViewerDataStore
 import io.dolby.rtscomponentkit.utils.DispatcherProvider
 import io.dolby.rtscomponentkit.utils.DispatcherProviderImpl
+import io.dolby.rtsviewer.amino.AminoDevice
 import io.dolby.rtsviewer.datastore.RecentStreamsDataStore
 import io.dolby.rtsviewer.datastore.RecentStreamsDataStoreImpl
 import io.dolby.rtsviewer.preferenceStore.PrefsStore
@@ -38,6 +41,8 @@ import io.dolby.rtsviewer.ui.streaming.common.StreamingBridge
 import io.dolby.rtsviewer.ui.streaming.common.StreamingBridgeImpl
 import io.dolby.rtsviewer.utils.NetworkStatusObserver
 import io.dolby.rtsviewer.utils.NetworkStatusObserverImpl
+import io.dolby.rtsviewer.utils.StreamingConfig
+import io.dolby.rtsviewer.utils.StreamingConfigData
 import javax.inject.Singleton
 
 @Module
@@ -96,4 +101,16 @@ object DataModule {
     @Provides
     @Singleton
     fun provideStreamingBridge(): StreamingBridge = StreamingBridgeImpl()
+
+    @Provides
+    @Singleton
+    fun provideAminoDevice() = AminoDevice()
+
+    @Singleton
+    @Provides
+    fun provideMoshi(): Moshi {
+        return Moshi.Builder()
+            .add(KotlinJsonAdapterFactory())
+            .build()
+    }
 }

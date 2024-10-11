@@ -5,6 +5,7 @@ import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import dagger.hilt.android.lifecycle.HiltViewModel
 import io.dolby.rtsviewer.R
+import io.dolby.rtsviewer.amino.AminoDevice
 import io.dolby.rtsviewer.ui.streaming.common.StreamError
 import io.dolby.rtsviewer.ui.streaming.common.StreamInfo
 import io.dolby.rtsviewer.ui.streaming.common.StreamStateInfo
@@ -23,14 +24,15 @@ import javax.inject.Inject
 @HiltViewModel
 class StreamingContainerViewModel @Inject constructor(
     private val networkStatusObserver: NetworkStatusObserver,
-    private val streamingBridge: StreamingBridge
+    private val streamingBridge: StreamingBridge,
+    private val aminoDevice: AminoDevice
 ) : ViewModel() {
     private val _state = MutableStateFlow(StreamingContainerState())
     private val state: StateFlow<StreamingContainerState> = _state.asStateFlow()
     private val _uiState = MutableStateFlow(getRenderState())
     val uiState: StateFlow<StreamingContainerUiState> = _uiState.asStateFlow()
 
-    private val config: StreamingConfig = HARDCODED_CONFIG // todo: or get from route
+    private val config: StreamingConfig = aminoDevice.config.value ?: HARDCODED_CONFIG // todo: or get from route
 
     init {
         viewModelScope.launch {

@@ -13,9 +13,11 @@ enum class VideoQuality {
     }
 
     companion object {
-        fun valueToQuality(value: String): VideoQuality {
+        fun valueToQuality(value: String?): VideoQuality {
             return try {
-                VideoQuality.valueOf(value)
+                value?.let {
+                    VideoQuality.valueOf(it.uppercase())
+                } ?: run { default }
             } catch (ex: Exception) {
                 default
             }

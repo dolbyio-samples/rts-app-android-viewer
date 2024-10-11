@@ -103,6 +103,7 @@ fun DetailInputScreen(
             onPlayFromConfigClick()
         }
     }
+
     LaunchedEffect(Unit) {
         focusRequester.requestFocus()
     }
@@ -267,6 +268,18 @@ fun DetailInputScreen(
 
                 StyledButton(
                     buttonText = stringResource(id = R.string.play_config_button),
+                    onClickAction = {
+                        playStreamFromConfig()
+                    },
+                    buttonType = ButtonType.PRIMARY
+                )
+            }
+
+            if(viewModel.isAminoDevice) {
+                Spacer(modifier = modifier.height(8.dp))
+
+                StyledButton(
+                    buttonText = stringResource(id = R.string.play_amino_button),
                     onClickAction = {
                         playStreamFromConfig()
                     },

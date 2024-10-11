@@ -6,6 +6,9 @@
 
     <uses-feature android:name="android.hardware.touchscreen" android:required="false" />
     <uses-feature android:name="android.software.leanback" android:required="true" />
+    <uses-permission android:name="com.aminocom.device.permission.READ_DEVICE_CONFIG" />
+    <uses-permission android:name="com.aminocom.device.permission.READ_APP_CONFIG" />
+    <uses-sdk tools:overrideLibrary="com.aminocom.exoplayer2.aminoextension, com.aminocom.mediaplayer.extension, com.aminocom.analyticslib"/>
 
     <application
         android:name=".App"
@@ -27,5 +30,6 @@
                 <category android:name="android.intent.category.LAUNCHER" />
             </intent-filter>
         </activity>
+        <uses-library android:name="com.aminocom.device" android:required="false"/>
     </application>
 </manifest>

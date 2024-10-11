@@ -6,6 +6,7 @@ import io.dolby.rtscomponentkit.data.RTSViewerDataStore
 import io.dolby.rtscomponentkit.domain.MediaServerEnv
 import io.dolby.rtscomponentkit.domain.StreamingData
 import io.dolby.rtscomponentkit.utils.DispatcherProvider
+import io.dolby.rtsviewer.amino.AminoDevice
 import io.dolby.rtsviewer.datastore.RecentStreamsDataStore
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.flow.MutableStateFlow
@@ -21,7 +22,8 @@ import javax.inject.Inject
 class DetailInputViewModel @Inject constructor(
     private val repository: RTSViewerDataStore,
     private val dispatcherProvider: DispatcherProvider,
-    private val recentStreamsDataStore: RecentStreamsDataStore
+    private val recentStreamsDataStore: RecentStreamsDataStore,
+    private val aminoDevice: AminoDevice
 ) : ViewModel() {
 
     companion object {
@@ -95,4 +97,7 @@ class DetailInputViewModel @Inject constructor(
     }
 
     fun listOfEnv() = MediaServerEnv.listOfEnv()
+
+    val isAminoDevice: Boolean
+        get() = aminoDevice.config.value != null
 }

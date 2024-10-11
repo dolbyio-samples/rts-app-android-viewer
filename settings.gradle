@@ -25,6 +25,9 @@ dependencyResolutionManagement {
         google()
         mavenCentral()
         mavenLocal()
+        flatDir {
+            dirs 'apollo_libs'
+        }
 
 //        maven {
 //            name = "GitHubPackages"

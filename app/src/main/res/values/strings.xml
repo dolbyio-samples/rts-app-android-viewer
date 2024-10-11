@@ -28,6 +28,7 @@
     <string name="play_button">Play</string>
     <string name="demo_stream_title">Demo a stream</string>
     <string name="play_config_button">Play from Config</string>
+    <string name="play_amino_button">Play Amino Config</string>
     <string name="saved_streams_button">Saved Streams</string>
     <string name="clear_stream_history_button">Clear stream history</string>
     <string name="missing_stream_name_or_account_id">Please enter a Stream name and Account ID</string>

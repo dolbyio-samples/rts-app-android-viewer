@@ -1,5 +1,8 @@
 package io.dolby.rtscomponentkit.domain
 
+import android.util.Log
+import com.millicast.subscribers.ForcePlayoutDelay
+import com.millicast.subscribers.Option
 import io.dolby.rtscomponentkit.data.multistream.VideoQuality
 
 data class StreamingData(
@@ -10,6 +13,44 @@ data class StreamingData(
     companion object {
         const val DEMO_STREAM_NAME = "multiview"
         const val DEMO_ACCOUNT_ID = "k9Mwad"
+    }
+}
+
+data class StreamingOptions(
+    val statsFrequencyMs: Int?,
+    val forcePlayoutDelayMin: Int?,
+    val forcePlayoutDelayMax: Int?,
+    val jitterBufferDelayMs: Int?,
+    val initialVideoQuality: VideoQuality = VideoQuality.AUTO,
+    val forceSmooth: Boolean?
+) {
+    fun toMillicastOptions(): Option {
+        val forcePlayoutDelay = if (forcePlayoutDelayMin == null || forcePlayoutDelayMax == null) {
+            null
+        } else {
+            ForcePlayoutDelay(forcePlayoutDelayMin, forcePlayoutDelayMax)
+        }
+        val options = Option(
+            statsDelayMs = statsFrequencyMs ?: 1000,
+            forcePlayoutDelay = forcePlayoutDelay,
+            jitterMinimumDelayMs = jitterBufferDelayMs ?: 0
+        )
+        Log.d(TAG, "Settings options to : $options")
+        return options
+    }
+
+    companion object {
+        private const val TAG = "StreamingOptions"
+    }
+}
+
+enum class StreamEnvironment(val value: String) {
+    DEV("dev"), STAGE("stg"), PROD("prod");
+
+    companion object {
+        fun from(name: String?): StreamEnvironment {
+            return StreamEnvironment.values().find { it.value.equals(name, ignoreCase = true) } ?: PROD
+        }
     }
 }
 

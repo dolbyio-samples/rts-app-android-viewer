@@ -5,6 +5,7 @@ plugins {
     id 'com.google.dagger.hilt.android'
     id 'com.github.triplet.play' version '3.8.1'
     id 'com.google.protobuf'
+    id "com.google.devtools.ksp"
 }
 
 def appVersionCode = Integer.valueOf(System.env.VERSION_CODE ?: 1)
@@ -35,7 +36,7 @@ android {
 
     defaultConfig {
         applicationId "io.dolby.rtsviewer"
-        minSdk 27
+        minSdk 28
         targetSdk 34
         versionCode appVersionCode
         versionName appVersionName
@@ -143,6 +144,15 @@ dependencies {
 
     implementation "androidx.datastore:datastore-core:1.0.0"
     implementation "androidx.datastore:datastore-preferences:1.0.0"
+
+    implementation libs.moshi
+    implementation libs.moshi.kotlin
+    ksp libs.moshi.codegen
+
+    // Amino Apollo SDK
+    implementation 'com.aminocom:playerwrapper-library-amino-2.18.6-amino.2024.1.49@aar'
+    implementation "com.aminocom:analyticslib:0.4.6@aar"
+    implementation files('../apollo_libs/hdmi-aidl-interfaces-V1-java.jar')
 
     testImplementation libs.junit
     testImplementation libs.robolectric
