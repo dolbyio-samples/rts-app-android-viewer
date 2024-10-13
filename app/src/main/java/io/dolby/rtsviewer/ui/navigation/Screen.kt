@@ -19,5 +19,7 @@ sealed class Screen(val route: String) {
         }
     }
 
+    object StreamingContainerScreen : Screen(route = "streamingContainer")
+
     object SavedStreams : Screen(route = "savedStreams")
 }
