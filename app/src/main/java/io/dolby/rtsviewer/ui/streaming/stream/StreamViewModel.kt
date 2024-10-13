@@ -95,13 +95,14 @@ class StreamViewModel @AssistedInject constructor(
                         is RemoteAudioTrack -> {
                             if (state.value.audioTrack == null) {
                                 Log.d(TAG, "Received Audio Track for ${streamInfo.index}")
-                                if (streamInfo.index == 0) {
+                                if (state.value.isFocused) {
                                     track.setVolume(1.0)
                                     track.enableAsync()
                                 } else {
                                     track.setVolume(0.0)
                                     track.disableAsync()
                                 }
+                                _state.update { it.copy(audioTrack = track) }
                             }
                         }
 
@@ -275,10 +276,16 @@ class StreamViewModel @AssistedInject constructor(
             StreamAction.Release -> release()
             is StreamAction.UpdateFocus -> {
                 _state.update { it.copy(isFocused = action.isFocused) }
-                if (streamInfo.index == 0) {
-                    state.value.audioTrack?.enableAsync()
-                } else {
-                    state.value.audioTrack?.disableAsync()
+                viewModelScope.launch {
+                    state.value.audioTrack?.let {
+                        if (action.isFocused) {
+                            it.setVolume(1.0)
+                            it.enableAsync()
+                        } else {
+                            it.setVolume(0.0)
+                            it.disableAsync()
+                        }
+                    }
                 }
                 updateRenderState()
             }
