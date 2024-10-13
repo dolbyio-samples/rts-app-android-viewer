@@ -6,21 +6,17 @@ import androidx.lifecycle.viewModelScope
 import com.millicast.Core
 import com.millicast.Subscriber
 import com.millicast.clients.ConnectionOptions
-import com.millicast.devices.track.AudioTrack
 import com.millicast.subscribers.Credential
 import com.millicast.subscribers.ForcePlayoutDelay
 import com.millicast.subscribers.Option
-import com.millicast.subscribers.remote.Kind
 import com.millicast.subscribers.remote.RemoteAudioTrack
 import com.millicast.subscribers.remote.RemoteVideoTrack
-import com.millicast.subscribers.state.LayerDataSelection
 import com.millicast.subscribers.state.SubscriberConnectionState
-import com.millicast.subscribers.state.TrackHolder
 import dagger.assisted.Assisted
 import dagger.assisted.AssistedFactory
 import dagger.assisted.AssistedInject
 import dagger.hilt.android.lifecycle.HiltViewModel
-import io.dolby.rtsviewer.ui.streaming.common.AvailableStreamQuality
+import io.dolby.rtscomponentkit.data.multistream.safeLaunch
 import io.dolby.rtsviewer.ui.streaming.common.StreamError
 import io.dolby.rtsviewer.ui.streaming.common.StreamInfo
 import io.dolby.rtsviewer.ui.streaming.common.StreamingBridge
@@ -58,33 +54,36 @@ class StreamViewModel @AssistedInject constructor(
     private fun collectSubscriberStates() {
         viewModelScope.launch {
             launch {
-                subscriber?.state?.map { it.connectionState }?.distinctUntilChanged()?.collect { connectionState ->
-                    Log.d(TAG, "ConnectionState : $connectionState")
-                    when (connectionState) {
-                        is SubscriberConnectionState.Connected -> {
-                            subscriber?.subscribe(
-                                options = Option(
-                                    forcePlayoutDelay = ForcePlayoutDelay(
-                                        minimumDelay = 0,
-                                        maximumDelay = 1
-                                    ),
-                                    jitterMinimumDelayMs = 0
+                subscriber?.state?.map { it.connectionState }?.distinctUntilChanged()
+                    ?.collect { connectionState ->
+                        Log.d(TAG, "ConnectionState : $connectionState")
+                        when (connectionState) {
+                            is SubscriberConnectionState.Connected -> {
+                                subscriber?.subscribe(
+                                    options = Option(
+                                        forcePlayoutDelay = ForcePlayoutDelay(
+                                            minimumDelay = 0,
+                                            maximumDelay = 1
+                                        ),
+                                        jitterMinimumDelayMs = 0
+                                    )
                                 )
-                            )
+                            }
+
+                            is SubscriberConnectionState.Error -> {
+                                Log.d(TAG, "Error : ${connectionState.reason}")
+                                _state.update { it.copy(streamError = StreamError.StreamNotActive) }
+                            }
+
+                            else -> {}
                         }
-                        is SubscriberConnectionState.Error -> {
-                            Log.d(TAG, "Error : ${connectionState.reason}")
-                            _state.update { it.copy(streamError = StreamError.StreamNotActive) }
+                        val isSubscribed = connectionState == SubscriberConnectionState.Subscribed
+                        if (state.value.subscribed != isSubscribed) {
+                            _state.update { it.copy(subscribed = isSubscribed) }
+                            streamingBridge.updateSubscribedState(streamInfo.index, isSubscribed)
+                            updateRenderState()
                         }
-                        else -> {}
                     }
-                    val isSubscribed = connectionState == SubscriberConnectionState.Subscribed
-                    if (state.value.subscribed != isSubscribed) {
-                        _state.update { it.copy(subscribed = isSubscribed) }
-                        streamingBridge.updateSubscribedState(streamInfo.index, isSubscribed)
-                        updateRenderState()
-                    }
-                }
             }
             launch {
                 subscriber?.onRemoteTrack?.distinctUntilChanged()?.collect { track ->
@@ -101,6 +100,7 @@ class StreamViewModel @AssistedInject constructor(
                                 }
                             }
                         }
+
                         is RemoteVideoTrack -> {
                             if (state.value.videoTrack == null) {
                                 Log.d(TAG, "Received Video Track for ${streamInfo.index}")
@@ -132,7 +132,7 @@ class StreamViewModel @AssistedInject constructor(
 
     private fun connect() {
         Log.d(TAG, "Connect Stream ${streamInfo.index}")
-        viewModelScope.launch {
+        viewModelScope.safeLaunch(block = {
             subscriber = Core.createSubscriber()
             collectSubscriberStates()
             val credentials =
@@ -141,6 +141,11 @@ class StreamViewModel @AssistedInject constructor(
             subscriber?.enableStats(true)
             subscriber?.setCredentials(credentials)
             subscriber?.connect(connectionOptions)
+        }) {
+            _state.update {
+                it.copy(streamError = StreamError.StreamNotActive)
+            }
+            release()
         }
     }
 
@@ -197,10 +202,12 @@ class StreamViewModel @AssistedInject constructor(
                     state.value.audioTrack?.enableAsync()
                 }
             }
+
             StreamAction.Pause -> {
                 state.value.videoTrack?.disableAsync()
                 state.value.audioTrack?.disableAsync()
             }
+
             StreamAction.Release -> release()
         }
     }

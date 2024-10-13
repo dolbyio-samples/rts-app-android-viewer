@@ -32,8 +32,6 @@ fun StreamingContainerScreen(viewModel: StreamingContainerViewModel = hiltViewMo
             contentDescription = screenContentDescription
         }
     ) {
-        StreamingToolbarScreen(viewModel = viewModel)
-
         if (uiState.shouldStayOn) {
             KeepScreenOn(enabled = true)
         } else {
@@ -57,6 +55,7 @@ fun StreamingContainerScreen(viewModel: StreamingContainerViewModel = hiltViewMo
                 }
             }
         }
+        StreamingToolbarScreen(viewModel = viewModel)
 
         if (uiState.showSimulcastSettings) {
             SimulcastScreen(viewModel)
