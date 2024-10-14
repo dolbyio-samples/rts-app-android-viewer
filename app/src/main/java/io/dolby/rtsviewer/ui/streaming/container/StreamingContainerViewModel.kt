@@ -4,7 +4,7 @@ import android.util.Log
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import dagger.hilt.android.lifecycle.HiltViewModel
-import io.dolby.rtsviewer.preferenceStore.PrefsStore
+import io.dolby.rtsviewer.R
 import io.dolby.rtsviewer.ui.streaming.common.StreamError
 import io.dolby.rtsviewer.ui.streaming.common.StreamInfo
 import io.dolby.rtsviewer.ui.streaming.common.StreamStateInfo
@@ -16,14 +16,12 @@ import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.distinctUntilChanged
-import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
 import javax.inject.Inject
 
 @HiltViewModel
 class StreamingContainerViewModel @Inject constructor(
-    private val prefsStore: PrefsStore,
     private val networkStatusObserver: NetworkStatusObserver,
     private val streamingBridge: StreamingBridge
 ) : ViewModel() {
@@ -44,11 +42,11 @@ class StreamingContainerViewModel @Inject constructor(
                             _state.update { state ->
                                 state.copy(
                                     streamInfos = emptyList(),
-                                    streamError = StreamError.NoInternetConnection,
-                                    showLiveIndicator = prefsStore.isLiveIndicatorEnabled.first()
+                                    streamError = StreamError.NoInternetConnection
                                 )
                             }
                         }
+
                         NetworkStatusObserver.Status.Available -> {
                             Log.d(TAG, "Available network")
                             val streamStateInfos = config.streams.mapIndexed { index, stream ->
@@ -64,8 +62,7 @@ class StreamingContainerViewModel @Inject constructor(
                             _state.update { state ->
                                 state.copy(
                                     streamInfos = streamStateInfos,
-                                    streamError = null,
-                                    showLiveIndicator = prefsStore.isLiveIndicatorEnabled.first()
+                                    streamError = null
                                 )
                             }
                             streamingBridge.populateStreamStateInfos(streamStateInfos)
@@ -85,16 +82,12 @@ class StreamingContainerViewModel @Inject constructor(
 
     fun onUiAction(action: StreamingContainerAction) {
         when (action) {
-            is StreamingContainerAction.UpdateToolbarVisibility -> {
-                _state.update { it.copy(showToolbarState = action.show) }
-            }
-
-            is StreamingContainerAction.UpdateSettingsVisibility -> {
-                _state.update { it.copy(showSettings = action.show) }
-            }
-
             is StreamingContainerAction.UpdateSimulcastSettingsVisibility -> {
                 _state.update { it.copy(showSimulcastSettings = action.show) }
+            }
+
+            is StreamingContainerAction.HideSettings -> {
+                streamingBridge.hideSettings()
             }
 
             is StreamingContainerAction.UpdateStatisticsVisibility -> {
@@ -102,15 +95,7 @@ class StreamingContainerViewModel @Inject constructor(
                 streamingBridge.updateShowStatistics(action.show)
             }
 
-            is StreamingContainerAction.UpdateShowLiveVisibility -> {
-                _state.update { it.copy(showLiveIndicator = action.show) }
-                viewModelScope.launch {
-                    prefsStore.updateLiveIndicator(action.show)
-                }
-            }
-
             is StreamingContainerAction.UpdateSelectedStreamQuality -> {
-                _state.update { it.copy(selectedStreamQuality = action.streamQualityType) }
                 streamingBridge.updateSelectedQuality(action.streamQualityType)
             }
         }
@@ -128,25 +113,22 @@ class StreamingContainerViewModel @Inject constructor(
             streams = state.value.streamInfos.map { it.streamInfo },
             streamError = state.value.streamError,
             shouldStayOn = isSubscribed,
-            isLive = isSubscribed,
             requestSettingsFocus = !isSubscribed,
-            showSettings = state.value.showSettings,
+            showSettings = state.value.streamInfos.any { it.shouldShowSettings },
             showSimulcastSettings = state.value.showSimulcastSettings,
-            showLiveIndicator = state.value.showLiveIndicator,
-            showToolbarState = state.value.showToolbarState,
             showStatistics = state.value.showStatistics && STATISTICS_BTN_SHOWN,
             statisticsEnabled = isSubscribed && STATISTICS_BTN_SHOWN,
-            showSelectQualityBtn = QUALITY_SELECT_BTN_SHOWN,
             showStatisticsBtn = STATISTICS_BTN_SHOWN,
-            selectedStreamQualityTitleId = state.value.selectedStreamQuality.titleResId,
-            availableStreamQualityItems = state.value.streamInfos.flatMap { it.availableStreamQualities }.distinct(),
-            simulcastSettingsEnabled = state.value.streamInfos.all { it.availableStreamQualities.isNotEmpty() }
+            selectedStreamQualityTitleId = state.value.streamInfos.find { it.shouldShowSettings }?.selectedStreamQuality?.titleResId ?: R.string.simulcast_auto,
+            availableStreamQualityItems = state.value.streamInfos.find { it.shouldShowSettings }?.availableStreamQualities
+                ?: emptyList(),
+            simulcastSettingsEnabled = state.value.streamInfos.find { it.shouldShowSettings }?.availableStreamQualities?.isNotEmpty()
+                ?: false
         )
     }
 
     companion object {
         private const val TAG = "StreamContainerViewModel"
-        private const val QUALITY_SELECT_BTN_SHOWN = false
         private const val STATISTICS_BTN_SHOWN = false
         private val HARDCODED_CONFIG = StreamingConfig(
             listOf(

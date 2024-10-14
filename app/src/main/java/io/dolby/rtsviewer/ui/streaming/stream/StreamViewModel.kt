@@ -11,12 +11,14 @@ import com.millicast.subscribers.ForcePlayoutDelay
 import com.millicast.subscribers.Option
 import com.millicast.subscribers.remote.RemoteAudioTrack
 import com.millicast.subscribers.remote.RemoteVideoTrack
+import com.millicast.subscribers.state.LayerDataSelection
 import com.millicast.subscribers.state.SubscriberConnectionState
 import dagger.assisted.Assisted
 import dagger.assisted.AssistedFactory
 import dagger.assisted.AssistedInject
 import dagger.hilt.android.lifecycle.HiltViewModel
 import io.dolby.rtscomponentkit.data.multistream.safeLaunch
+import io.dolby.rtsviewer.ui.streaming.common.AvailableStreamQuality
 import io.dolby.rtsviewer.ui.streaming.common.StreamError
 import io.dolby.rtsviewer.ui.streaming.common.StreamInfo
 import io.dolby.rtsviewer.ui.streaming.common.StreamingBridge
@@ -27,6 +29,7 @@ import kotlinx.coroutines.flow.distinctUntilChanged
 import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
+import org.webrtc.VideoSink
 
 @HiltViewModel(assistedFactory = StreamViewModel.Factory::class)
 class StreamViewModel @AssistedInject constructor(
@@ -45,6 +48,7 @@ class StreamViewModel @AssistedInject constructor(
     val uiState: StateFlow<StreamUiState> = _uiState.asStateFlow()
 
     private var subscriber: Subscriber? = null
+    private var videoSink: VideoSink? = null
 
     init {
         Log.d(TAG, "INIT - ${streamInfo.index}")
@@ -105,27 +109,21 @@ class StreamViewModel @AssistedInject constructor(
                             if (state.value.videoTrack == null) {
                                 Log.d(TAG, "Received Video Track for ${streamInfo.index}")
                                 _state.update { it.copy(videoTrack = track) }
-                                updateRenderState()
+                                track.onState.collect { trackState ->
+                                    val availableStreamQualities = trackState.layers?.activeLayers?.let {
+                                        sortActiveLayers(it)
+                                    } ?: run {
+                                        emptyList()
+                                    }
+                                    streamingBridge.updateAvailableSteamingQualities(
+                                        streamInfo.index,
+                                        availableStreamQualities
+                                    )
+                                }
                             }
                         }
                     }
                 }
-            }
-            launch {
-//                subscriber?.layers?.distinctUntilChanged()?.collect { layers ->
-//                    Log.d(TAG, "Received layers for ${streamInfo.index}")
-//                    val definedStreamQualities = layers.activeLayers.mapNotNull {
-//                        when (it.encodingId) {
-//                            "h" -> AvailableStreamQuality.High(it)
-//                            "m" -> AvailableStreamQuality.Medium(it)
-//                            "l" -> AvailableStreamQuality.Low(it)
-//                            else -> null
-//                        }
-//                    }
-//                    val availableStreamQualities = mutableListOf<AvailableStreamQuality>(AvailableStreamQuality.AUTO)
-//                    availableStreamQualities.addAll(definedStreamQualities)
-//                    streamingBridge.updateAvailableSteamingQualities(streamInfo.index, availableStreamQualities)
-//                }
             }
         }
     }
@@ -165,12 +163,80 @@ class StreamViewModel @AssistedInject constructor(
         subscriber = null
     }
 
+    private fun sortActiveLayers(activeLayers: List<LayerDataSelection>): List<AvailableStreamQuality> {
+        val filteredActiveLayers = mutableListOf<LayerDataSelection>()
+        var simulcastLayers = activeLayers.filter { it.encodingId?.isNotEmpty() == true }
+        if (simulcastLayers.isNotEmpty()) {
+            val grouped = simulcastLayers.groupBy { it.encodingId }
+            grouped.values.forEach { layers ->
+                val layerWithBestFrameRate =
+                    layers.firstOrNull { it.temporalLayerId == it.maxTemporalLayerId }
+                        ?: layers.last()
+                filteredActiveLayers.add(layerWithBestFrameRate)
+            }
+        } else {
+            simulcastLayers = activeLayers.filter { it.spatialLayerId != null }
+            val grouped = simulcastLayers.groupBy { it.spatialLayerId }
+            grouped.values.forEach { layers ->
+                val layerWithBestFrameRate =
+                    layers.firstOrNull { it.spatialLayerId == it.maxSpatialLayerId }
+                        ?: layers.last()
+                filteredActiveLayers.add(layerWithBestFrameRate)
+            }
+        }
+
+        filteredActiveLayers.sortWith(object : Comparator<LayerDataSelection> {
+            override fun compare(o1: LayerDataSelection?, o2: LayerDataSelection?): Int {
+                if (o1 == null) return -1
+                if (o2 == null) return 1
+                return when (o2.encodingId?.lowercase()) {
+                    "h" -> -1
+                    "l" -> if (o1.encodingId?.lowercase() == "h") -1 else 1
+                    "m" -> if (o1.encodingId?.lowercase() == "h" || o1.encodingId?.lowercase() != "l") -1 else 1
+                    else -> 1
+                }
+            }
+        })
+
+        val trackLayerDataList = when {
+            filteredActiveLayers.count() == 2 -> listOf(
+                AvailableStreamQuality.AUTO,
+                AvailableStreamQuality.High(filteredActiveLayers[0]),
+                AvailableStreamQuality.Low(filteredActiveLayers[1])
+            )
+
+            filteredActiveLayers.count() >= 3 -> listOf(
+                AvailableStreamQuality.AUTO,
+                AvailableStreamQuality.High(filteredActiveLayers[0]),
+                AvailableStreamQuality.Medium(filteredActiveLayers[1]),
+                AvailableStreamQuality.Low(filteredActiveLayers[2])
+            )
+
+            else -> listOf(
+                AvailableStreamQuality.AUTO
+            )
+        }
+        return trackLayerDataList
+    }
+
     private fun collectStreamingBridge() {
         viewModelScope.launch {
             launch {
-                streamingBridge.selectedStreamQuality.collect { quality ->
-                    _state.update { it.copy(selectedStreamQuality = quality) }
-                    updateRenderState()
+                viewModelScope.launch {
+                    streamingBridge.streamStateInfos.collect { infos ->
+                        infos.find { it.streamInfo.index == streamInfo.index }?.selectedStreamQuality?.let { selectedStreamQuality ->
+                            if (state.value.selectedStreamQuality != selectedStreamQuality) {
+                                videoSink?.let { sink ->
+                                    state.value.videoTrack?.enableAsync(
+                                        promote = true,
+                                        layer = selectedStreamQuality.layerData,
+                                        videoSink = sink
+                                    )
+                                }
+                                _state.update { it.copy(selectedStreamQuality = selectedStreamQuality) }
+                            }
+                        }
+                    }
                 }
             }
             launch {
@@ -193,14 +259,12 @@ class StreamViewModel @AssistedInject constructor(
         when (action) {
             StreamAction.Connect -> connect()
             is StreamAction.Play -> {
+                videoSink = action.videoSink
                 state.value.videoTrack?.enableAsync(
                     promote = true,
-                    layer = null,
+                    layer = state.value.selectedStreamQuality.layerData,
                     videoSink = action.videoSink
                 )
-                if (streamInfo.index == 0) {
-                    state.value.audioTrack?.enableAsync()
-                }
             }
 
             StreamAction.Pause -> {
@@ -209,6 +273,18 @@ class StreamViewModel @AssistedInject constructor(
             }
 
             StreamAction.Release -> release()
+            is StreamAction.UpdateFocus -> {
+                _state.update { it.copy(isFocused = action.isFocused) }
+                if (streamInfo.index == 0) {
+                    state.value.audioTrack?.enableAsync()
+                } else {
+                    state.value.audioTrack?.disableAsync()
+                }
+                updateRenderState()
+            }
+            is StreamAction.UpdateSettingsVisibility -> {
+                streamingBridge.updateShowSettings(streamInfo.index, action.show)
+            }
         }
     }
 
@@ -219,6 +295,9 @@ class StreamViewModel @AssistedInject constructor(
 
     private fun getRenderState(): StreamUiState {
         return StreamUiState(
+            shouldRequestFocusInitially = streamInfo.index == 0,
+            showSettingsButton = state.value.isFocused,
+            isFocused = state.value.isFocused,
             subscribed = state.value.subscribed,
             videoTrack = state.value.videoTrack,
             selectedStreamQuality = state.value.selectedStreamQuality,
