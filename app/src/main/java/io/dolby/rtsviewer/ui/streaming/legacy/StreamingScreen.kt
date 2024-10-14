@@ -1,6 +1,5 @@
-package io.dolby.rtsviewer.ui.streaming
+package io.dolby.rtsviewer.ui.streaming.legacy
 
-import android.util.Log
 import androidx.activity.compose.BackHandler
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.padding
@@ -65,6 +64,7 @@ fun StreamingScreen(viewModel: StreamingViewModel = hiltViewModel(), onBack: () 
                             Lifecycle.Event.ON_PAUSE -> {
                                 viewModel.pauseVideo()
                             }
+
                             else -> {
                             }
                         }
@@ -82,6 +82,7 @@ fun StreamingScreen(viewModel: StreamingViewModel = hiltViewModel(), onBack: () 
                             Lifecycle.Event.ON_RESUME -> {
                                 viewModel.playVideo(videoRenderer)
                             }
+
                             else -> {}
                         }
                     }
