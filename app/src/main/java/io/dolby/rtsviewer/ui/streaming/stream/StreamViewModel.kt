@@ -6,7 +6,14 @@ import androidx.lifecycle.viewModelScope
 import com.millicast.Core
 import com.millicast.Subscriber
 import com.millicast.clients.ConnectionOptions
+import com.millicast.devices.track.AudioTrack
 import com.millicast.subscribers.Credential
+import com.millicast.subscribers.ForcePlayoutDelay
+import com.millicast.subscribers.Option
+import com.millicast.subscribers.remote.Kind
+import com.millicast.subscribers.remote.RemoteAudioTrack
+import com.millicast.subscribers.remote.RemoteVideoTrack
+import com.millicast.subscribers.state.LayerDataSelection
 import com.millicast.subscribers.state.SubscriberConnectionState
 import com.millicast.subscribers.state.TrackHolder
 import dagger.assisted.Assisted
@@ -54,7 +61,17 @@ class StreamViewModel @AssistedInject constructor(
                 subscriber?.state?.map { it.connectionState }?.distinctUntilChanged()?.collect { connectionState ->
                     Log.d(TAG, "ConnectionState : $connectionState")
                     when (connectionState) {
-                        is SubscriberConnectionState.Connected -> subscriber?.subscribe()
+                        is SubscriberConnectionState.Connected -> {
+                            subscriber?.subscribe(
+                                options = Option(
+                                    forcePlayoutDelay = ForcePlayoutDelay(
+                                        minimumDelay = 0,
+                                        maximumDelay = 1
+                                    ),
+                                    jitterMinimumDelayMs = 0
+                                )
+                            )
+                        }
                         is SubscriberConnectionState.Error -> {
                             Log.d(TAG, "Error : ${connectionState.reason}")
                             _state.update { it.copy(streamError = StreamError.StreamNotActive) }
@@ -70,41 +87,45 @@ class StreamViewModel @AssistedInject constructor(
                 }
             }
             launch {
-                subscriber?.tracks?.distinctUntilChanged()?.collect { trackHolder ->
-                    when (trackHolder) {
-                        is TrackHolder.AudioTrackHolder -> {
-                            Log.d(TAG, "Received Audio Track for ${streamInfo.index}")
-                            if (streamInfo.index == 0) {
-                                trackHolder.audioTrack.setVolume(1.0)
-                                trackHolder.audioTrack.setEnabled(true)
-                            } else {
-                                trackHolder.audioTrack.setVolume(0.0)
-                                trackHolder.audioTrack.setEnabled(false)
+                subscriber?.onRemoteTrack?.distinctUntilChanged()?.collect { track ->
+                    when (track) {
+                        is RemoteAudioTrack -> {
+                            if (state.value.audioTrack == null) {
+                                Log.d(TAG, "Received Audio Track for ${streamInfo.index}")
+                                if (streamInfo.index == 0) {
+                                    track.setVolume(1.0)
+                                    track.enableAsync()
+                                } else {
+                                    track.setVolume(0.0)
+                                    track.disableAsync()
+                                }
                             }
                         }
-                        is TrackHolder.VideoTrackHolder -> {
-                            Log.d(TAG, "Received Video Track for ${streamInfo.index}")
-                            _state.update { it.copy(videoTrack = trackHolder.videoTrack) }
-                            updateRenderState()
+                        is RemoteVideoTrack -> {
+                            if (state.value.videoTrack == null) {
+                                Log.d(TAG, "Received Video Track for ${streamInfo.index}")
+                                _state.update { it.copy(videoTrack = track) }
+                                updateRenderState()
+                            }
                         }
                     }
                 }
             }
             launch {
-                subscriber?.layers?.distinctUntilChanged()?.collect { layers ->
-                    Log.d(TAG, "Received layers for ${streamInfo.index}")
-                    val definedStreamQualities = layers.activeLayers.mapNotNull {
-                        when (it.encodingId) {
-                            "h" -> AvailableStreamQuality.High(it)
-                            "m" -> AvailableStreamQuality.Medium(it)
-                            "l" -> AvailableStreamQuality.Low(it)
-                            else -> null
-                        }
-                    }
-                    val availableStreamQualities = mutableListOf<AvailableStreamQuality>(AvailableStreamQuality.AUTO)
-                    availableStreamQualities.addAll(definedStreamQualities)
-                    streamingBridge.updateAvailableSteamingQualities(streamInfo.index, availableStreamQualities)
-                }
+//                subscriber?.layers?.distinctUntilChanged()?.collect { layers ->
+//                    Log.d(TAG, "Received layers for ${streamInfo.index}")
+//                    val definedStreamQualities = layers.activeLayers.mapNotNull {
+//                        when (it.encodingId) {
+//                            "h" -> AvailableStreamQuality.High(it)
+//                            "m" -> AvailableStreamQuality.Medium(it)
+//                            "l" -> AvailableStreamQuality.Low(it)
+//                            else -> null
+//                        }
+//                    }
+//                    val availableStreamQualities = mutableListOf<AvailableStreamQuality>(AvailableStreamQuality.AUTO)
+//                    availableStreamQualities.addAll(definedStreamQualities)
+//                    streamingBridge.updateAvailableSteamingQualities(streamInfo.index, availableStreamQualities)
+//                }
             }
         }
     }
@@ -142,8 +163,9 @@ class StreamViewModel @AssistedInject constructor(
     private fun collectStreamingBridge() {
         viewModelScope.launch {
             launch {
-                streamingBridge.selectedStreamQuality.collect {
-                    subscriber?.select(it.layerData)
+                streamingBridge.selectedStreamQuality.collect { quality ->
+                    _state.update { it.copy(selectedStreamQuality = quality) }
+                    updateRenderState()
                 }
             }
             launch {
@@ -164,8 +186,22 @@ class StreamViewModel @AssistedInject constructor(
 
     fun onUiAction(action: StreamAction) {
         when (action) {
-            StreamAction.CONNECT -> connect()
-            StreamAction.RELEASE -> release()
+            StreamAction.Connect -> connect()
+            is StreamAction.Play -> {
+                state.value.videoTrack?.enableAsync(
+                    promote = true,
+                    layer = null,
+                    videoSink = action.videoSink
+                )
+                if (streamInfo.index == 0) {
+                    state.value.audioTrack?.enableAsync()
+                }
+            }
+            StreamAction.Pause -> {
+                state.value.videoTrack?.disableAsync()
+                state.value.audioTrack?.disableAsync()
+            }
+            StreamAction.Release -> release()
         }
     }
 
@@ -177,9 +213,8 @@ class StreamViewModel @AssistedInject constructor(
     private fun getRenderState(): StreamUiState {
         return StreamUiState(
             subscribed = state.value.subscribed,
-            disconnected = state.value.disconnected,
             videoTrack = state.value.videoTrack,
-            audioTrack = state.value.audioTrack,
+            selectedStreamQuality = state.value.selectedStreamQuality,
             showStatistics = state.value.showStatistics && state.value.subscribed,
             streamError = state.value.streamError
         )
