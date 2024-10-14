@@ -41,8 +41,6 @@ import io.dolby.rtsviewer.ui.streaming.common.StreamingBridge
 import io.dolby.rtsviewer.ui.streaming.common.StreamingBridgeImpl
 import io.dolby.rtsviewer.utils.NetworkStatusObserver
 import io.dolby.rtsviewer.utils.NetworkStatusObserverImpl
-import io.dolby.rtsviewer.utils.StreamingConfig
-import io.dolby.rtsviewer.utils.StreamingConfigData
 import javax.inject.Singleton
 
 @Module

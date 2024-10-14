@@ -27,6 +27,7 @@
     <string name="env">Select env</string>
     <string name="play_button">Play</string>
     <string name="demo_stream_title">Demo a stream</string>
+    <string name="remote_config_url">Config URL</string>
     <string name="play_config_button">Play from Config</string>
     <string name="play_amino_button">Play Amino Config</string>
     <string name="saved_streams_button">Saved Streams</string>

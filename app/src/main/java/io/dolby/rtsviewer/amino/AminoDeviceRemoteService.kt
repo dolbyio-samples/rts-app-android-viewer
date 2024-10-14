@@ -8,7 +8,7 @@ import android.os.IBinder
 import android.util.Log
 import com.aminocom.device.IDeviceRemoteService
 import com.squareup.moshi.Moshi
-import io.dolby.rtsviewer.utils.StreamingConfig
+import io.dolby.rtscomponentkit.domain.StreamingConfig
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.cancelChildren

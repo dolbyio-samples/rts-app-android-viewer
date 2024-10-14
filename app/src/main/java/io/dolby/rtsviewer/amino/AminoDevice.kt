@@ -1,6 +1,6 @@
 package io.dolby.rtsviewer.amino
 
-import io.dolby.rtsviewer.utils.StreamingConfig
+import io.dolby.rtscomponentkit.domain.StreamingConfig
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.update

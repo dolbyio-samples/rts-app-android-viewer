@@ -1,9 +1,12 @@
 package io.dolby.rtsviewer.ui.detailInput
 
 import androidx.lifecycle.ViewModel
+import com.squareup.moshi.Moshi
 import dagger.hilt.android.lifecycle.HiltViewModel
 import io.dolby.rtscomponentkit.data.RTSViewerDataStore
+import io.dolby.rtscomponentkit.data.RemoteConfigService
 import io.dolby.rtscomponentkit.domain.MediaServerEnv
+import io.dolby.rtscomponentkit.domain.StreamingConfig
 import io.dolby.rtscomponentkit.domain.StreamingData
 import io.dolby.rtscomponentkit.utils.DispatcherProvider
 import io.dolby.rtsviewer.amino.AminoDevice
@@ -23,7 +26,8 @@ class DetailInputViewModel @Inject constructor(
     private val repository: RTSViewerDataStore,
     private val dispatcherProvider: DispatcherProvider,
     private val recentStreamsDataStore: RecentStreamsDataStore,
-    private val aminoDevice: AminoDevice
+    private val aminoDevice: AminoDevice,
+    private val moshi: Moshi
 ) : ViewModel() {
 
     companion object {
@@ -41,6 +45,9 @@ class DetailInputViewModel @Inject constructor(
 
     private val _accountId = MutableStateFlow("")
     var accountId = _accountId.asStateFlow()
+
+    private val _remoteConfigUrl = MutableStateFlow("")
+    var remoteConfigUrl = _remoteConfigUrl.asStateFlow()
 
     private var isDemo = false
 
@@ -100,4 +107,11 @@ class DetailInputViewModel @Inject constructor(
 
     val isAminoDevice: Boolean
         get() = aminoDevice.config.value != null
+
+    fun getRemoteConfig() {
+        val service = RemoteConfigService(remoteConfigUrl.value, moshi)
+        defaultCoroutineScope.launch {
+            service.fetch()
+        }
+    }
 }

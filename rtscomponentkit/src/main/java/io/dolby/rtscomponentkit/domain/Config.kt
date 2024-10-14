@@ -1,4 +1,4 @@
-package io.dolby.rtsviewer.utils
+package io.dolby.rtscomponentkit.domain
 
 import com.millicast.utils.LogLevel
 

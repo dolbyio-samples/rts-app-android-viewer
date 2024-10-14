@@ -11,8 +11,8 @@ import io.dolby.rtsviewer.ui.streaming.common.StreamInfo
 import io.dolby.rtsviewer.ui.streaming.common.StreamStateInfo
 import io.dolby.rtsviewer.ui.streaming.common.StreamingBridge
 import io.dolby.rtsviewer.utils.NetworkStatusObserver
-import io.dolby.rtsviewer.utils.StreamingConfig
-import io.dolby.rtsviewer.utils.StreamingConfigData
+import io.dolby.rtscomponentkit.domain.StreamingConfig
+import io.dolby.rtscomponentkit.domain.StreamingConfigData
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
