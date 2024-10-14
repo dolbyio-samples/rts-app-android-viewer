@@ -134,10 +134,8 @@ class StreamingContainerViewModel @Inject constructor(
             showSimulcastSettings = state.value.showSimulcastSettings,
             showLiveIndicator = state.value.showLiveIndicator,
             showToolbarState = state.value.showToolbarState,
-            showStatistics = state.value.showStatistics && STATISTICS_BTN_SHOWN,
-            statisticsEnabled = isSubscribed && STATISTICS_BTN_SHOWN,
-            showSelectQualityBtn = QUALITY_SELECT_BTN_SHOWN,
-            showStatisticsBtn = STATISTICS_BTN_SHOWN,
+            showStatistics = state.value.showStatistics && STATISTICS_ENABLED,
+            statisticsEnabled = isSubscribed && STATISTICS_ENABLED,
             selectedStreamQualityTitleId = state.value.selectedStreamQuality.titleResId,
             availableStreamQualityItems = state.value.streamInfos.flatMap { it.availableStreamQualities }.distinct(),
             simulcastSettingsEnabled = state.value.streamInfos.all { it.availableStreamQualities.isNotEmpty() }
@@ -146,8 +144,7 @@ class StreamingContainerViewModel @Inject constructor(
 
     companion object {
         private const val TAG = "StreamContainerViewModel"
-        private const val QUALITY_SELECT_BTN_SHOWN = false
-        private const val STATISTICS_BTN_SHOWN = false
+        private const val STATISTICS_ENABLED = false
         private val HARDCODED_CONFIG = StreamingConfig(
             listOf(
                 StreamingConfigData(
@@ -162,8 +159,8 @@ class StreamingContainerViewModel @Inject constructor(
                 ),
                 StreamingConfigData(
                     apiUrl = "https://director.millicast.com/api/director/subscribe",
-                    streamName = "game",
-                    accountId = "7csQUs"
+                    streamName = "multiview",
+                    accountId = "k9Mwad"
                 ),
                 StreamingConfigData(
                     apiUrl = "https://director.millicast.com/api/director/subscribe",

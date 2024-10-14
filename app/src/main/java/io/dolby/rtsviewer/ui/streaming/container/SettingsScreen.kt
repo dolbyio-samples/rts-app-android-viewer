@@ -73,41 +73,35 @@ fun SettingsScreen(viewModel: StreamingContainerViewModel) {
                 color = MaterialTheme.colors.onBackground
             )
             Spacer(modifier = Modifier.height(26.dp))
-            /* TODO: this is a flag until work is complete */
-            if (uiState.showSelectQualityBtn) {
-                StateButton(
-                    text = stringResource(id = R.string.simulcast_title),
-                    startIcon = painterResource(id = io.dolby.uikit.R.drawable.icon_simulcast),
-                    endIcon = painterResource(id = io.dolby.uikit.R.drawable.ic_arrow_right),
-                    stateText = stringResource(id = uiState.selectedStreamQualityTitleId),
-                    isEnabled = uiState.simulcastSettingsEnabled,
-                    onClick = {
-                        viewModel.onUiAction(
-                            StreamingContainerAction.UpdateSimulcastSettingsVisibility(
-                                true
-                            )
+            StateButton(
+                text = stringResource(id = R.string.simulcast_title),
+                startIcon = painterResource(id = io.dolby.uikit.R.drawable.icon_simulcast),
+                endIcon = painterResource(id = io.dolby.uikit.R.drawable.ic_arrow_right),
+                stateText = stringResource(id = uiState.selectedStreamQualityTitleId),
+                isEnabled = uiState.simulcastSettingsEnabled,
+                onClick = {
+                    viewModel.onUiAction(
+                        StreamingContainerAction.UpdateSimulcastSettingsVisibility(
+                            true
                         )
-                    }
-                )
-                Spacer(modifier = Modifier.height(12.dp))
-            }
-            /* TODO: this is a flag until work is complete */
-            if (uiState.showStatisticsBtn) {
-                SwitchComponent(
-                    text = stringResource(id = R.string.streaming_statistics_title),
-                    startIcon = painterResource(id = io.dolby.uikit.R.drawable.icon_info),
-                    checked = uiState.showStatistics,
-                    isEnabled = uiState.statisticsEnabled,
-                    onCheckedChange = {
-                        viewModel.onUiAction(
-                            StreamingContainerAction.UpdateStatisticsVisibility(
-                                it
-                            )
+                    )
+                }
+            )
+            Spacer(modifier = Modifier.height(12.dp))
+            SwitchComponent(
+                text = stringResource(id = R.string.streaming_statistics_title),
+                startIcon = painterResource(id = io.dolby.uikit.R.drawable.icon_info),
+                checked = uiState.showStatistics,
+                isEnabled = uiState.statisticsEnabled,
+                onCheckedChange = {
+                    viewModel.onUiAction(
+                        StreamingContainerAction.UpdateStatisticsVisibility(
+                            it
                         )
-                    }
-                )
-                Spacer(modifier = Modifier.height(12.dp))
-            }
+                    )
+                }
+            )
+            Spacer(modifier = Modifier.height(12.dp))
             SwitchComponent(
                 text = stringResource(id = R.string.live_indicator_title),
                 startIcon = painterResource(id = io.dolby.uikit.R.drawable.icon_live_indicator),

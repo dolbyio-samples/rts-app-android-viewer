@@ -31,8 +31,6 @@ data class StreamingContainerUiState(
     val showSimulcastSettings: Boolean,
     val showStatistics: Boolean,
     val statisticsEnabled: Boolean,
-    val showSelectQualityBtn: Boolean, /* TODO: this is a flag until work is complete */
-    val showStatisticsBtn: Boolean, /* TODO: this is a flag until work is complete */
     val selectedStreamQualityTitleId: Int,
     val availableStreamQualityItems: List<AvailableStreamQuality>,
     val simulcastSettingsEnabled: Boolean
