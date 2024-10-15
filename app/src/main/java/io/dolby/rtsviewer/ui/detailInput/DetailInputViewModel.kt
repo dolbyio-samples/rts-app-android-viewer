@@ -48,7 +48,7 @@ class DetailInputViewModel @Inject constructor(
     var accountId = _accountId.asStateFlow()
 
     private val _remoteConfigUrl =
-        MutableStateFlow("https://ravind-raveendran.github.io/remote-configs/config.json")
+        MutableStateFlow("")
     var remoteConfigUrl = _remoteConfigUrl.asStateFlow()
 
     private var isDemo = false
@@ -111,6 +111,12 @@ class DetailInputViewModel @Inject constructor(
         get() = aminoDevice.config.value.streams.isNotEmpty()
 
     fun getRemoteConfig() {
+        if(!remoteConfigUrl.value.startsWith("https://")){
+            _uiState.update { state ->
+                state.copy(remoteConfigFetchState = RemoteConfigFetchState.ERROR)
+            }
+            return
+        }
         defaultCoroutineScope.launch {
             _uiState.update { state ->
                 state.copy(remoteConfigFetchState = RemoteConfigFetchState.FETCHING)
