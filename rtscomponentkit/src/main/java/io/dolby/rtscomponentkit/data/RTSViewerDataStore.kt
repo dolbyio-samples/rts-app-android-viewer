@@ -110,14 +110,6 @@ class RTSViewerDataStore(
             }
         }
     }
-    private fun credential(
-        credentials: Credential,
-        streamingData: StreamingData
-    ) = credentials.copy(
-        streamName = streamingData.streamName,
-        accountId = streamingData.accountId,
-        apiUrl = streamingData.apiUrl
-    )
 
     fun disconnect() {
         listener?.release()

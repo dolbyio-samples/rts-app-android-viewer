@@ -1,56 +1,14 @@
 package io.dolby.rtscomponentkit.domain
 
-import android.util.Log
-import com.millicast.subscribers.ForcePlayoutDelay
-import com.millicast.subscribers.Option
 import io.dolby.rtscomponentkit.data.multistream.VideoQuality
 
 data class StreamingData(
     val accountId: String,
-    val streamName: String,
-    val apiUrl: String = "https://director.millicast.com/api/director/subscribe"
+    val streamName: String
 ) {
     companion object {
         const val DEMO_STREAM_NAME = "multiview"
         const val DEMO_ACCOUNT_ID = "k9Mwad"
-    }
-}
-
-data class StreamingOptions(
-    val statsFrequencyMs: Int?,
-    val forcePlayoutDelayMin: Int?,
-    val forcePlayoutDelayMax: Int?,
-    val jitterBufferDelayMs: Int?,
-    val initialVideoQuality: VideoQuality = VideoQuality.AUTO,
-    val forceSmooth: Boolean?
-) {
-    fun toMillicastOptions(): Option {
-        val forcePlayoutDelay = if (forcePlayoutDelayMin == null || forcePlayoutDelayMax == null) {
-            null
-        } else {
-            ForcePlayoutDelay(forcePlayoutDelayMin, forcePlayoutDelayMax)
-        }
-        val options = Option(
-            statsDelayMs = statsFrequencyMs ?: 1000,
-            forcePlayoutDelay = forcePlayoutDelay,
-            jitterMinimumDelayMs = jitterBufferDelayMs ?: 0
-        )
-        Log.d(TAG, "Settings options to : $options")
-        return options
-    }
-
-    companion object {
-        private const val TAG = "StreamingOptions"
-    }
-}
-
-enum class StreamEnvironment(val value: String) {
-    DEV("dev"), STAGE("stg"), PROD("prod");
-
-    companion object {
-        fun from(name: String?): StreamEnvironment {
-            return StreamEnvironment.values().find { it.value.equals(name, ignoreCase = true) } ?: PROD
-        }
     }
 }
 
@@ -97,6 +55,7 @@ data class ConnectOptions(
 
 enum class MediaServerEnv {
     PROD, DEV, STAGE;
+
     companion object {
         fun safeValueOf(value: String): MediaServerEnv {
             return try {
@@ -105,9 +64,11 @@ enum class MediaServerEnv {
                 default
             }
         }
+
         val default: MediaServerEnv = PROD
         fun listOfEnv() = MediaServerEnv.values()
     }
+
     fun getURL() = when (this) {
         PROD -> "https://director.millicast.com/api/director/subscribe"
         DEV -> "https://director-dev.millicast.com/api/director/subscribe"
