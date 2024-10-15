@@ -139,6 +139,8 @@ class StreamingContainerViewModel @Inject constructor(
             StreamConfigList(
                 streams = listOf(
                     StreamConfig(
+                        name = "Dolby",
+                        desc = "Demo stream",
                         accountId = "k9Mwad",
                         streamName = "multiview"
                     )

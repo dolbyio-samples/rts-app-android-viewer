@@ -45,7 +45,7 @@ class DetailInputViewModel @Inject constructor(
     private val _accountId = MutableStateFlow("")
     var accountId = _accountId.asStateFlow()
 
-    private val _remoteConfigUrl = MutableStateFlow("")
+    private val _remoteConfigUrl = MutableStateFlow("https://aravind-raveendran.github.io/remote-configs/config.json")
     var remoteConfigUrl = _remoteConfigUrl.asStateFlow()
 
     private var isDemo = false
@@ -105,7 +105,7 @@ class DetailInputViewModel @Inject constructor(
     fun listOfEnv() = MediaServerEnv.listOfEnv()
 
     val isAminoDevice: Boolean
-        get() = aminoDevice.config.value != null
+        get() = aminoDevice.config.value.streams.isNotEmpty()
 
     fun getRemoteConfig() {
         val service = RemoteConfigService(remoteConfigUrl.value, moshi)

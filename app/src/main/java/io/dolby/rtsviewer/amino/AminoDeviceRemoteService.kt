@@ -48,7 +48,11 @@ class AminoDeviceRemoteService(private val aminoDevice: AminoDevice, private val
             .setComponent(
                 ComponentName(DEVICE_REMOTE_SERVICE_PACKAGE, DEVICE_REMOTE_SERVICE_CLASS)
             )
-        bindService(intent, serviceConnectionListener, Context.BIND_AUTO_CREATE)
+        try {
+            bindService(intent, serviceConnectionListener, Context.BIND_AUTO_CREATE)
+        } catch (ex: Exception) {
+
+        }
     }
 
     fun disconnect(unbindService: (serviceConnection: ServiceConnection) -> Unit) {
@@ -66,7 +70,7 @@ class AminoDeviceRemoteService(private val aminoDevice: AminoDevice, private val
             jsonArgs?.takeIf { it.isNotEmpty() }?.let {
                 moshi.adapter(RemoteStreamConfig::class.java).lenient().fromJson(it)
                     ?.let { config ->
-                        val streamConfigList = List(config.multiStreamConfig.url.size) { index ->
+                        val streamConfigList = List(config.urls.size) { index ->
                             StreamConfig.from(config, index = index)
                         }
 

@@ -8,16 +8,12 @@ data class RemoteStreamConfig(
     val forcePlayoutDelayMax: Int? = null,
     val jitterBufferDelay: Int? = null,
     val forceSmooth: Boolean? = null,
-    val logLevelWebRTC: LogLevel = LogLevel.MC_DEBUG,
-    val logLevelSdk: LogLevel = LogLevel.MC_DEBUG,
-    val logLevelWebSocket: LogLevel = LogLevel.MC_OFF,
-    val multiStreamConfig: MultiStreamConfig
-)
-
-data class MultiStreamConfig(
+    val logLevelWebRTC: String? = null,
+    val logLevelSdk: String? = null,
+    val logLevelWebSocket: String? = null,
     val name: String,
     val desc: String,
-    val url: List<String>
+    val urls: List<String>
 )
 
 // Parsed from JSON for consumptions
@@ -31,24 +27,24 @@ data class StreamConfig(
     val logLevelWebRTC: LogLevel = LogLevel.MC_DEBUG,
     val logLevelSdk: LogLevel = LogLevel.MC_DEBUG,
     val logLevelWebSocket: LogLevel = LogLevel.MC_OFF,
-    val name: String? = null,
-    val desc: String? = null,
+    val name: String,
+    val desc: String,
     val accountId: String,
     val streamName: String
 ) {
     companion object {
         fun from(streamConfig: RemoteStreamConfig, index: Int): StreamConfig {
-            val details = parseUri(streamConfig.multiStreamConfig.url[index])
+            val details = parseUri(streamConfig.urls[index])
             return StreamConfig(
                 forcePlayoutDelayMin = streamConfig.forcePlayoutDelayMin,
                 forcePlayoutDelayMax = streamConfig.forcePlayoutDelayMax,
                 jitterBufferDelay = streamConfig.jitterBufferDelay,
                 forceSmooth = streamConfig.forceSmooth,
-                logLevelWebRTC = streamConfig.logLevelWebRTC,
-                logLevelSdk = streamConfig.logLevelSdk,
-                logLevelWebSocket = streamConfig.logLevelWebSocket,
-                name = streamConfig.multiStreamConfig.name,
-                desc = streamConfig.multiStreamConfig.desc,
+                logLevelWebRTC = toLogLevel(streamConfig.logLevelWebRTC),
+                logLevelSdk = toLogLevel(streamConfig.logLevelSdk),
+                logLevelWebSocket = toLogLevel(streamConfig.logLevelWebSocket),
+                name = streamConfig.name,
+                desc = streamConfig.desc,
                 accountId = details?.first ?: "",
                 streamName = details?.second ?: ""
             )
@@ -61,6 +57,18 @@ data class StreamConfig(
             return matchResult?.let {
                 val (field1, field2) = it.destructured
                 Pair(field1, field2)
+            }
+        }
+
+        private fun toLogLevel(logLevel: String?): LogLevel {
+            return when (logLevel?.lowercase()) {
+                "verbose" -> LogLevel.MC_VERBOSE
+                "debug" -> LogLevel.MC_DEBUG
+                "log", "info" -> LogLevel.MC_LOG
+                "warning" -> LogLevel.MC_WARNING
+                "error" -> LogLevel.MC_ERROR
+                "off" -> LogLevel.MC_OFF
+                else -> LogLevel.MC_ERROR
             }
         }
     }
