@@ -29,7 +29,6 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.focus.FocusDirection
 import androidx.compose.ui.focus.FocusRequester
-import androidx.compose.ui.focus.focusRequester
 import androidx.compose.ui.platform.LocalFocusManager
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.semantics.contentDescription
@@ -272,42 +271,42 @@ fun DetailInputScreen(
                     }
                 }
 
-                Spacer(modifier = modifier.height(8.dp))
+                if (viewModel.isAminoDevice) {
+                    Spacer(modifier = modifier.height(8.dp))
 
-                TvTextInput(
-                    value = remoteConfigUrl.value,
-                    label = stringResource(id = R.string.remote_config_url),
-                    onValueChange = {
-                        viewModel.updateStreamName(it)
-                    },
-                    keyboardOptions = KeyboardOptions(imeAction = ImeAction.Next),
-                    keyboardActions = KeyboardActions(
-                        onNext = { localFocusManager.moveFocus(FocusDirection.Down) }
+                    StyledButton(
+                        buttonText = stringResource(id = R.string.play_amino_button),
+                        onClickAction = {
+                            playStreamFromConfig()
+                        },
+                        buttonType = ButtonType.PRIMARY
                     )
-                )
+                } else {
+                    Spacer(modifier = modifier.height(8.dp))
 
-                Spacer(modifier = Modifier.height(8.dp))
+                    TvTextInput(
+                        value = remoteConfigUrl.value,
+                        label = stringResource(id = R.string.remote_config_url),
+                        onValueChange = {
+                            viewModel.updateStreamName(it)
+                        },
+                        keyboardOptions = KeyboardOptions(imeAction = ImeAction.Next),
+                        keyboardActions = KeyboardActions(
+                            onNext = { localFocusManager.moveFocus(FocusDirection.Down) }
+                        )
+                    )
 
-                StyledButton(
-                    buttonText = stringResource(id = R.string.play_config_button),
-                    onClickAction = {
-                        viewModel.getRemoteConfig()
-                        playStreamFromConfig()
-                    },
-                    buttonType = ButtonType.PRIMARY
-                )
-            }
+                    Spacer(modifier = Modifier.height(8.dp))
 
-            if(viewModel.isAminoDevice) {
-                Spacer(modifier = modifier.height(8.dp))
-
-                StyledButton(
-                    buttonText = stringResource(id = R.string.play_amino_button),
-                    onClickAction = {
-                        playStreamFromConfig()
-                    },
-                    buttonType = ButtonType.PRIMARY
-                )
+                    StyledButton(
+                        buttonText = stringResource(id = R.string.play_config_button),
+                        onClickAction = {
+                            viewModel.getRemoteConfig()
+                            playStreamFromConfig()
+                        },
+                        buttonType = ButtonType.PRIMARY
+                    )
+                }
             }
         }
     }
