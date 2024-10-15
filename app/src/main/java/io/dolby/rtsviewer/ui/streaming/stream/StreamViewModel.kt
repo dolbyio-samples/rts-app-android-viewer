@@ -135,7 +135,7 @@ class StreamViewModel @AssistedInject constructor(
             subscriber = Core.createSubscriber()
             collectSubscriberStates()
             val credentials =
-                Credential(streamInfo.streamName, streamInfo.accountId, streamInfo.apiUrl)
+                Credential(streamInfo.streamName, streamInfo.accountId, streamInfo.directorUrl)
             val connectionOptions = ConnectionOptions(true)
             subscriber?.enableStats(true)
             subscriber?.setCredentials(credentials)

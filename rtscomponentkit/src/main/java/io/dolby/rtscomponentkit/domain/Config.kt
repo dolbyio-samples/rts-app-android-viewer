@@ -11,9 +11,10 @@ data class RemoteStreamConfig(
     val logLevelWebRTC: String? = null,
     val logLevelSdk: String? = null,
     val logLevelWebSocket: String? = null,
+    val directorUrl: String? = null,
     val name: String,
     val desc: String,
-    val urls: List<String>
+    val url: List<String>
 )
 
 // Parsed from JSON for consumptions
@@ -27,6 +28,7 @@ data class StreamConfig(
     val logLevelWebRTC: LogLevel = LogLevel.MC_DEBUG,
     val logLevelSdk: LogLevel = LogLevel.MC_DEBUG,
     val logLevelWebSocket: LogLevel = LogLevel.MC_OFF,
+    val directorUrl: String,
     val name: String,
     val desc: String,
     val accountId: String,
@@ -34,7 +36,7 @@ data class StreamConfig(
 ) {
     companion object {
         fun from(streamConfig: RemoteStreamConfig, index: Int): StreamConfig {
-            val details = parseUri(streamConfig.urls[index])
+            val details = parseUri(streamConfig.url[index])
             return StreamConfig(
                 forcePlayoutDelayMin = streamConfig.forcePlayoutDelayMin,
                 forcePlayoutDelayMax = streamConfig.forcePlayoutDelayMax,
@@ -43,6 +45,7 @@ data class StreamConfig(
                 logLevelWebRTC = toLogLevel(streamConfig.logLevelWebRTC),
                 logLevelSdk = toLogLevel(streamConfig.logLevelSdk),
                 logLevelWebSocket = toLogLevel(streamConfig.logLevelWebSocket),
+                directorUrl = streamConfig.directorUrl ?: MediaServerEnv.PROD.getURL(),
                 name = streamConfig.name,
                 desc = streamConfig.desc,
                 accountId = details?.first ?: "",

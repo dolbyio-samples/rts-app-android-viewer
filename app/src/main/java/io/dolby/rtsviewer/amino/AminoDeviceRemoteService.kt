@@ -70,7 +70,7 @@ class AminoDeviceRemoteService(private val aminoDevice: AminoDevice, private val
             jsonArgs?.takeIf { it.isNotEmpty() }?.let {
                 moshi.adapter(RemoteStreamConfig::class.java).lenient().fromJson(it)
                     ?.let { config ->
-                        val streamConfigList = List(config.urls.size) { index ->
+                        val streamConfigList = List(config.url.size) { index ->
                             StreamConfig.from(config, index = index)
                         }
 

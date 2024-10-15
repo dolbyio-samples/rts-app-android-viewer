@@ -6,6 +6,8 @@ import dagger.hilt.android.lifecycle.HiltViewModel
 import io.dolby.rtscomponentkit.data.RTSViewerDataStore
 import io.dolby.rtscomponentkit.data.RemoteConfigService
 import io.dolby.rtscomponentkit.domain.MediaServerEnv
+import io.dolby.rtscomponentkit.domain.StreamConfig
+import io.dolby.rtscomponentkit.domain.StreamConfigList
 import io.dolby.rtscomponentkit.domain.StreamingData
 import io.dolby.rtscomponentkit.utils.DispatcherProvider
 import io.dolby.rtsviewer.amino.AminoDevice
@@ -45,7 +47,8 @@ class DetailInputViewModel @Inject constructor(
     private val _accountId = MutableStateFlow("")
     var accountId = _accountId.asStateFlow()
 
-    private val _remoteConfigUrl = MutableStateFlow("https://aravind-raveendran.github.io/remote-configs/config.json")
+    private val _remoteConfigUrl =
+        MutableStateFlow("https://aravind-raveendran.github.io/remote-configs/config.json")
     var remoteConfigUrl = _remoteConfigUrl.asStateFlow()
 
     private var isDemo = false
@@ -110,7 +113,13 @@ class DetailInputViewModel @Inject constructor(
     fun getRemoteConfig() {
         val service = RemoteConfigService(remoteConfigUrl.value, moshi)
         defaultCoroutineScope.launch {
-            service.fetch()
+            service.fetch()?.let { config ->
+                val streamConfigList = List(config.url.size) { index ->
+                    StreamConfig.from(config, index = index)
+                }
+
+                aminoDevice.updateConfig(StreamConfigList(streamConfigList))
+            }
         }
     }
 }

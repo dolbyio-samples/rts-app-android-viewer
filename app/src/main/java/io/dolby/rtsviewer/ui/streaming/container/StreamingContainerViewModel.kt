@@ -32,8 +32,7 @@ class StreamingContainerViewModel @Inject constructor(
     private val _uiState = MutableStateFlow(getRenderState())
     val uiState: StateFlow<StreamingContainerUiState> = _uiState.asStateFlow()
 
-    private val config: StreamConfigList =
-        aminoDevice.config.value ?: HARDCODED_CONFIG // todo: or get from route
+    private val config: StreamConfigList = aminoDevice.config.value
 
     init {
         viewModelScope.launch {
@@ -57,7 +56,7 @@ class StreamingContainerViewModel @Inject constructor(
                                     StreamStateInfo(
                                         streamInfo = StreamInfo(
                                             index = index,
-                                            apiUrl = "stream.apiUrl!!", // TODO remove
+                                            directorUrl = stream.directorUrl,
                                             streamName = stream.streamName,
                                             accountId = stream.accountId
                                         )
@@ -135,16 +134,5 @@ class StreamingContainerViewModel @Inject constructor(
     companion object {
         private const val TAG = "StreamContainerViewModel"
         private const val STATISTICS_BTN_SHOWN = false
-        private val HARDCODED_CONFIG: StreamConfigList =
-            StreamConfigList(
-                streams = listOf(
-                    StreamConfig(
-                        name = "Dolby",
-                        desc = "Demo stream",
-                        accountId = "k9Mwad",
-                        streamName = "multiview"
-                    )
-                )
-            )
     }
 }
