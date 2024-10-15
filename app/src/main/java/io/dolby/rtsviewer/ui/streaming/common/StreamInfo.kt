@@ -5,7 +5,7 @@ import io.dolby.rtsviewer.R
 
 data class StreamInfo(
     val index: Int,
-    val apiUrl: String,
+    val apiUrl: String, // TODO remove
     val streamName: String,
     val accountId: String
 )

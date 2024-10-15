@@ -8,7 +8,9 @@ import android.os.IBinder
 import android.util.Log
 import com.aminocom.device.IDeviceRemoteService
 import com.squareup.moshi.Moshi
-import io.dolby.rtscomponentkit.domain.StreamingConfig
+import io.dolby.rtscomponentkit.domain.RemoteStreamConfig
+import io.dolby.rtscomponentkit.domain.StreamConfig
+import io.dolby.rtscomponentkit.domain.StreamConfigList
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.cancelChildren
@@ -62,14 +64,18 @@ class AminoDeviceRemoteService(private val aminoDevice: AminoDevice, private val
         try {
             val jsonArgs = remoteService?.getDeviceParameter("tvapp.mw_args", "")
             jsonArgs?.takeIf { it.isNotEmpty() }?.let {
-                moshi.adapter(StreamingConfig::class.java).lenient().fromJson(it)
+                moshi.adapter(RemoteStreamConfig::class.java).lenient().fromJson(it)
                     ?.let { config ->
-                        aminoDevice.updateConfig(config)
+                        val streamConfigList = List(config.multiStreamConfig.url.size) { index ->
+                            StreamConfig.from(config, index = index)
+                        }
+
+                        aminoDevice.updateConfig(StreamConfigList(streamConfigList))
                         Log.d("tvapp.mw_args", aminoDevice.config.value.toString())
                     }
             }
         } catch (e: Exception) {
-            aminoDevice.updateConfig(null)
+            aminoDevice.updateConfig(StreamConfigList(emptyList()))
         }
     }
 

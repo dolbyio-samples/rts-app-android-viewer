@@ -6,7 +6,6 @@ import dagger.hilt.android.lifecycle.HiltViewModel
 import io.dolby.rtscomponentkit.data.RTSViewerDataStore
 import io.dolby.rtscomponentkit.data.RemoteConfigService
 import io.dolby.rtscomponentkit.domain.MediaServerEnv
-import io.dolby.rtscomponentkit.domain.StreamingConfig
 import io.dolby.rtscomponentkit.domain.StreamingData
 import io.dolby.rtscomponentkit.utils.DispatcherProvider
 import io.dolby.rtsviewer.amino.AminoDevice

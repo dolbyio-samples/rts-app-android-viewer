@@ -4,6 +4,8 @@ import android.util.Log
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import dagger.hilt.android.lifecycle.HiltViewModel
+import io.dolby.rtscomponentkit.domain.StreamConfig
+import io.dolby.rtscomponentkit.domain.StreamConfigList
 import io.dolby.rtsviewer.R
 import io.dolby.rtsviewer.amino.AminoDevice
 import io.dolby.rtsviewer.ui.streaming.common.StreamError
@@ -11,8 +13,6 @@ import io.dolby.rtsviewer.ui.streaming.common.StreamInfo
 import io.dolby.rtsviewer.ui.streaming.common.StreamStateInfo
 import io.dolby.rtsviewer.ui.streaming.common.StreamingBridge
 import io.dolby.rtsviewer.utils.NetworkStatusObserver
-import io.dolby.rtscomponentkit.domain.StreamingConfig
-import io.dolby.rtscomponentkit.domain.StreamingConfigData
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
@@ -32,7 +32,8 @@ class StreamingContainerViewModel @Inject constructor(
     private val _uiState = MutableStateFlow(getRenderState())
     val uiState: StateFlow<StreamingContainerUiState> = _uiState.asStateFlow()
 
-    private val config: StreamingConfig = aminoDevice.config.value ?: HARDCODED_CONFIG // todo: or get from route
+    private val config: StreamConfigList =
+        aminoDevice.config.value ?: HARDCODED_CONFIG // todo: or get from route
 
     init {
         viewModelScope.launch {
@@ -51,16 +52,17 @@ class StreamingContainerViewModel @Inject constructor(
 
                         NetworkStatusObserver.Status.Available -> {
                             Log.d(TAG, "Available network")
-                            val streamStateInfos = config.streams.mapIndexed { index, stream ->
-                                StreamStateInfo(
-                                    streamInfo = StreamInfo(
-                                        index = index,
-                                        apiUrl = stream.apiUrl,
-                                        streamName = stream.streamName,
-                                        accountId = stream.accountId
+                            val streamStateInfos =
+                                config.streams.mapIndexed { index, stream ->
+                                    StreamStateInfo(
+                                        streamInfo = StreamInfo(
+                                            index = index,
+                                            apiUrl = "stream.apiUrl!!", // TODO remove
+                                            streamName = stream.streamName,
+                                            accountId = stream.accountId
+                                        )
                                     )
-                                )
-                            }
+                                }
                             _state.update { state ->
                                 state.copy(
                                     streamInfos = streamStateInfos,
@@ -121,7 +123,8 @@ class StreamingContainerViewModel @Inject constructor(
             showStatistics = state.value.showStatistics && STATISTICS_BTN_SHOWN,
             statisticsEnabled = isSubscribed && STATISTICS_BTN_SHOWN,
             showStatisticsBtn = STATISTICS_BTN_SHOWN,
-            selectedStreamQualityTitleId = state.value.streamInfos.find { it.shouldShowSettings }?.selectedStreamQuality?.titleResId ?: R.string.simulcast_auto,
+            selectedStreamQualityTitleId = state.value.streamInfos.find { it.shouldShowSettings }?.selectedStreamQuality?.titleResId
+                ?: R.string.simulcast_auto,
             availableStreamQualityItems = state.value.streamInfos.find { it.shouldShowSettings }?.availableStreamQualities
                 ?: emptyList(),
             simulcastSettingsEnabled = state.value.streamInfos.find { it.shouldShowSettings }?.availableStreamQualities?.isNotEmpty()
@@ -132,29 +135,14 @@ class StreamingContainerViewModel @Inject constructor(
     companion object {
         private const val TAG = "StreamContainerViewModel"
         private const val STATISTICS_BTN_SHOWN = false
-        private val HARDCODED_CONFIG = StreamingConfig(
-            listOf(
-                StreamingConfigData(
-                    apiUrl = "https://director.millicast.com/api/director/subscribe",
-                    streamName = "multiview",
-                    accountId = "k9Mwad"
-                ),
-                StreamingConfigData(
-                    apiUrl = "https://director.millicast.com/api/director/subscribe",
-                    streamName = "game",
-                    accountId = "7csQUs"
-                ),
-                StreamingConfigData(
-                    apiUrl = "https://director.millicast.com/api/director/subscribe",
-                    streamName = "game",
-                    accountId = "7csQUs"
-                ),
-                StreamingConfigData(
-                    apiUrl = "https://director.millicast.com/api/director/subscribe",
-                    streamName = "multiview",
-                    accountId = "k9Mwad"
+        private val HARDCODED_CONFIG: StreamConfigList =
+            StreamConfigList(
+                streams = listOf(
+                    StreamConfig(
+                        accountId = "k9Mwad",
+                        streamName = "multiview"
+                    )
                 )
             )
-        )
     }
 }

@@ -16,7 +16,6 @@ data class StreamingContainerState(
 )
 
 // ui state
-
 data class StreamingContainerUiState(
     val streams: List<StreamInfo>,
     val streamError: StreamError.NoInternetConnection?,
