@@ -44,16 +44,17 @@ import io.dolby.rtscomponentkit.ui.DolbyBackgroundBox
 import io.dolby.rtscomponentkit.ui.DolbyCopyrightFooterView
 import io.dolby.rtscomponentkit.ui.TopActionBar
 import io.dolby.rtsviewer.R
-import io.dolby.rtsviewer.ui.DetailInputConnectionAlert
+import io.dolby.rtsviewer.ui.alert.AlertTypes
+import io.dolby.rtsviewer.ui.alert.DetailInputConnectionAlert
 import io.dolby.rtsviewer.ui.alert.ClearStreamConfirmationAlert
 import io.dolby.rtsviewer.ui.alert.DetailInputValidationAlert
+import io.dolby.rtsviewer.ui.alert.GenericAlert
 import io.dolby.rtsviewer.uikit.button.ButtonType
 import io.dolby.rtsviewer.uikit.button.StyledButton
 import io.dolby.rtsviewer.uikit.input.TvTextInput
 import io.dolby.rtsviewer.uikit.text.Text
 import io.dolby.rtsviewer.uikit.theme.fontColor
 import kotlinx.coroutines.Dispatchers
-import kotlinx.coroutines.delay
 import kotlinx.coroutines.launch
 
 @Composable
@@ -68,6 +69,7 @@ fun DetailInputScreen(
     var showMissingStreamDetailDialog by remember { mutableStateOf(false) }
     var showStreamConnectionErrorDialog by remember { mutableStateOf(false) }
     var showClearStreamsConfirmationDialog by remember { mutableStateOf(false) }
+    var showFetchErrorDialog by remember { mutableStateOf(false) }
 
     val streamName = viewModel.streamName.collectAsState()
     val accountId = viewModel.accountId.collectAsState()
@@ -106,7 +108,6 @@ fun DetailInputScreen(
 
     fun playStreamFromConfig() {
         coroutineScope.launch(Dispatchers.Main) {
-            delay(1000)
             onPlayFromConfigClick()
         }
     }
@@ -148,6 +149,25 @@ fun DetailInputScreen(
             },
             modifier = modifier
         )
+    }
+
+    if(showFetchErrorDialog) {
+        GenericAlert(onDismiss = {
+            showFetchErrorDialog = false
+        }, alertType = AlertTypes.RemoteConfigFetchAlert)
+    }
+
+    when (uiState.remoteConfigFetchState) {
+        RemoteConfigFetchState.IDLE -> {}
+        RemoteConfigFetchState.FETCHING -> {}
+        RemoteConfigFetchState.ERROR -> {
+            viewModel.updateRemoteConfigFetchState(RemoteConfigFetchState.IDLE)
+            showFetchErrorDialog = true
+        }
+        RemoteConfigFetchState.SUCCESS -> {
+            viewModel.updateRemoteConfigFetchState(RemoteConfigFetchState.IDLE)
+            playStreamFromConfig()
+        }
     }
 
     Scaffold(
@@ -302,7 +322,6 @@ fun DetailInputScreen(
                         buttonText = stringResource(id = R.string.play_config_button),
                         onClickAction = {
                             viewModel.getRemoteConfig()
-                            playStreamFromConfig()
                         },
                         buttonType = ButtonType.PRIMARY
                     )

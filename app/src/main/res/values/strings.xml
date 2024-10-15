@@ -38,6 +38,7 @@
     <string name="delete_all_streams_dialog_label">Are you sure you want to clear the saved streams?</string>
     <string name="delete_all_streams_clear_button">Clear</string>
     <string name="delete_all_streams_cancel_button">Cancel</string>
+    <string name="remote_config_fetch_error">Invalid URL/config</string>
 
     <!-- Saved Streams Screen -->
     <string name="saved_streams_screen_title">Saved streams</string>

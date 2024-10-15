@@ -1,4 +1,4 @@
-package io.dolby.rtsviewer.ui
+package io.dolby.rtsviewer.ui.alert
 
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.fillMaxWidth
