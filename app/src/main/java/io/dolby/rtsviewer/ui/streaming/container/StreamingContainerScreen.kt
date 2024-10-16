@@ -1,5 +1,6 @@
 package io.dolby.rtsviewer.ui.streaming.container
 
+import android.util.Log
 import androidx.activity.compose.BackHandler
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.fillMaxHeight
@@ -26,6 +27,7 @@ import io.dolby.rtsviewer.utils.KeepScreenOn
 @OptIn(ExperimentalComposeUiApi::class)
 @Composable
 fun StreamingContainerScreen(viewModel: StreamingContainerViewModel = hiltViewModel(), onBack: () -> Unit) {
+    val TAG = "StreamingContainerScreen"
     val uiState by viewModel.uiState.collectAsStateWithLifecycle()
 
     val screenContentDescription = stringResource(id = R.string.streaming_screen_contentDescription)
@@ -53,6 +55,7 @@ fun StreamingContainerScreen(viewModel: StreamingContainerViewModel = hiltViewMo
                 horizontalArrangement = Arrangement.spacedBy(5.dp)
             ) {
                 items(items = uiState.streams) { stream ->
+                    Log.d(TAG, stream.index.toString())
                     StreamScreen(stream)
                 }
             }

@@ -32,7 +32,7 @@ import io.dolby.rtscomponentkit.data.MillicastSdk
 import io.dolby.rtscomponentkit.data.RTSViewerDataStore
 import io.dolby.rtscomponentkit.utils.DispatcherProvider
 import io.dolby.rtscomponentkit.utils.DispatcherProviderImpl
-import io.dolby.rtsviewer.amino.AminoDevice
+import io.dolby.rtsviewer.amino.RemoteConfigFlow
 import io.dolby.rtsviewer.datastore.RecentStreamsDataStore
 import io.dolby.rtsviewer.datastore.RecentStreamsDataStoreImpl
 import io.dolby.rtsviewer.preferenceStore.PrefsStore
@@ -102,7 +102,7 @@ object DataModule {
 
     @Provides
     @Singleton
-    fun provideAminoDevice() = AminoDevice()
+    fun provideRemoteConfigFlow() = RemoteConfigFlow()
 
     @Singleton
     @Provides

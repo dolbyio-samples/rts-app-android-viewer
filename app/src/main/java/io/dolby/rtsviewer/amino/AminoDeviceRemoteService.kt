@@ -15,7 +15,7 @@ import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.cancelChildren
 
-class AminoDeviceRemoteService(private val aminoDevice: AminoDevice, private val moshi: Moshi) {
+class AminoDeviceRemoteService(private val remoteConfigFlow: RemoteConfigFlow, private val moshi: Moshi) {
 
     private var isConnecting = false
     private var remoteService: IDeviceRemoteService? = null
@@ -74,12 +74,12 @@ class AminoDeviceRemoteService(private val aminoDevice: AminoDevice, private val
                             StreamConfig.from(config, index = index)
                         }
 
-                        aminoDevice.updateConfig(StreamConfigList(streamConfigList))
-                        Log.d("tvapp.mw_args", aminoDevice.config.value.toString())
+                        remoteConfigFlow.updateConfig(StreamConfigList(streamConfigList))
+                        Log.d("tvapp.mw_args", remoteConfigFlow.config.value.toString())
                     }
             }
         } catch (e: Exception) {
-            aminoDevice.updateConfig(StreamConfigList(emptyList()))
+            remoteConfigFlow.updateConfig(StreamConfigList(emptyList()))
         }
     }
 

@@ -11,7 +11,7 @@ import com.millicast.subscribers.remote.RemoteAudioTrack
 import com.squareup.moshi.Moshi
 import dagger.hilt.android.AndroidEntryPoint
 import io.dolby.rtscomponentkit.utils.RemoteVolumeObserver
-import io.dolby.rtsviewer.amino.AminoDevice
+import io.dolby.rtsviewer.amino.RemoteConfigFlow
 import io.dolby.rtsviewer.amino.AminoDeviceRemoteService
 import io.dolby.rtsviewer.ui.navigation.AppNavigation
 import io.dolby.rtsviewer.uikit.theme.RTSViewerTheme
@@ -21,7 +21,7 @@ import javax.inject.Inject
 class MainActivity : ComponentActivity() {
     private var volumeObserver: RemoteVolumeObserver? = null
     @Inject
-    lateinit var aminoDevice: AminoDevice
+    lateinit var remoteConfigFlow: RemoteConfigFlow
     @Inject
     lateinit var moshi: Moshi
     private var aminoDeviceService: AminoDeviceRemoteService? = null
@@ -43,7 +43,7 @@ class MainActivity : ComponentActivity() {
 
     override fun onStart() {
         super.onStart()
-        aminoDeviceService = AminoDeviceRemoteService(aminoDevice, moshi).apply {
+        aminoDeviceService = AminoDeviceRemoteService(remoteConfigFlow, moshi).apply {
             connect { intent, serviceConnection, flag ->
                 bindService(intent, serviceConnection, flag)
             }

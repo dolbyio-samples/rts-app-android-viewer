@@ -10,7 +10,7 @@ import io.dolby.rtscomponentkit.domain.StreamConfig
 import io.dolby.rtscomponentkit.domain.StreamConfigList
 import io.dolby.rtscomponentkit.domain.StreamingData
 import io.dolby.rtscomponentkit.utils.DispatcherProvider
-import io.dolby.rtsviewer.amino.AminoDevice
+import io.dolby.rtsviewer.amino.RemoteConfigFlow
 import io.dolby.rtsviewer.datastore.RecentStreamsDataStore
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.flow.MutableStateFlow
@@ -27,7 +27,7 @@ class DetailInputViewModel @Inject constructor(
     private val repository: RTSViewerDataStore,
     private val dispatcherProvider: DispatcherProvider,
     private val recentStreamsDataStore: RecentStreamsDataStore,
-    private val aminoDevice: AminoDevice,
+    private val remoteConfigFlow: RemoteConfigFlow,
     private val moshi: Moshi
 ) : ViewModel() {
 
@@ -108,7 +108,7 @@ class DetailInputViewModel @Inject constructor(
     fun listOfEnv() = MediaServerEnv.listOfEnv()
 
     val isAminoDevice: Boolean
-        get() = aminoDevice.config.value.streams.isNotEmpty()
+        get() = remoteConfigFlow.config.value.streams.isNotEmpty()
 
     fun getRemoteConfig() {
         if(!remoteConfigUrl.value.startsWith("https://")){
@@ -119,7 +119,7 @@ class DetailInputViewModel @Inject constructor(
         }
         defaultCoroutineScope.launch {
             _uiState.update { state ->
-                state.copy(remoteConfigFetchState = RemoteConfigFetchState.FETCHING)
+                state.copy(remoteConfigFetchState = RemoteConfigFetchState.FETCHING) // TODO show spinner
             }
 
             val service = RemoteConfigService(remoteConfigUrl.value, moshi)
@@ -128,7 +128,7 @@ class DetailInputViewModel @Inject constructor(
                     StreamConfig.from(config, index = index)
                 }
 
-                aminoDevice.updateConfig(StreamConfigList(streamConfigList))
+                remoteConfigFlow.updateConfig(StreamConfigList(streamConfigList))
                 _uiState.update { state ->
                     state.copy(remoteConfigFetchState = RemoteConfigFetchState.SUCCESS)
                 }

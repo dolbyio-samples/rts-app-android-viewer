@@ -7,7 +7,7 @@ import kotlinx.coroutines.flow.update
 import javax.inject.Singleton
 
 @Singleton
-class AminoDevice {
+class RemoteConfigFlow {
     private val _config = MutableStateFlow(StreamConfigList(emptyList()))
     var config = _config.asStateFlow()
 

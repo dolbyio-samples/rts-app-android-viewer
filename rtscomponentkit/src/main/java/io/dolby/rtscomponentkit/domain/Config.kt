@@ -21,6 +21,7 @@ data class RemoteStreamConfig(
 data class StreamConfigList(val streams: List<StreamConfig>)
 
 data class StreamConfig(
+    val index: Int,
     val forcePlayoutDelayMin: Int? = null,
     val forcePlayoutDelayMax: Int? = null,
     val jitterBufferDelay: Int? = null,
@@ -38,6 +39,7 @@ data class StreamConfig(
         fun from(streamConfig: RemoteStreamConfig, index: Int): StreamConfig {
             val details = parseUri(streamConfig.url[index])
             return StreamConfig(
+                index = index,
                 forcePlayoutDelayMin = streamConfig.forcePlayoutDelayMin,
                 forcePlayoutDelayMax = streamConfig.forcePlayoutDelayMax,
                 jitterBufferDelay = streamConfig.jitterBufferDelay,
@@ -48,7 +50,7 @@ data class StreamConfig(
                 directorUrl = streamConfig.directorUrl ?: MediaServerEnv.PROD.getURL(),
                 name = streamConfig.name,
                 desc = streamConfig.desc,
-                accountId = details?.first ?: "",
+                accountId = details?.first ?: "", // TODO throw exception
                 streamName = details?.second ?: ""
             )
         }
