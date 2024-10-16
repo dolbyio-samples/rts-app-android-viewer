@@ -48,7 +48,7 @@ class DetailInputViewModel @Inject constructor(
     var accountId = _accountId.asStateFlow()
 
     private val _remoteConfigUrl =
-        MutableStateFlow("")
+        MutableStateFlow("https://aravind-raveendran.github.io/remote-configs/config.json")
     var remoteConfigUrl = _remoteConfigUrl.asStateFlow()
 
     private var isDemo = false

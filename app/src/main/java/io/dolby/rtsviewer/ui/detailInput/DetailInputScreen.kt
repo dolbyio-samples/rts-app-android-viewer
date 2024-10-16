@@ -45,9 +45,7 @@ import io.dolby.rtscomponentkit.ui.DolbyCopyrightFooterView
 import io.dolby.rtscomponentkit.ui.TopActionBar
 import io.dolby.rtsviewer.R
 import io.dolby.rtsviewer.ui.alert.AlertTypes
-import io.dolby.rtsviewer.ui.alert.DetailInputConnectionAlert
 import io.dolby.rtsviewer.ui.alert.ClearStreamConfirmationAlert
-import io.dolby.rtsviewer.ui.alert.DetailInputValidationAlert
 import io.dolby.rtsviewer.ui.alert.GenericAlert
 import io.dolby.rtsviewer.uikit.button.ButtonType
 import io.dolby.rtsviewer.uikit.button.StyledButton
@@ -125,16 +123,18 @@ fun DetailInputScreen(
     }
 
     if (showMissingStreamDetailDialog) {
-        DetailInputValidationAlert(
+        GenericAlert(
             onDismiss = { showMissingStreamDetailDialog = false },
-            modifier = modifier
+            modifier = modifier,
+            alertType = AlertTypes.DetailInputValidationAlert
         )
     }
 
     if (showStreamConnectionErrorDialog) {
-        DetailInputConnectionAlert(
+        GenericAlert(
             onDismiss = { showStreamConnectionErrorDialog = false },
-            modifier = modifier
+            modifier = modifier,
+            alertType = AlertTypes.DetailInputConnectionAlert
         )
     }
 
@@ -151,10 +151,13 @@ fun DetailInputScreen(
         )
     }
 
-    if(showFetchErrorDialog) {
-        GenericAlert(onDismiss = {
-            showFetchErrorDialog = false
-        }, alertType = AlertTypes.RemoteConfigFetchAlert)
+    if (showFetchErrorDialog) {
+        GenericAlert(
+            onDismiss = {
+                showFetchErrorDialog = false
+            },
+            modifier = modifier, alertType = AlertTypes.RemoteConfigFetchAlert
+        )
     }
 
     when (uiState.remoteConfigFetchState) {
@@ -164,6 +167,7 @@ fun DetailInputScreen(
             viewModel.updateRemoteConfigFetchState(RemoteConfigFetchState.IDLE)
             showFetchErrorDialog = true
         }
+
         RemoteConfigFetchState.SUCCESS -> {
             viewModel.updateRemoteConfigFetchState(RemoteConfigFetchState.IDLE)
             playStreamFromConfig()

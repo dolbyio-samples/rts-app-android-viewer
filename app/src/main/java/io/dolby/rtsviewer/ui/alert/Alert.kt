@@ -55,35 +55,3 @@ fun GenericAlert(
         }
     )
 }
-
-@Composable
-fun DetailInputValidationAlert(
-    onDismiss: () -> Unit,
-    modifier: Modifier = Modifier
-) {
-    AlertDialog(
-        modifier = modifier.semantics {
-            contentDescription = "Validation Alert"
-        },
-        onDismissRequest = onDismiss,
-        text = {
-            Text(text = stringResource(id = R.string.missing_stream_name_or_account_id))
-        },
-        buttons = {
-            Column(
-                modifier = modifier
-                    .padding(all = 8.dp)
-                    .fillMaxWidth(),
-                horizontalAlignment = Alignment.CenterHorizontally
-            ) {
-                StyledButton(
-                    buttonText = stringResource(id = R.string.missing_stream_detail_dismiss_button),
-                    onClickAction = { onDismiss() },
-                    buttonType = ButtonType.SECONDARY,
-                    modifier = modifier
-                        .width(200.dp)
-                )
-            }
-        }
-    )
-}
