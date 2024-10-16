@@ -25,6 +25,7 @@ import io.dolby.rtsviewer.ui.streaming.common.StreamingBridge
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
+import kotlinx.coroutines.flow.collectLatest
 import kotlinx.coroutines.flow.distinctUntilChanged
 import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.flow.update
@@ -65,6 +66,7 @@ class StreamViewModel @AssistedInject constructor(
                             is SubscriberConnectionState.Connected -> {
                                 subscriber?.subscribe(
                                     options = Option(
+                                        disableAudio = false,
                                         forcePlayoutDelay = ForcePlayoutDelay(
                                             minimumDelay = 0,
                                             maximumDelay = 1
@@ -90,7 +92,7 @@ class StreamViewModel @AssistedInject constructor(
                     }
             }
             launch {
-                subscriber?.onRemoteTrack?.distinctUntilChanged()?.collect { track ->
+                subscriber?.onRemoteTrack?.distinctUntilChanged()?.collectLatest { track ->
                     when (track) {
                         is RemoteAudioTrack -> {
                             if (state.value.audioTrack == null) {
@@ -111,11 +113,12 @@ class StreamViewModel @AssistedInject constructor(
                                 Log.d(TAG, "Received Video Track for ${streamInfo.index}")
                                 _state.update { it.copy(videoTrack = track) }
                                 track.onState.collect { trackState ->
-                                    val availableStreamQualities = trackState.layers?.activeLayers?.let {
-                                        sortActiveLayers(it)
-                                    } ?: run {
-                                        emptyList()
-                                    }
+                                    val availableStreamQualities =
+                                        trackState.layers?.activeLayers?.let {
+                                            sortActiveLayers(it)
+                                        } ?: run {
+                                            emptyList()
+                                        }
                                     streamingBridge.updateAvailableSteamingQualities(
                                         streamInfo.index,
                                         availableStreamQualities
@@ -266,6 +269,9 @@ class StreamViewModel @AssistedInject constructor(
                     layer = state.value.selectedStreamQuality.layerData,
                     videoSink = action.videoSink
                 )
+                if (state.value.isFocused) {
+                    state.value.audioTrack?.enableAsync()
+                }
             }
 
             StreamAction.Pause -> {
