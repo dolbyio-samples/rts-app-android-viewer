@@ -8,6 +8,7 @@ import org.webrtc.VideoSink
 
 // state
 data class StreamState(
+    val isFocused: Boolean = false,
     val subscribed: Boolean = false,
     val disconnected: Boolean = false,
     val videoTrack: RemoteVideoTrack? = null,
@@ -19,6 +20,9 @@ data class StreamState(
 
 // ui state
 data class StreamUiState(
+    val shouldRequestFocusInitially: Boolean,
+    val showSettingsButton: Boolean,
+    val isFocused: Boolean,
     val subscribed: Boolean,
     val videoTrack: RemoteVideoTrack?,
     val selectedStreamQuality: AvailableStreamQuality,
@@ -32,4 +36,6 @@ sealed class StreamAction {
     object Release : StreamAction()
     data class Play(val videoSink: VideoSink) : StreamAction()
     object Pause : StreamAction()
+    data class UpdateFocus(val isFocused: Boolean) : StreamAction()
+    data class UpdateSettingsVisibility(val show: Boolean) : StreamAction()
 }

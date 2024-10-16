@@ -7,10 +7,11 @@ import kotlinx.coroutines.flow.update
 
 interface StreamingBridge {
     val streamStateInfos: StateFlow<List<StreamStateInfo>>
-    val selectedStreamQuality: StateFlow<AvailableStreamQuality>
     val showStatistics: StateFlow<Boolean>
     fun populateStreamStateInfos(streamStates: List<StreamStateInfo>)
     fun updateSubscribedState(index: Int, isSubscribed: Boolean)
+    fun hideSettings()
+    fun updateShowSettings(index: Int, showSettings: Boolean)
     fun updateAvailableSteamingQualities(index: Int, availableStreamingQualities: List<AvailableStreamQuality>)
     fun updateSelectedQuality(selectedStreamQuality: AvailableStreamQuality)
     fun updateShowStatistics(show: Boolean)
@@ -19,8 +20,6 @@ interface StreamingBridge {
 class StreamingBridgeImpl : StreamingBridge {
     private val _streamStateInfos = MutableStateFlow<List<StreamStateInfo>>(emptyList())
     override val streamStateInfos: StateFlow<List<StreamStateInfo>> = _streamStateInfos.asStateFlow()
-    private val _selectedStreamQuality: MutableStateFlow<AvailableStreamQuality> = MutableStateFlow(AvailableStreamQuality.AUTO)
-    override val selectedStreamQuality: StateFlow<AvailableStreamQuality> = _selectedStreamQuality
     private val _showStatistics = MutableStateFlow(false)
     override val showStatistics: StateFlow<Boolean> = _showStatistics.asStateFlow()
 
@@ -32,6 +31,24 @@ class StreamingBridgeImpl : StreamingBridge {
         val streamStateInfos = _streamStateInfos.value.map {
             if (it.streamInfo.index == index) {
                 it.copy(isSubscribed = isSubscribed)
+            } else {
+                it
+            }
+        }
+        _streamStateInfos.update { streamStateInfos }
+    }
+
+    override fun hideSettings() {
+        val streamStateInfos = _streamStateInfos.value.map {
+            it.copy(shouldShowSettings = false)
+        }
+        _streamStateInfos.update { streamStateInfos }
+    }
+
+    override fun updateShowSettings(index: Int, showSettings: Boolean) {
+        val streamStateInfos = _streamStateInfos.value.map {
+            if (it.streamInfo.index == index) {
+                it.copy(shouldShowSettings = showSettings)
             } else {
                 it
             }
@@ -51,7 +68,14 @@ class StreamingBridgeImpl : StreamingBridge {
     }
 
     override fun updateSelectedQuality(selectedStreamQuality: AvailableStreamQuality) {
-        _selectedStreamQuality.update { selectedStreamQuality }
+        val streamStateInfos = _streamStateInfos.value.map {
+            if (it.shouldShowSettings) {
+                it.copy(selectedStreamQuality = selectedStreamQuality)
+            } else {
+                it
+            }
+        }
+        _streamStateInfos.update { streamStateInfos }
     }
 
     override fun updateShowStatistics(show: Boolean) {

@@ -1,6 +1,6 @@
 package io.dolby.rtsviewer.ui.streaming.common
 
-import com.millicast.subscribers.state.LayerData
+import com.millicast.subscribers.state.LayerDataSelection
 import io.dolby.rtsviewer.R
 
 data class StreamInfo(
@@ -12,7 +12,9 @@ data class StreamInfo(
 
 data class StreamStateInfo(
     val isSubscribed: Boolean = false,
+    val shouldShowSettings: Boolean = false,
     val availableStreamQualities: List<AvailableStreamQuality> = emptyList(),
+    val selectedStreamQuality: AvailableStreamQuality = AvailableStreamQuality.AUTO,
     val streamInfo: StreamInfo
 )
 
@@ -21,14 +23,14 @@ sealed class StreamError(val titleResId: Int, val subtitleResId: Int? = null) {
     object StreamNotActive : StreamError(R.string.stream_offline_title_label, R.string.stream_offline_subtitle_label)
 }
 
-sealed class AvailableStreamQuality(val titleResId: Int, val layerData: LayerData?) {
+sealed class AvailableStreamQuality(val titleResId: Int, val layerData: LayerDataSelection?) {
     object AUTO :
         AvailableStreamQuality(R.string.simulcast_auto, null)
-    class High(layerData: LayerData) :
+    class High(layerData: LayerDataSelection) :
         AvailableStreamQuality(R.string.simulcast_high, layerData)
-    class Medium(layerData: LayerData) :
+    class Medium(layerData: LayerDataSelection) :
         AvailableStreamQuality(R.string.simulcast_medium, layerData)
 
-    class Low(layerData: LayerData) :
+    class Low(layerData: LayerDataSelection) :
         AvailableStreamQuality(R.string.simulcast_low, layerData)
 }
