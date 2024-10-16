@@ -7,7 +7,6 @@ import kotlinx.coroutines.flow.update
 
 interface StreamingBridge {
     val streamStateInfos: StateFlow<List<StreamStateInfo>>
-    val showStatistics: StateFlow<Boolean>
     fun populateStreamStateInfos(streamStates: List<StreamStateInfo>)
     fun updateSubscribedState(index: Int, isSubscribed: Boolean)
     fun hideSettings()
@@ -20,8 +19,6 @@ interface StreamingBridge {
 class StreamingBridgeImpl : StreamingBridge {
     private val _streamStateInfos = MutableStateFlow<List<StreamStateInfo>>(emptyList())
     override val streamStateInfos: StateFlow<List<StreamStateInfo>> = _streamStateInfos.asStateFlow()
-    private val _showStatistics = MutableStateFlow(false)
-    override val showStatistics: StateFlow<Boolean> = _showStatistics.asStateFlow()
 
     override fun populateStreamStateInfos(streamStates: List<StreamStateInfo>) {
         _streamStateInfos.update { streamStates }
@@ -79,6 +76,13 @@ class StreamingBridgeImpl : StreamingBridge {
     }
 
     override fun updateShowStatistics(show: Boolean) {
-        _showStatistics.update { show }
+        val streamStateInfos = _streamStateInfos.value.map {
+            if (it.shouldShowSettings) {
+                it.copy(showStatistics = show)
+            } else {
+                it
+            }
+        }
+        _streamStateInfos.update { streamStateInfos }
     }
 }

@@ -103,6 +103,10 @@ class StreamingContainerViewModel @Inject constructor(
 
     private fun getRenderState(): StreamingContainerUiState {
         val isSubscribed = state.value.streamInfos.any { it.isSubscribed }
+        val showStatistics = state.value.streamInfos.filter {
+            it.showStatistics && it.shouldShowSettings
+        }.isNotEmpty()
+
         return StreamingContainerUiState(
             streams = StreamConfigList(state.value.streamInfos.map { it.streamInfo }),
             streamError = state.value.streamError,
@@ -110,9 +114,8 @@ class StreamingContainerViewModel @Inject constructor(
             requestSettingsFocus = !isSubscribed,
             showSettings = state.value.streamInfos.any { it.shouldShowSettings },
             showSimulcastSettings = state.value.showSimulcastSettings,
-            showStatistics = state.value.showStatistics && STATISTICS_BTN_SHOWN,
-            statisticsEnabled = isSubscribed && STATISTICS_BTN_SHOWN,
-            showStatisticsBtn = STATISTICS_BTN_SHOWN,
+            statisticsShown = showStatistics,
+            statisticsEnabled = isSubscribed,
             selectedStreamQualityTitleId = state.value.streamInfos.find { it.shouldShowSettings }?.selectedStreamQuality?.titleResId
                 ?: R.string.simulcast_auto,
             availableStreamQualityItems = state.value.streamInfos.find { it.shouldShowSettings }?.availableStreamQualities
@@ -124,6 +127,5 @@ class StreamingContainerViewModel @Inject constructor(
 
     companion object {
         private const val TAG = "StreamContainerViewModel"
-        private const val STATISTICS_BTN_SHOWN = false
     }
 }

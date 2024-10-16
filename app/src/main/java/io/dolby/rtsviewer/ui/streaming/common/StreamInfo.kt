@@ -9,7 +9,8 @@ data class StreamStateInfo(
     val shouldShowSettings: Boolean = false,
     val availableStreamQualities: List<AvailableStreamQuality> = emptyList(),
     val selectedStreamQuality: AvailableStreamQuality = AvailableStreamQuality.AUTO,
-    val streamInfo: StreamConfig
+    val streamInfo: StreamConfig,
+    val showStatistics: Boolean = false
 )
 
 sealed class StreamError(val titleResId: Int, val subtitleResId: Int? = null) {

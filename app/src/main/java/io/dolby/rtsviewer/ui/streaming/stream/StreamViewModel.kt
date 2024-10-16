@@ -109,11 +109,12 @@ class StreamViewModel @AssistedInject constructor(
                                 Log.d(TAG, "Received Video Track for ${streamInfo.index}")
                                 _state.update { it.copy(videoTrack = track) }
                                 track.onState.collect { trackState ->
-                                    val availableStreamQualities = trackState.layers?.activeLayers?.let {
-                                        sortActiveLayers(it)
-                                    } ?: run {
-                                        emptyList()
-                                    }
+                                    val availableStreamQualities =
+                                        trackState.layers?.activeLayers?.let {
+                                            sortActiveLayers(it)
+                                        } ?: run {
+                                            emptyList()
+                                        }
                                     streamingBridge.updateAvailableSteamingQualities(
                                         streamInfo.index,
                                         availableStreamQualities
@@ -240,12 +241,11 @@ class StreamViewModel @AssistedInject constructor(
             }
             launch {
                 viewModelScope.launch {
-                    streamingBridge.showStatistics.collect { showStatistics ->
+                    streamingBridge.streamStateInfos.collect { infos ->
+                        val showStats =
+                            infos.find { it.streamInfo.index == streamInfo.index }?.showStatistics
                         _state.update {
-                            it.copy(
-                                showStatistics = showStatistics, /*remove*/
-                                subscribed = showStatistics
-                            )
+                            it.copy(showStatistics = showStats ?: false)
                         }
                         updateRenderState()
                     }
@@ -287,6 +287,7 @@ class StreamViewModel @AssistedInject constructor(
                 }
                 updateRenderState()
             }
+
             is StreamAction.UpdateSettingsVisibility -> {
                 streamingBridge.updateShowSettings(streamInfo.index, action.show)
             }

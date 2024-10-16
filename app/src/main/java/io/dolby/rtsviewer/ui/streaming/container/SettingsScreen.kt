@@ -88,23 +88,21 @@ fun SettingsScreen(viewModel: StreamingContainerViewModel) {
                 }
             )
             Spacer(modifier = Modifier.height(12.dp))
-            /* TODO: this is a flag until work is complete */
-            if (uiState.showStatisticsBtn) {
-                SwitchComponent(
-                    text = stringResource(id = R.string.streaming_statistics_title),
-                    startIcon = painterResource(id = io.dolby.uikit.R.drawable.icon_info),
-                    checked = uiState.showStatistics,
-                    isEnabled = uiState.statisticsEnabled,
-                    onCheckedChange = {
-                        viewModel.onUiAction(
-                            StreamingContainerAction.UpdateStatisticsVisibility(
-                                it
-                            )
+
+            SwitchComponent(
+                text = stringResource(id = R.string.streaming_statistics_title),
+                startIcon = painterResource(id = io.dolby.uikit.R.drawable.icon_info),
+                checked = uiState.statisticsShown,
+                isEnabled = uiState.statisticsEnabled,
+                onCheckedChange = {
+                    viewModel.onUiAction(
+                        StreamingContainerAction.UpdateStatisticsVisibility(
+                            it
                         )
-                    }
-                )
-                Spacer(modifier = Modifier.height(12.dp))
-            }
+                    )
+                }
+            )
+            Spacer(modifier = Modifier.height(12.dp))
         }
     }
 }
