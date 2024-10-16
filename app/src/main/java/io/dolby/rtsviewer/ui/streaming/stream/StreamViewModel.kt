@@ -65,11 +65,9 @@ class StreamViewModel @AssistedInject constructor(
                             is SubscriberConnectionState.Connected -> {
                                 subscriber?.subscribe(
                                     options = Option(
-                                        forcePlayoutDelay = ForcePlayoutDelay(
-                                            minimumDelay = 0,
-                                            maximumDelay = 1
-                                        ),
-                                        jitterMinimumDelayMs = 0
+                                        forcePlayoutDelay = getForcePlayoutDelay(),
+                                        jitterMinimumDelayMs = streamInfo.jitterBufferDelay ?: 0,
+                                        forceSmooth = streamInfo.forceSmooth ?: false,
                                     )
                                 )
                             }
@@ -311,6 +309,14 @@ class StreamViewModel @AssistedInject constructor(
             showStatistics = state.value.showStatistics && state.value.subscribed,
             streamError = state.value.streamError
         )
+    }
+
+    private fun getForcePlayoutDelay(): ForcePlayoutDelay? {
+        return streamInfo.forcePlayoutDelayMin?.let { min ->
+            streamInfo.forcePlayoutDelayMax?.let { max ->
+                ForcePlayoutDelay(min, max)
+            }
+        }
     }
 
     companion object {

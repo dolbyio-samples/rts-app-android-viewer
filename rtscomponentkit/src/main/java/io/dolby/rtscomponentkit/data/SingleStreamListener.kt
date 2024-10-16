@@ -144,15 +144,7 @@ class SingleStreamListener(
         subscriptionJob?.cancel()
         subscriptionJob = CoroutineScope(Dispatchers.IO).safeLaunch(block = {
             Log.d(TAG, "Start Subscribing")
-            subscriber.subscribe(
-                options = Option(
-                    forcePlayoutDelay = ForcePlayoutDelay(
-                        minimumDelay = 0,
-                        maximumDelay = 1
-                    ),
-                    jitterMinimumDelayMs = 0
-                )
-            )
+            subscriber.subscribe()
         })
     }
     fun release() {
