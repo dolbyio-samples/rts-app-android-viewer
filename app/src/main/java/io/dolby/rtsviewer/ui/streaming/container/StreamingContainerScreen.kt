@@ -45,7 +45,7 @@ fun StreamingContainerScreen(viewModel: StreamingContainerViewModel = hiltViewMo
         uiState.streamError?.let {
             ErrorView(error = it)
         } ?: run {
-            val count = uiState.streams.size.takeIf { it == 1 } ?: 2
+            val count = uiState.streams.streams.size.takeIf { it == 1 } ?: 2
             LazyVerticalGrid(
                 columns = GridCells.Fixed(count),
                 modifier = Modifier
@@ -54,7 +54,7 @@ fun StreamingContainerScreen(viewModel: StreamingContainerViewModel = hiltViewMo
                 verticalArrangement = Arrangement.spacedBy(5.dp),
                 horizontalArrangement = Arrangement.spacedBy(5.dp)
             ) {
-                items(items = uiState.streams) { stream ->
+                items(items = uiState.streams.streams) { stream ->
                     Log.d(TAG, stream.index.toString())
                     StreamScreen(stream)
                 }

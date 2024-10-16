@@ -18,9 +18,9 @@ import dagger.assisted.AssistedFactory
 import dagger.assisted.AssistedInject
 import dagger.hilt.android.lifecycle.HiltViewModel
 import io.dolby.rtscomponentkit.data.multistream.safeLaunch
+import io.dolby.rtscomponentkit.domain.StreamConfig
 import io.dolby.rtsviewer.ui.streaming.common.AvailableStreamQuality
 import io.dolby.rtsviewer.ui.streaming.common.StreamError
-import io.dolby.rtsviewer.ui.streaming.common.StreamInfo
 import io.dolby.rtsviewer.ui.streaming.common.StreamingBridge
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
@@ -33,13 +33,13 @@ import org.webrtc.VideoSink
 
 @HiltViewModel(assistedFactory = StreamViewModel.Factory::class)
 class StreamViewModel @AssistedInject constructor(
-    @Assisted private val streamInfo: StreamInfo,
+    @Assisted private val streamInfo: StreamConfig,
     private val streamingBridge: StreamingBridge
 ) : ViewModel() {
 
     @AssistedFactory
     interface Factory {
-        fun create(streamInfo: StreamInfo): StreamViewModel
+        fun create(streamInfo: StreamConfig): StreamViewModel
     }
 
     private val _state = MutableStateFlow(StreamState())

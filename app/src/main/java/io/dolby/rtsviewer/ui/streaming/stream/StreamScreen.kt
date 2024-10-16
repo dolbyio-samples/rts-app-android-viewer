@@ -39,14 +39,14 @@ import androidx.lifecycle.LifecycleEventObserver
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import com.millicast.Media
 import com.millicast.video.TextureViewRenderer
+import io.dolby.rtscomponentkit.domain.StreamConfig
 import io.dolby.rtsviewer.ui.streaming.common.ErrorView
-import io.dolby.rtsviewer.ui.streaming.common.StreamInfo
 import io.dolby.rtsviewer.uikit.button.StyledIconButton
 import io.dolby.uikit.R
 import org.webrtc.RendererCommon
 
 @Composable
-fun StreamScreen(streamInfo: StreamInfo) {
+fun StreamScreen(streamInfo: StreamConfig) {
     val viewModel = hiltViewModel(
         key = streamInfo.index.toString(),
         creationCallback = { factory: StreamViewModel.Factory ->

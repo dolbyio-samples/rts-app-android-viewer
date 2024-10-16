@@ -8,7 +8,6 @@ import io.dolby.rtscomponentkit.domain.StreamConfigList
 import io.dolby.rtsviewer.R
 import io.dolby.rtsviewer.amino.RemoteConfigFlow
 import io.dolby.rtsviewer.ui.streaming.common.StreamError
-import io.dolby.rtsviewer.ui.streaming.common.StreamInfo
 import io.dolby.rtsviewer.ui.streaming.common.StreamStateInfo
 import io.dolby.rtsviewer.ui.streaming.common.StreamingBridge
 import io.dolby.rtsviewer.utils.NetworkStatusObserver
@@ -51,15 +50,8 @@ class StreamingContainerViewModel @Inject constructor(
                         NetworkStatusObserver.Status.Available -> {
                             Log.d(TAG, "Available network")
                             val streamStateInfos =
-                                config.streams.mapIndexed { index, stream ->
-                                    StreamStateInfo(
-                                        streamInfo = StreamInfo(
-                                            index = index,
-                                            directorUrl = stream.directorUrl,
-                                            streamName = stream.streamName,
-                                            accountId = stream.accountId
-                                        )
-                                    )
+                                config.streams.map { stream ->
+                                    StreamStateInfo(streamInfo = stream)
                                 }
                             _state.update { state ->
                                 state.copy(
@@ -112,7 +104,7 @@ class StreamingContainerViewModel @Inject constructor(
     private fun getRenderState(): StreamingContainerUiState {
         val isSubscribed = state.value.streamInfos.any { it.isSubscribed }
         return StreamingContainerUiState(
-            streams = state.value.streamInfos.map { it.streamInfo },
+            streams = StreamConfigList(state.value.streamInfos.map { it.streamInfo }),
             streamError = state.value.streamError,
             shouldStayOn = isSubscribed,
             requestSettingsFocus = !isSubscribed,

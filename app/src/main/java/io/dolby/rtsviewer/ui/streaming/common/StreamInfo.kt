@@ -1,21 +1,15 @@
 package io.dolby.rtsviewer.ui.streaming.common
 
 import com.millicast.subscribers.state.LayerDataSelection
+import io.dolby.rtscomponentkit.domain.StreamConfig
 import io.dolby.rtsviewer.R
-
-data class StreamInfo(
-    val index: Int,
-    val directorUrl: String,
-    val streamName: String,
-    val accountId: String
-)
 
 data class StreamStateInfo(
     val isSubscribed: Boolean = false,
     val shouldShowSettings: Boolean = false,
     val availableStreamQualities: List<AvailableStreamQuality> = emptyList(),
     val selectedStreamQuality: AvailableStreamQuality = AvailableStreamQuality.AUTO,
-    val streamInfo: StreamInfo
+    val streamInfo: StreamConfig
 )
 
 sealed class StreamError(val titleResId: Int, val subtitleResId: Int? = null) {

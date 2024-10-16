@@ -1,8 +1,8 @@
 package io.dolby.rtsviewer.ui.streaming.container
 
+import io.dolby.rtscomponentkit.domain.StreamConfigList
 import io.dolby.rtsviewer.ui.streaming.common.AvailableStreamQuality
 import io.dolby.rtsviewer.ui.streaming.common.StreamError
-import io.dolby.rtsviewer.ui.streaming.common.StreamInfo
 import io.dolby.rtsviewer.ui.streaming.common.StreamStateInfo
 
 // state
@@ -17,7 +17,7 @@ data class StreamingContainerState(
 
 // ui state
 data class StreamingContainerUiState(
-    val streams: List<StreamInfo>,
+    val streams: StreamConfigList,
     val streamError: StreamError.NoInternetConnection?,
     val shouldStayOn: Boolean,
     val requestSettingsFocus: Boolean,
