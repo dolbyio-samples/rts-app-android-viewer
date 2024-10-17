@@ -13,7 +13,6 @@ import com.millicast.subscribers.remote.RemoteAudioTrack
 import com.millicast.subscribers.remote.RemoteVideoTrack
 import com.millicast.subscribers.state.LayerDataSelection
 import com.millicast.subscribers.state.SubscriberConnectionState
-import com.millicast.subscribers.stats.SubscriberStats
 import dagger.assisted.Assisted
 import dagger.assisted.AssistedFactory
 import dagger.assisted.AssistedInject
@@ -50,8 +49,8 @@ class StreamViewModel @AssistedInject constructor(
     private val _uiState = MutableStateFlow(getRenderState())
     val uiState: StateFlow<StreamUiState> = _uiState.asStateFlow()
 
-    private val _subscriberStats = MutableStateFlow<SubscriberStats?>(null)
-    val subscriberStats: Flow<SubscriberStats?> = _subscriberStats.asStateFlow()
+//    private val _subscriberStats = MutableStateFlow<SubscriberStats?>(null)
+//    val subscriberStats: Flow<SubscriberStats?> = _subscriberStats.asStateFlow()
 
     private var subscriber: Subscriber? = null
     private var videoSink: VideoSink? = null
@@ -73,7 +72,7 @@ class StreamViewModel @AssistedInject constructor(
                                     options = Option(
                                         forcePlayoutDelay = getForcePlayoutDelay(),
                                         jitterMinimumDelayMs = streamInfo.jitterBufferDelay ?: 0,
-                                        forceSmooth = streamInfo.forceSmooth ?: false,
+                                        //forceSmooth = streamInfo.forceSmooth ?: false,
                                     )
                                 )
                             }
@@ -134,9 +133,9 @@ class StreamViewModel @AssistedInject constructor(
             }
 
             launch {
-                subscriber?.stats?.collect { stats ->
-                    _subscriberStats.value = stats
-                }
+//                subscriber?.stats?.collect { stats ->
+//                    _subscriberStats.value = stats
+//                }
             }
         }
     }
