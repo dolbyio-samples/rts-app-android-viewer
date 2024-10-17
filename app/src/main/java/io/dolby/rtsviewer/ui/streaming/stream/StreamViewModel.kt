@@ -145,13 +145,13 @@ class StreamViewModel @AssistedInject constructor(
         Log.d(TAG, "Connect Stream ${streamInfo.index}")
         viewModelScope.safeLaunch(block = {
             subscriber = Core.createSubscriber()
-            collectSubscriberStates()
             val credentials =
                 Credential(streamInfo.streamName, streamInfo.accountId, streamInfo.directorUrl)
             val connectionOptions = ConnectionOptions(true)
             subscriber?.enableStats(true)
             subscriber?.setCredentials(credentials)
             subscriber?.connect(connectionOptions)
+            collectSubscriberStates()
         }) {
             _state.update {
                 it.copy(streamError = StreamError.StreamNotActive)
@@ -275,6 +275,8 @@ class StreamViewModel @AssistedInject constructor(
                 Log.d(TAG, "Play")
                 videoSink = action.videoSink
                 state.value.videoTrack?.enableAsync(
+                    promote = true,
+                    layer = state.value.selectedStreamQuality.layerData,
                     videoSink = action.videoSink
                 )
             }

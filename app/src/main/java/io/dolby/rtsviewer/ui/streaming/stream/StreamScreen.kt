@@ -20,7 +20,6 @@ import androidx.compose.runtime.rememberUpdatedState
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.focus.FocusRequester
-import androidx.compose.ui.focus.FocusRequester.Companion.createRefs
 import androidx.compose.ui.focus.focusRequester
 import androidx.compose.ui.focus.onFocusChanged
 import androidx.compose.ui.graphics.Color
@@ -100,7 +99,8 @@ fun StreamScreen(streamInfo: StreamConfig) {
             viewModel.onUiAction(StreamAction.Release)
         }
     }
-    val borderColor = if (uiState.isFocused) MaterialTheme.colors.primaryVariant else Color.Transparent
+    val borderColor =
+        if (uiState.isFocused) MaterialTheme.colors.primaryVariant else Color.Transparent
     Box(
         modifier = Modifier
             .fillMaxWidth()
@@ -132,28 +132,27 @@ fun StreamScreen(streamInfo: StreamConfig) {
                         }
                     )
                 }
-                uiState.videoTrack?.let {
-                    DisposableEffect(uiState.videoTrack) {
-                        val observer = LifecycleEventObserver { _, event ->
-                            when (event) {
-                                Lifecycle.Event.ON_PAUSE -> {
-                                    viewModel.onUiAction(StreamAction.Pause)
-                                }
-
-                                Lifecycle.Event.ON_RESUME -> {
-                                    Log.d(tag, "Video Track Play")
-                                    viewModel.onUiAction(StreamAction.Play(videoRenderer))
-                                }
-                                else -> {}
+                DisposableEffect(uiState.videoTrack, uiState.selectedStreamQuality) {
+                    val observer = LifecycleEventObserver { _, event ->
+                        when (event) {
+                            Lifecycle.Event.ON_PAUSE -> {
+                                viewModel.onUiAction(StreamAction.Pause)
                             }
+
+                            Lifecycle.Event.ON_RESUME -> {
+                                Log.d(tag, "Video Track Play")
+                                viewModel.onUiAction(StreamAction.Play(videoRenderer))
+                            }
+
+                            else -> {}
                         }
-                        val lifecycle = lifecycleOwner.value.lifecycle
-                        lifecycle.addObserver(observer)
-                        onDispose {
-                            Log.d(tag, "onDispose")
-                            lifecycle.removeObserver(observer)
-                            viewModel.onUiAction(StreamAction.Pause)
-                        }
+                    }
+                    val lifecycle = lifecycleOwner.value.lifecycle
+                    lifecycle.addObserver(observer)
+                    onDispose {
+                        Log.d(tag, "onDispose")
+                        lifecycle.removeObserver(observer)
+                        viewModel.onUiAction(StreamAction.Pause)
                     }
                 }
 

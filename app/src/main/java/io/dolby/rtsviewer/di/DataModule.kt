@@ -58,7 +58,7 @@ object DataModule {
 
         // set millicast logs
         Logger.setLogLevels(
-            sdk = LogLevel.MC_OFF,
+            sdk = LogLevel.MC_DEBUG,
             webrtc = LogLevel.MC_OFF,
             websocket = LogLevel.MC_OFF
         )
