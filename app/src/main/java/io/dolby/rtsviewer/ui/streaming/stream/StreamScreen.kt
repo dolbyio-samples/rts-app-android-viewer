@@ -133,7 +133,7 @@ fun StreamScreen(streamInfo: StreamConfig) {
                     )
                 }
                 uiState.videoTrack?.let {
-                    DisposableEffect(uiState.videoTrack, uiState.selectedStreamQuality) {
+                    DisposableEffect(uiState.videoTrack) {
                         val observer = LifecycleEventObserver { _, event ->
                             when (event) {
                                 Lifecycle.Event.ON_PAUSE -> {
@@ -150,6 +150,7 @@ fun StreamScreen(streamInfo: StreamConfig) {
                         val lifecycle = lifecycleOwner.value.lifecycle
                         lifecycle.addObserver(observer)
                         onDispose {
+                            Log.d(tag, "onDispose")
                             lifecycle.removeObserver(observer)
                             viewModel.onUiAction(StreamAction.Pause)
                         }

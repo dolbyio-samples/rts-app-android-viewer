@@ -240,6 +240,7 @@ class StreamViewModel @AssistedInject constructor(
                         infos.find { it.streamInfo.index == streamInfo.index }?.selectedStreamQuality?.let { selectedStreamQuality ->
                             if (state.value.selectedStreamQuality != selectedStreamQuality) {
                                 videoSink?.let { sink ->
+                                    Log.d(TAG, "enableAsync - Update layer")
                                     state.value.videoTrack?.enableAsync(
                                         promote = true,
                                         layer = selectedStreamQuality.layerData,
@@ -271,15 +272,15 @@ class StreamViewModel @AssistedInject constructor(
         when (action) {
             StreamAction.Connect -> connect()
             is StreamAction.Play -> {
+                Log.d(TAG, "Play")
                 videoSink = action.videoSink
                 state.value.videoTrack?.enableAsync(
-                    promote = true,
-                    layer = state.value.selectedStreamQuality.layerData,
                     videoSink = action.videoSink
                 )
             }
 
             StreamAction.Pause -> {
+                Log.d(TAG, "Pause")
                 state.value.videoTrack?.disableAsync()
                 state.value.audioTrack?.disableAsync()
             }

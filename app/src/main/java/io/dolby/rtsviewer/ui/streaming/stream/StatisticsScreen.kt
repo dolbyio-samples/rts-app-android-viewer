@@ -31,6 +31,7 @@ import io.dolby.rtsviewer.utils.formattedByteCount
 // move to its own package?
 @Composable
 fun StatisticsScreen(viewModel: StreamViewModel, modifier: Modifier = Modifier) {
+    // TODO collectAsStateWithLifecycle()
     val statistics = viewModel.subscriberStats.collectAsState(initial = null)
     val statisticsTitle = stringResource(id = R.string.streaming_statistics_title)
 
@@ -101,22 +102,18 @@ fun StatisticsScreen(viewModel: StreamViewModel, modifier: Modifier = Modifier) 
                             )
                             StatsRow(
                                 title = "FPS",
-                                value = formattedByteCount(
-                                    trackStats.framesPerSecond?.toLong() ?: 0
-                                )
+                                value = trackStats.framesPerSecond.toString()
                             )
                             StatsRow(
-                                title = "Video Total Received",
-                                value = trackStats.bytesReceived.toString()
+                                title = "Video Bitrate - kbps",
+                                value = trackStats.bitrateBps?.div(1000u).toString()
                             )
                         }
 
                         TrackType.Audio -> {
                             StatsRow(
-                                title = "Audio Total Received",
-                                value = formattedByteCount(
-                                    trackStats.framesPerSecond?.toLong() ?: 0
-                                )
+                                title = "Audio Bitrate - kbps",
+                                value = trackStats.bitrateBps?.div(1000u).toString()
                             )
                         }
                     }

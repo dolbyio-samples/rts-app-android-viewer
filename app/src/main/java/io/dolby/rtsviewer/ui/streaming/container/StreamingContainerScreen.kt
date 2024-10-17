@@ -10,7 +10,6 @@ import androidx.compose.foundation.lazy.grid.LazyVerticalGrid
 import androidx.compose.foundation.lazy.grid.items
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
-import androidx.compose.ui.ExperimentalComposeUiApi
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.semantics.contentDescription
@@ -24,9 +23,11 @@ import io.dolby.rtsviewer.ui.streaming.common.ErrorView
 import io.dolby.rtsviewer.ui.streaming.stream.StreamScreen
 import io.dolby.rtsviewer.utils.KeepScreenOn
 
-@OptIn(ExperimentalComposeUiApi::class)
 @Composable
-fun StreamingContainerScreen(viewModel: StreamingContainerViewModel = hiltViewModel(), onBack: () -> Unit) {
+fun StreamingContainerScreen(
+    viewModel: StreamingContainerViewModel = hiltViewModel(),
+    onBack: () -> Unit
+) {
     val TAG = "StreamingContainerScreen"
     val uiState by viewModel.uiState.collectAsStateWithLifecycle()
 
@@ -69,7 +70,11 @@ fun StreamingContainerScreen(viewModel: StreamingContainerViewModel = hiltViewMo
 
         BackHandler {
             if (uiState.showSimulcastSettings) {
-                viewModel.onUiAction(StreamingContainerAction.UpdateSimulcastSettingsVisibility(false))
+                viewModel.onUiAction(
+                    StreamingContainerAction.UpdateSimulcastSettingsVisibility(
+                        false
+                    )
+                )
             } else if (uiState.showSettings) {
                 viewModel.onUiAction(StreamingContainerAction.HideSettings)
             } else {
