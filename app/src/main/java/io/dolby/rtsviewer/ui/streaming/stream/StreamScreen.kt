@@ -141,6 +141,7 @@ fun StreamScreen(streamInfo: StreamConfig) {
                                 }
 
                                 Lifecycle.Event.ON_RESUME -> {
+                                    Log.d(tag, "Video Track Play")
                                     viewModel.onUiAction(StreamAction.Play(videoRenderer))
                                 }
                                 else -> {}

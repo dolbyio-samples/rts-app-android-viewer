@@ -1,5 +1,6 @@
 package io.dolby.rtsviewer.utils
 
+import android.annotation.SuppressLint
 import android.app.Activity
 import android.content.Context
 import android.content.ContextWrapper
@@ -15,6 +16,8 @@ import androidx.compose.ui.input.key.onKeyEvent
 import androidx.compose.ui.platform.LocalContext
 import io.dolby.rtscomponentkit.data.RTSViewerDataStore
 import io.dolby.rtsviewer.R
+import java.text.CharacterIterator
+import java.text.StringCharacterIterator
 
 @Composable
 fun KeepScreenOn(enabled: Boolean) {
@@ -63,4 +66,18 @@ fun RTSViewerDataStore.StreamQualityType.titleResourceId(): Int {
         is RTSViewerDataStore.StreamQualityType.Medium -> R.string.simulcast_medium
         is RTSViewerDataStore.StreamQualityType.Low -> R.string.simulcast_low
     }
+}
+
+@SuppressLint("DefaultLocale")
+fun formattedByteCount(bytes: Long): String {
+    var value = bytes
+    if (-1000 < value && value < 1000) {
+        return "$value B"
+    }
+    val ci: CharacterIterator = StringCharacterIterator("kMGTPE")
+    while (value <= -999950 || value >= 999950) {
+        value /= 1000
+        ci.next()
+    }
+    return String.format("%.1f %cB", value / 1000.0, ci.current())
 }
