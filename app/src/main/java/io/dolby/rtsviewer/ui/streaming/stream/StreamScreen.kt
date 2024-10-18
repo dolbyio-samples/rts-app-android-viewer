@@ -58,7 +58,7 @@ fun StreamScreen(streamInfo: StreamConfig) {
     val lifecycleOwner = rememberUpdatedState(LocalLifecycleOwner.current)
     val uiState by viewModel.uiState.collectAsStateWithLifecycle()
 
-    val videoRenderer = remember(streamInfo.index) {
+    val videoRenderer = remember(context) {
         TextureViewRenderer(context).apply {
             val events = object : RendererCommon.RendererEvents {
                 override fun onFirstFrameRendered() {
@@ -141,7 +141,8 @@ fun StreamScreen(streamInfo: StreamConfig) {
                         factory = { videoRenderer },
                         update = { view ->
                             view.setScalingType(RendererCommon.ScalingType.SCALE_ASPECT_FIT)
-                        }
+                        },
+                        onRelease = { videoRenderer.release() }
                     )
                 }
 
