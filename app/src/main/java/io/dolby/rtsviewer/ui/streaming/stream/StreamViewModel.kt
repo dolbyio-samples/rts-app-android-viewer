@@ -81,18 +81,35 @@ class StreamViewModel @AssistedInject constructor(
                             }
 
                             is SubscriberConnectionState.Error -> {
-                                Log.d(TAG, "Error : ${connectionState.reason}")
+                                Log.d(TAG, "Error : ${streamInfo.index} ${connectionState.reason}")
                                 _state.update { it.copy(streamError = StreamError.StreamNotActive) }
                             }
 
-                            else -> {}
-                        }
-                        val isSubscribed = connectionState == SubscriberConnectionState.Subscribed
-                        if (state.value.subscribed != isSubscribed) {
-                            Log.d(TAG, "ConnectionState : ${streamInfo.index} $connectionState")
-                            _state.update { it.copy(subscribed = isSubscribed) }
-                            streamingBridge.updateSubscribedState(streamInfo.index, isSubscribed)
-                            updateRenderState()
+                            SubscriberConnectionState.Connecting -> {
+                                Log.d(TAG, "Connecting : ${streamInfo.index}")
+                            }
+                            SubscriberConnectionState.Disconnected -> {
+                                Log.d(TAG, "Disconnected : ${streamInfo.index}")
+                            }
+                            SubscriberConnectionState.DisconnectedError -> {
+                                Log.d(TAG, "DisconnectedError : ${streamInfo.index}")
+                            }
+                            SubscriberConnectionState.Disconnecting -> {
+                                Log.d(TAG, "Disconnecting : ${streamInfo.index}")
+                            }
+                            SubscriberConnectionState.Stopped -> {
+                                Log.d(TAG, "Stopped : ${streamInfo.index}")
+                            }
+                            SubscriberConnectionState.Subscribed -> {
+                                Log.d(TAG, "Subscribed : ${streamInfo.index}")
+
+                                if (!state.value.subscribed) {
+                                    Log.d(TAG, "ConnectionState : ${streamInfo.index} $connectionState")
+                                    _state.update { it.copy(subscribed = true) }
+                                    streamingBridge.updateSubscribedState(streamInfo.index, true)
+                                    updateRenderState()
+                                }
+                            }
                         }
                     }
             }
@@ -168,6 +185,7 @@ class StreamViewModel @AssistedInject constructor(
         Log.d(TAG, "Release Stream ${streamInfo.index}")
         _state.update {
             it.copy(
+                connected = false,
                 subscribed = false,
                 disconnected = true,
                 videoTrack = null,
@@ -291,7 +309,11 @@ class StreamViewModel @AssistedInject constructor(
                 state.value.audioTrack?.disableAsync()
             }
 
-            StreamAction.Release -> release()
+            StreamAction.Release -> {
+                Log.d(TAG, "Release ${streamInfo.index}")
+                release()
+            }
+
             is StreamAction.UpdateFocus -> {
                 _state.update { it.copy(isFocused = action.isFocused) }
                 viewModelScope.launch {

@@ -87,17 +87,15 @@ fun StreamScreen(streamInfo: StreamConfig) {
         val observer = LifecycleEventObserver { _, event ->
             when (event) {
                 Lifecycle.Event.ON_PAUSE -> {
-                    //Log.d(tag, "${streamInfo.index} Lifecycle onPause")
-                    //viewModel.onUiAction(StreamAction.Pause)
+                    Log.d(tag, "${streamInfo.index} Lifecycle onPause")
                 }
 
                 Lifecycle.Event.ON_RESUME -> {
-                    //Log.d(tag, "${streamInfo.index} Lifecycle OnResume")
+                    Log.d(tag, "${streamInfo.index} Lifecycle OnResume")
                 }
 
                 Lifecycle.Event.ON_DESTROY -> {
-                    //Log.d(tag, "${streamInfo.index} Lifecycle onDestroy")
-                    viewModel.onUiAction(StreamAction.Release)
+                    Log.d(tag, "${streamInfo.index} Lifecycle onDestroy")
                 }
 
                 else -> {
@@ -108,6 +106,7 @@ fun StreamScreen(streamInfo: StreamConfig) {
         lifecycle.addObserver(observer)
         onDispose {
             Log.d(tag, "${streamInfo.index} ViewModel onDispose")
+            viewModel.onUiAction(StreamAction.Release)
             lifecycle.removeObserver(observer)
         }
     }
