@@ -102,7 +102,7 @@ class StreamViewModel @AssistedInject constructor(
                     when (track) {
                         is RemoteAudioTrack -> {
                             if (state.value.audioTrack == null) {
-                                Log.d(TAG, "Received Audio Track for ${streamInfo.index}")
+                                //Log.d(TAG, "Received Audio Track for ${streamInfo.index}")
                                 if (state.value.isFocused) {
                                     track.setVolume(1.0)
                                     track.enableAsync()
@@ -118,6 +118,7 @@ class StreamViewModel @AssistedInject constructor(
                             if (state.value.videoTrack == null) {
                                 Log.d(TAG, "Received Video Track for ${streamInfo.index}")
                                 _state.update { it.copy(videoTrack = track) }
+                                updateRenderState()
                                 track.onState.collect { trackState ->
                                     val availableStreamQualities =
                                         trackState.layers?.activeLayers?.let {
