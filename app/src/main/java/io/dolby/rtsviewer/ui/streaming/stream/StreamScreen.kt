@@ -36,6 +36,7 @@ import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.lifecycle.Lifecycle
 import androidx.lifecycle.LifecycleEventObserver
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
+import androidx.tv.material3.Text
 import com.millicast.Media
 import com.millicast.video.TextureViewRenderer
 import io.dolby.rtscomponentkit.domain.StreamConfig
@@ -57,9 +58,19 @@ fun StreamScreen(streamInfo: StreamConfig) {
     val lifecycleOwner = rememberUpdatedState(LocalLifecycleOwner.current)
     val uiState by viewModel.uiState.collectAsStateWithLifecycle()
 
-    val videoRenderer = remember(context) {
+    val videoRenderer = remember(streamInfo.index) {
         TextureViewRenderer(context).apply {
-            init(Media.eglBaseContext, null)
+            val events = object : RendererCommon.RendererEvents {
+                override fun onFirstFrameRendered() {
+                    Log.d(tag, "${streamInfo.index} onFirstFrameRendered")
+                }
+
+                override fun onFrameResolutionChanged(p0: Int, p1: Int, p2: Int) {
+                    //Log.d(tag, "${streamInfo.index} onFrameResolutionChanged")
+                }
+
+            }
+            init(Media.eglBaseContext, events)
         }
     }
 
@@ -72,33 +83,34 @@ fun StreamScreen(streamInfo: StreamConfig) {
         viewModel.onUiAction(StreamAction.Connect)
     }
 
-    DisposableEffect(viewModel) {
-        val observer = LifecycleEventObserver { _, event ->
-            when (event) {
-                Lifecycle.Event.ON_PAUSE -> {
-                    Log.d(tag, " Lifecycle onPause")
-                }
-
-                Lifecycle.Event.ON_RESUME -> {
-                    Log.d(tag, "Lifecycle OnResume")
-                }
-
-                Lifecycle.Event.ON_DESTROY -> {
-                    Log.d(tag, "Lifecycle onDestroy")
-                    viewModel.onUiAction(StreamAction.Release)
-                }
-
-                else -> {
-                }
-            }
-        }
-        val lifecycle = lifecycleOwner.value.lifecycle
-        lifecycle.addObserver(observer)
-        onDispose {
-            lifecycle.removeObserver(observer)
-            viewModel.onUiAction(StreamAction.Release)
-        }
-    }
+//    DisposableEffect(viewModel) {
+//        val observer = LifecycleEventObserver { _, event ->
+//            when (event) {
+//                Lifecycle.Event.ON_PAUSE -> {
+//                    Log.d(tag, "${streamInfo.index} Lifecycle onPause")
+//                }
+//
+//                Lifecycle.Event.ON_RESUME -> {
+//                    Log.d(tag, "${streamInfo.index} Lifecycle OnResume")
+//                }
+//
+//                Lifecycle.Event.ON_DESTROY -> {
+//                    Log.d(tag, "${streamInfo.index} Lifecycle onDestroy")
+//                    viewModel.onUiAction(StreamAction.Release)
+//                }
+//
+//                else -> {
+//                }
+//            }
+//        }
+//        val lifecycle = lifecycleOwner.value.lifecycle
+//        lifecycle.addObserver(observer)
+//        onDispose {
+//            Log.d(tag, "${streamInfo.index} ViewModel onDispose")
+//            lifecycle.removeObserver(observer)
+//            viewModel.onUiAction(StreamAction.Release)
+//        }
+//    }
     val borderColor =
         if (uiState.isFocused) MaterialTheme.colors.primaryVariant else Color.Transparent
     Box(
@@ -120,7 +132,7 @@ fun StreamScreen(streamInfo: StreamConfig) {
         uiState.streamError?.let {
             ErrorView(error = it)
         } ?: run {
-            if (uiState.subscribed) {
+            if (uiState.subscribed && uiState.videoTrack != null) {
                 Box(
                     modifier = Modifier
                         .align(Alignment.Center)
@@ -140,7 +152,7 @@ fun StreamScreen(streamInfo: StreamConfig) {
                             }
 
                             Lifecycle.Event.ON_RESUME -> {
-                                Log.d(tag, "Video Track Play")
+                                Log.d(tag, "${streamInfo.index} Video Track Play")
                                 viewModel.onUiAction(StreamAction.Play(videoRenderer))
                             }
 
@@ -150,7 +162,7 @@ fun StreamScreen(streamInfo: StreamConfig) {
                     val lifecycle = lifecycleOwner.value.lifecycle
                     lifecycle.addObserver(observer)
                     onDispose {
-                        Log.d(tag, "onDispose")
+                        Log.d(tag, "${streamInfo.index} onDispose")
                         lifecycle.removeObserver(observer)
                         viewModel.onUiAction(StreamAction.Pause)
                     }
@@ -184,6 +196,8 @@ fun StreamScreen(streamInfo: StreamConfig) {
                         )
                     }
                 }
+            } else {
+                Text(text = "Please wait....", color = MaterialTheme.colors.onSurface)
             }
         }
 

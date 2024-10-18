@@ -66,9 +66,11 @@ class StreamViewModel @AssistedInject constructor(
             launch {
                 subscriber?.state?.map { it.connectionState }?.distinctUntilChanged()
                     ?.collect { connectionState ->
-                        Log.d(TAG, "ConnectionState : $connectionState")
                         when (connectionState) {
                             is SubscriberConnectionState.Connected -> {
+                                Log.d(TAG, "ConnectionState : ${streamInfo.index} $connectionState")
+                                _state.update { it.copy(subscribed = false) }
+                                _state.update { it.copy(connected = true) }
                                 subscriber?.subscribe(
                                     options = Option(
                                         forcePlayoutDelay = getForcePlayoutDelay(),
@@ -87,6 +89,7 @@ class StreamViewModel @AssistedInject constructor(
                         }
                         val isSubscribed = connectionState == SubscriberConnectionState.Subscribed
                         if (state.value.subscribed != isSubscribed) {
+                            Log.d(TAG, "ConnectionState : ${streamInfo.index} $connectionState")
                             _state.update { it.copy(subscribed = isSubscribed) }
                             streamingBridge.updateSubscribedState(streamInfo.index, isSubscribed)
                             updateRenderState()
@@ -272,7 +275,7 @@ class StreamViewModel @AssistedInject constructor(
         when (action) {
             StreamAction.Connect -> connect()
             is StreamAction.Play -> {
-                Log.d(TAG, "Play")
+                Log.d(TAG, "Play ${streamInfo.index}")
                 videoSink = action.videoSink
                 state.value.videoTrack?.enableAsync(
                     promote = true,
@@ -282,7 +285,7 @@ class StreamViewModel @AssistedInject constructor(
             }
 
             StreamAction.Pause -> {
-                Log.d(TAG, "Pause")
+                Log.d(TAG, "Pause ${streamInfo.index}")
                 state.value.videoTrack?.disableAsync()
                 state.value.audioTrack?.disableAsync()
             }

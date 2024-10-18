@@ -9,6 +9,7 @@ import org.webrtc.VideoSink
 // state
 data class StreamState(
     val isFocused: Boolean = false,
+    val connected: Boolean = false,
     val subscribed: Boolean = false,
     val disconnected: Boolean = false,
     val videoTrack: RemoteVideoTrack? = null,
