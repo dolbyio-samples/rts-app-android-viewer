@@ -32,7 +32,7 @@ import io.dolby.rtsviewer.utils.formattedByteCount
 @Composable
 fun StatisticsScreen(viewModel: StreamViewModel, modifier: Modifier = Modifier) {
     // TODO collectAsStateWithLifecycle()
-    //val statistics = viewModel.subscriberStats.collectAsState(initial = null)
+    val statistics = viewModel.subscriberStats.collectAsState(initial = null)
     val statisticsTitle = stringResource(id = R.string.streaming_statistics_title)
 
     Box(
@@ -74,51 +74,51 @@ fun StatisticsScreen(viewModel: StreamViewModel, modifier: Modifier = Modifier) 
                 )
             }
 
-//            statistics.value?.let {
-//                StatsRow(title = "Stream View Id", value = it.streamViewId)
-//                StatsRow(title = "Subscriber Id", value = it.subscriberId)
-//                StatsRow(title = "Cluster Id", value = it.clusterId)
-//
-//                it.trackStats().forEach { trackStats ->
-//                    when (trackStats.type) {
-//                        TrackType.Video -> {
-//                            StatsRow(title = "MID", value = trackStats.mid)
-//                            StatsRow(
-//                                title = "Decoder Implementation",
-//                                value = trackStats.decoderImplementation ?: ""
-//                            )
-//                            StatsRow(
-//                                title = "Processing Delay",
-//                                value = trackStats.processingDelay?.toString() ?: ""
-//                            )
-//                            StatsRow(
-//                                title = "Decode time",
-//                                value = trackStats.decodeTime?.toString() ?: ""
-//                            )
-//                            StatsRow(
-//                                title = "Video Resolution",
-//                                value = (trackStats.frameWidth?.toString()
-//                                    ?: "") + "x" + (trackStats.frameHeight?.toString() ?: "")
-//                            )
-//                            StatsRow(
-//                                title = "FPS",
-//                                value = trackStats.framesPerSecond.toString()
-//                            )
-//                            StatsRow(
-//                                title = "Video Bitrate - kbps",
-//                                value = trackStats.bitrateBps?.div(1000u).toString()
-//                            )
-//                        }
-//
-//                        TrackType.Audio -> {
-//                            StatsRow(
-//                                title = "Audio Bitrate - kbps",
-//                                value = trackStats.bitrateBps?.div(1000u).toString()
-//                            )
-//                        }
-//                    }
-//                }
-//            }
+            statistics.value?.let {
+                StatsRow(title = "Stream View Id", value = it.streamViewId)
+                StatsRow(title = "Subscriber Id", value = it.subscriberId)
+                StatsRow(title = "Cluster Id", value = it.clusterId)
+
+                it.trackStats().forEach { trackStats ->
+                    when (trackStats.type) {
+                        TrackType.Video -> {
+                            StatsRow(title = "MID", value = trackStats.mid)
+                            StatsRow(
+                                title = "Decoder Implementation",
+                                value = trackStats.decoderImplementation ?: ""
+                            )
+                            StatsRow(
+                                title = "Processing Delay",
+                                value = trackStats.processingDelay?.toString() ?: ""
+                            )
+                            StatsRow(
+                                title = "Decode time",
+                                value = trackStats.decodeTime?.toString() ?: ""
+                            )
+                            StatsRow(
+                                title = "Video Resolution",
+                                value = (trackStats.frameWidth?.toString()
+                                    ?: "") + "x" + (trackStats.frameHeight?.toString() ?: "")
+                            )
+                            StatsRow(
+                                title = "FPS",
+                                value = trackStats.framesPerSecond.toString()
+                            )
+                            StatsRow(
+                                title = "Video Bitrate - kbps",
+                                value = trackStats.bitrateBps?.div(1000u).toString()
+                            )
+                        }
+
+                        TrackType.Audio -> {
+                            StatsRow(
+                                title = "Audio Bitrate - kbps",
+                                value = trackStats.bitrateBps?.div(1000u).toString()
+                            )
+                        }
+                    }
+                }
+            }
         }
     }
 }
