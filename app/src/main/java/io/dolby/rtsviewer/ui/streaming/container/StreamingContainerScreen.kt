@@ -32,6 +32,7 @@ fun StreamingContainerScreen(
     val uiState by viewModel.uiState.collectAsStateWithLifecycle()
 
     val screenContentDescription = stringResource(id = R.string.streaming_screen_contentDescription)
+
     DolbyBackgroundBox(
         modifier = Modifier.semantics {
             contentDescription = screenContentDescription
@@ -56,7 +57,6 @@ fun StreamingContainerScreen(
                 horizontalArrangement = Arrangement.spacedBy(5.dp)
             ) {
                 items(items = uiState.streams.streams) { stream ->
-                    Log.d(TAG, stream.index.toString())
                     StreamScreen(stream)
                 }
             }

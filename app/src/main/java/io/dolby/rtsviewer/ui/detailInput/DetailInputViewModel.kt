@@ -1,6 +1,7 @@
 package io.dolby.rtsviewer.ui.detailInput
 
 import androidx.lifecycle.ViewModel
+import androidx.lifecycle.viewModelScope
 import com.squareup.moshi.Moshi
 import dagger.hilt.android.lifecycle.HiltViewModel
 import io.dolby.rtscomponentkit.data.RTSViewerDataStore
@@ -12,7 +13,6 @@ import io.dolby.rtscomponentkit.domain.StreamingData
 import io.dolby.rtscomponentkit.utils.DispatcherProvider
 import io.dolby.rtsviewer.amino.RemoteConfigFlow
 import io.dolby.rtsviewer.datastore.RecentStreamsDataStore
-import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
@@ -36,8 +36,6 @@ class DetailInputViewModel @Inject constructor(
         const val DEMO_ACCOUNT_ID = StreamingData.DEMO_ACCOUNT_ID
     }
 
-    private val defaultCoroutineScope = CoroutineScope(dispatcherProvider.default)
-
     private val _uiState = MutableStateFlow(DetailInputScreenUiState())
     val uiState: StateFlow<DetailInputScreenUiState> = _uiState.asStateFlow()
 
@@ -47,14 +45,13 @@ class DetailInputViewModel @Inject constructor(
     private val _accountId = MutableStateFlow("")
     var accountId = _accountId.asStateFlow()
 
-    private val _remoteConfigUrl =
-        MutableStateFlow("https://aravind-raveendran.github.io/remote-configs/config.json")
+    private val _remoteConfigUrl = MutableStateFlow("")
     var remoteConfigUrl = _remoteConfigUrl.asStateFlow()
 
     private var isDemo = false
 
     init {
-        defaultCoroutineScope.launch {
+        viewModelScope.launch {
             recentStreamsDataStore.recentStreams
                 .collectLatest {
                     _uiState.update { state ->
@@ -83,7 +80,7 @@ class DetailInputViewModel @Inject constructor(
         }
 
     fun clearAllStreams() {
-        defaultCoroutineScope.launch {
+        viewModelScope.launch {
             recentStreamsDataStore.clearAll()
         }
     }
@@ -107,17 +104,16 @@ class DetailInputViewModel @Inject constructor(
 
     fun listOfEnv() = MediaServerEnv.listOfEnv()
 
-    val isAminoDevice: Boolean
-        get() = remoteConfigFlow.config.value.streams.isNotEmpty()
+    val isAminoDevice: Boolean = remoteConfigFlow.config.value.streams.isNotEmpty()
 
     fun getRemoteConfig() {
-        if(!remoteConfigUrl.value.startsWith("https://")){
+        if (!remoteConfigUrl.value.startsWith("https://")) {
             _uiState.update { state ->
                 state.copy(remoteConfigFetchState = RemoteConfigFetchState.ERROR)
             }
             return
         }
-        defaultCoroutineScope.launch {
+        viewModelScope.launch {
             _uiState.update { state ->
                 state.copy(remoteConfigFetchState = RemoteConfigFetchState.FETCHING) // TODO show spinner
             }
@@ -140,7 +136,7 @@ class DetailInputViewModel @Inject constructor(
         }
     }
 
-    fun updateRemoteConfigFetchState(newState : RemoteConfigFetchState) {
+    fun updateRemoteConfigFetchState(newState: RemoteConfigFetchState) {
         _uiState.update { state ->
             state.copy(remoteConfigFetchState = newState)
         }

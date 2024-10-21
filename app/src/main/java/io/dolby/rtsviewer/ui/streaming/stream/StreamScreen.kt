@@ -70,49 +70,23 @@ fun StreamScreen(streamInfo: StreamConfig) {
                 }
 
             }
+            Log.d(tag, "${streamInfo.index} TextureViewRenderer init")
             init(Media.eglBaseContext, events)
         }
     }
 
     val focusRequester = remember { FocusRequester() }
+
     LaunchedEffect(Unit) {
-        Log.i(tag, "Screen subscribe")
         if (uiState.shouldRequestFocusInitially) {
             focusRequester.requestFocus()
         }
         viewModel.onUiAction(StreamAction.Connect)
     }
 
-    DisposableEffect(viewModel) {
-        val observer = LifecycleEventObserver { _, event ->
-            when (event) {
-                Lifecycle.Event.ON_PAUSE -> {
-                    Log.d(tag, "${streamInfo.index} Lifecycle onPause")
-                }
-
-                Lifecycle.Event.ON_RESUME -> {
-                    Log.d(tag, "${streamInfo.index} Lifecycle OnResume")
-                }
-
-                Lifecycle.Event.ON_DESTROY -> {
-                    Log.d(tag, "${streamInfo.index} Lifecycle onDestroy")
-                }
-
-                else -> {
-                }
-            }
-        }
-        val lifecycle = lifecycleOwner.value.lifecycle
-        lifecycle.addObserver(observer)
-        onDispose {
-            Log.d(tag, "${streamInfo.index} ViewModel onDispose")
-            viewModel.onUiAction(StreamAction.Release)
-            lifecycle.removeObserver(observer)
-        }
-    }
-
     val borderColor =
         if (uiState.isFocused) MaterialTheme.colors.primaryVariant else Color.Transparent
+
     Box(
         modifier = Modifier
             .fillMaxWidth()
@@ -188,6 +162,10 @@ fun StreamScreen(streamInfo: StreamConfig) {
                                 viewModel.onUiAction(StreamAction.Play(videoRenderer))
                             }
 
+                            Lifecycle.Event.ON_DESTROY -> {
+                                Log.d(tag, "${streamInfo.index} Video Track Release")
+                            }
+
                             else -> {}
                         }
                     }
@@ -195,6 +173,8 @@ fun StreamScreen(streamInfo: StreamConfig) {
                     lifecycle.addObserver(observer)
                     onDispose {
                         Log.d(tag, "${streamInfo.index} onDispose")
+                        // ON_DESTROY is not getting called, so release here
+                        viewModel.onUiAction(StreamAction.Release)
                         lifecycle.removeObserver(observer)
                     }
                 }

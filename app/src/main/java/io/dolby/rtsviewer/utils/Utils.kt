@@ -5,6 +5,10 @@ import android.app.Activity
 import android.content.Context
 import android.content.ContextWrapper
 import android.media.AudioManager
+import android.media.MediaCodecList
+import android.media.MediaFormat
+import android.os.Build
+import android.util.Log
 import android.view.KeyEvent
 import android.view.WindowManager
 import androidx.compose.runtime.Composable
@@ -80,4 +84,24 @@ fun formattedByteCount(bytes: Long): String {
         ci.next()
     }
     return String.format("%.1f %cB", value / 1000.0, ci.current())
+}
+
+fun printCodecCapabilities() {
+    if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.Q) {
+        val interestedCodecs =
+            listOf(MediaFormat.MIMETYPE_VIDEO_AVC, MediaFormat.MIMETYPE_VIDEO_AV1)
+        val allCodecsInfos = MediaCodecList(MediaCodecList.ALL_CODECS).codecInfos
+        for (info in allCodecsInfos) {
+            if (info.isEncoder) continue
+
+            info.supportedTypes.filter {
+                interestedCodecs.contains(it)
+            }.forEach {
+                val ppl = info.getCapabilitiesForType(it).videoCapabilities.supportedPerformancePoints
+                ppl?.forEach { pp ->
+                    Log.wtf("CodecInfo", "$it  $pp")
+                }
+            }
+        }
+    }
 }

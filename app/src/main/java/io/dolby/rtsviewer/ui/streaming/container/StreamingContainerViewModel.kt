@@ -3,7 +3,9 @@ package io.dolby.rtsviewer.ui.streaming.container
 import android.util.Log
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
+import com.millicast.utils.LogLevel
 import dagger.hilt.android.lifecycle.HiltViewModel
+import io.dolby.rtscomponentkit.domain.StreamConfig
 import io.dolby.rtscomponentkit.domain.StreamConfigList
 import io.dolby.rtsviewer.R
 import io.dolby.rtsviewer.amino.RemoteConfigFlow
@@ -34,42 +36,40 @@ class StreamingContainerViewModel @Inject constructor(
 
     init {
         viewModelScope.launch {
-            launch {
-                networkStatusObserver.status.distinctUntilChanged().collect {
-                    when (it) {
-                        NetworkStatusObserver.Status.Unavailable -> {
-                            Log.d(TAG, "Unavailable network")
-                            _state.update { state ->
-                                state.copy(
-                                    streamInfos = emptyList(),
-                                    streamError = StreamError.NoInternetConnection
-                                )
-                            }
-                        }
-
-                        NetworkStatusObserver.Status.Available -> {
-                            Log.d(TAG, "Available network")
-                            val streamStateInfos =
-                                config.streams.map { stream ->
-                                    StreamStateInfo(streamInfo = stream)
-                                }
-                            _state.update { state ->
-                                state.copy(
-                                    streamInfos = streamStateInfos,
-                                    streamError = null
-                                )
-                            }
-                            streamingBridge.populateStreamStateInfos(streamStateInfos)
+            networkStatusObserver.status.distinctUntilChanged().collect {
+                when (it) {
+                    NetworkStatusObserver.Status.Unavailable -> {
+                        Log.d(TAG, "Unavailable network")
+                        _state.update { state ->
+                            state.copy(
+                                streamInfos = emptyList(),
+                                streamError = StreamError.NoInternetConnection
+                            )
                         }
                     }
-                    updateRenderState()
+
+                    NetworkStatusObserver.Status.Available -> {
+                        Log.d(TAG, "Available network")
+                        val streamStateInfos =
+                            config.streams.map { stream ->
+                                StreamStateInfo(streamInfo = stream)
+                            }
+                        _state.update { state ->
+                            state.copy(
+                                streamInfos = streamStateInfos,
+                                streamError = null
+                            )
+                        }
+                        streamingBridge.populateStreamStateInfos(streamStateInfos)
+                    }
                 }
+                updateRenderState()
             }
-            launch {
-                streamingBridge.streamStateInfos.collect { streamInfos ->
-                    _state.update { it.copy(streamInfos = streamInfos) }
-                    updateRenderState()
-                }
+        }
+        viewModelScope.launch {
+            streamingBridge.streamStateInfos.collect { streamInfos ->
+                _state.update { it.copy(streamInfos = streamInfos) }
+                updateRenderState()
             }
         }
     }
@@ -103,9 +103,9 @@ class StreamingContainerViewModel @Inject constructor(
 
     private fun getRenderState(): StreamingContainerUiState {
         val isSubscribed = state.value.streamInfos.any { it.isSubscribed }
-        val showStatistics = state.value.streamInfos.filter {
+        val showStatistics = state.value.streamInfos.any {
             it.showStatistics && it.shouldShowSettings
-        }.isNotEmpty()
+        }
 
         return StreamingContainerUiState(
             streams = StreamConfigList(state.value.streamInfos.map { it.streamInfo }),
@@ -127,5 +127,50 @@ class StreamingContainerViewModel @Inject constructor(
 
     companion object {
         private const val TAG = "StreamContainerViewModel"
+
+        private val HARD_CODED_CONFIG: StreamConfigList = StreamConfigList(
+            listOf(
+                StreamConfig(
+                    directorUrl = "https://director.millicast.com/api/director/subscribe",
+                    streamName = "Amino1080pFPS50",
+                    accountId = "sjf6bf",
+                    desc = "test",
+                    index = 0,
+                    name = "channel 0",
+                    logLevelWebSocket = LogLevel.MC_DEBUG,
+                    logLevelWebRTC = LogLevel.MC_OFF
+                ),
+                StreamConfig(
+                    directorUrl = "https://director.millicast.com/api/director/subscribe",
+                    streamName = "Amino1080pFPS50",
+                    accountId = "sjf6bf",
+                    desc = "test",
+                    index = 1,
+                    name = "channel 1",
+                    logLevelWebSocket = LogLevel.MC_DEBUG,
+                    logLevelWebRTC = LogLevel.MC_OFF
+                ),
+                StreamConfig(
+                    directorUrl = "https://director.millicast.com/api/director/subscribe",
+                    streamName = "Amino1080pFPS50",
+                    accountId = "sjf6bf",
+                    desc = "test",
+                    index = 2,
+                    name = "channel 2",
+                    logLevelWebSocket = LogLevel.MC_DEBUG,
+                    logLevelWebRTC = LogLevel.MC_OFF
+                ),
+                StreamConfig(
+                    directorUrl = "https://director.millicast.com/api/director/subscribe",
+                    streamName = "Amino1080pFPS50",
+                    accountId = "sjf6bf",
+                    desc = "test",
+                    index = 3,
+                    name = "channel 3",
+                    logLevelWebSocket = LogLevel.MC_DEBUG,
+                    logLevelWebRTC = LogLevel.MC_OFF
+                )
+            )
+        )
     }
 }

@@ -53,6 +53,7 @@ import io.dolby.rtsviewer.uikit.input.TvTextInput
 import io.dolby.rtsviewer.uikit.text.Text
 import io.dolby.rtsviewer.uikit.theme.fontColor
 import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.delay
 import kotlinx.coroutines.launch
 
 @Composable

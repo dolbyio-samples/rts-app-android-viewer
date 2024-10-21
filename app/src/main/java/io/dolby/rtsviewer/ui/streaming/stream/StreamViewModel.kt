@@ -63,79 +63,98 @@ class StreamViewModel @AssistedInject constructor(
 
     private fun collectSubscriberStates() {
         viewModelScope.launch {
-            launch {
-                subscriber?.state?.map { it.connectionState }?.distinctUntilChanged()
-                    ?.collect { connectionState ->
-                        when (connectionState) {
-                            is SubscriberConnectionState.Connected -> {
-                                Log.d(TAG, "ConnectionState : ${streamInfo.index} $connectionState")
-                                _state.update { it.copy(subscribed = false) }
-                                _state.update { it.copy(connected = true) }
-                                subscriber?.subscribe(
-                                    options = Option(
-                                        forcePlayoutDelay = getForcePlayoutDelay(),
-                                        jitterMinimumDelayMs = streamInfo.jitterBufferDelay ?: 0,
-                                        forceSmooth = streamInfo.forceSmooth ?: false,
-                                    )
+            subscriber?.state?.map { it.connectionState }?.distinctUntilChanged()
+                ?.collect { connectionState ->
+                    when (connectionState) {
+                        is SubscriberConnectionState.Connected -> {
+                            Log.d(TAG, "ConnectionState : ${streamInfo.index} $connectionState")
+                            _state.update { it.copy(subscribed = false) }
+                            _state.update { it.copy(connected = true) }
+
+                            subscriber?.subscribe(
+                                options = Option(
+                                    forcePlayoutDelay = getForcePlayoutDelay(),
+                                    jitterMinimumDelayMs = streamInfo.jitterBufferDelay ?: 0,
+                                    forceSmooth = streamInfo.forceSmooth ?: false,
                                 )
-                            }
+                            )
+                        }
 
-                            is SubscriberConnectionState.Error -> {
-                                Log.d(TAG, "Error : ${streamInfo.index} ${connectionState.reason}")
-                                _state.update { it.copy(streamError = StreamError.StreamNotActive) }
-                            }
+                        is SubscriberConnectionState.Error -> {
+                            Log.d(TAG, "Error : ${streamInfo.index} ${connectionState.reason}")
+                            _state.update { it.copy(streamError = StreamError.StreamNotActive) }
+                        }
 
-                            SubscriberConnectionState.Connecting -> {
-                                Log.d(TAG, "Connecting : ${streamInfo.index}")
-                            }
-                            SubscriberConnectionState.Disconnected -> {
-                                Log.d(TAG, "Disconnected : ${streamInfo.index}")
-                            }
-                            SubscriberConnectionState.DisconnectedError -> {
-                                Log.d(TAG, "DisconnectedError : ${streamInfo.index}")
-                            }
-                            SubscriberConnectionState.Disconnecting -> {
-                                Log.d(TAG, "Disconnecting : ${streamInfo.index}")
-                            }
-                            SubscriberConnectionState.Stopped -> {
-                                Log.d(TAG, "Stopped : ${streamInfo.index}")
-                            }
-                            SubscriberConnectionState.Subscribed -> {
-                                Log.d(TAG, "Subscribed : ${streamInfo.index}")
+                        SubscriberConnectionState.Connecting -> {
+                            Log.d(TAG, "Connecting : ${streamInfo.index}")
+                        }
 
-                                if (!state.value.subscribed) {
-                                    Log.d(TAG, "ConnectionState : ${streamInfo.index} $connectionState")
-                                    _state.update { it.copy(subscribed = true) }
-                                    streamingBridge.updateSubscribedState(streamInfo.index, true)
-                                    updateRenderState()
+                        SubscriberConnectionState.Disconnected -> {
+                            Log.d(TAG, "Disconnected : ${streamInfo.index}")
+                        }
+
+                        SubscriberConnectionState.DisconnectedError -> {
+                            Log.d(TAG, "DisconnectedError : ${streamInfo.index}")
+                        }
+
+                        SubscriberConnectionState.Disconnecting -> {
+                            Log.d(TAG, "Disconnecting : ${streamInfo.index}")
+                        }
+
+                        SubscriberConnectionState.Stopped -> {
+                            Log.d(TAG, "Stopped : ${streamInfo.index}")
+                        }
+
+                        SubscriberConnectionState.Subscribed -> {
+                            Log.d(TAG, "Subscribed : ${streamInfo.index}")
+
+                            if (!state.value.subscribed) {
+                                Log.d(
+                                    TAG,
+                                    "ConnectionState : ${streamInfo.index} $connectionState"
+                                )
+                                _state.update { it.copy(subscribed = true) }
+                                streamingBridge.updateSubscribedState(streamInfo.index, true)
+                                updateRenderState()
+
+                                viewModelScope.launch {
+                                    subscriber?.stats?.collect { stats ->
+                                        Log.i(
+                                            TAG,
+                                            "stats: ${stats?.toJson(SubscriberStats.Level.SIMPLIFIED)}"
+                                        )
+                                        _subscriberStats.value = stats
+                                    }
                                 }
                             }
                         }
                     }
-            }
+                }
+        }
 
-            launch {
-                subscriber?.onRemoteTrack?.distinctUntilChanged()?.collect { track ->
-                    when (track) {
-                        is RemoteAudioTrack -> {
-                            if (state.value.audioTrack == null) {
-                                //Log.d(TAG, "Received Audio Track for ${streamInfo.index}")
-                                if (state.value.isFocused) {
-                                    track.setVolume(1.0)
-                                    track.enableAsync()
-                                } else {
-                                    track.setVolume(0.0)
-                                    track.disableAsync()
-                                }
-                                _state.update { it.copy(audioTrack = track) }
+        viewModelScope.launch {
+            subscriber?.onRemoteTrack?.collect { track ->
+                when (track) {
+                    is RemoteAudioTrack -> {
+                        if (state.value.audioTrack == null) {
+                            //Log.d(TAG, "Received Audio Track for ${streamInfo.index}")
+                            if (state.value.isFocused) {
+                                track.setVolume(1.0)
+                                track.enableAsync()
+                            } else {
+                                track.setVolume(0.0)
+                                track.disableAsync()
                             }
+                            _state.update { it.copy(audioTrack = track) }
                         }
+                    }
 
-                        is RemoteVideoTrack -> {
-                            if (state.value.videoTrack == null) {
-                                Log.d(TAG, "Received Video Track for ${streamInfo.index}")
-                                _state.update { it.copy(videoTrack = track) }
-                                updateRenderState()
+                    is RemoteVideoTrack -> {
+                        if (state.value.videoTrack == null) {
+                            Log.d(TAG, "Received Video Track for ${streamInfo.index}")
+                            _state.update { it.copy(videoTrack = track) }
+                            updateRenderState()
+                            viewModelScope.launch {
                                 track.onState.collect { trackState ->
                                     val availableStreamQualities =
                                         trackState.layers?.activeLayers?.let {
@@ -153,26 +172,26 @@ class StreamViewModel @AssistedInject constructor(
                     }
                 }
             }
-
-            launch {
-                subscriber?.stats?.collect { stats ->
-                    _subscriberStats.value = stats
-                }
-            }
         }
     }
 
     private fun connect() {
         Log.d(TAG, "Connect Stream ${streamInfo.index}")
         viewModelScope.safeLaunch(block = {
+            Log.d(TAG, "Connect Stream ${streamInfo.index} >1")
             subscriber = Core.createSubscriber()
+            Log.d(TAG, "Connect Stream ${streamInfo.index} >2")
             val credentials =
                 Credential(streamInfo.streamName, streamInfo.accountId, streamInfo.directorUrl)
+            Log.d(TAG, "Connect Stream ${streamInfo.index} >3")
             val connectionOptions = ConnectionOptions(true)
             subscriber?.enableStats(true)
             subscriber?.setCredentials(credentials)
+            Log.d(TAG, "Connect Stream ${streamInfo.index} >4")
             subscriber?.connect(connectionOptions)
+            Log.d(TAG, "Connect Stream ${streamInfo.index} >5")
             collectSubscriberStates()
+            Log.d(TAG, "Connect Stream ${streamInfo.index} >6")
         }) {
             _state.update {
                 it.copy(streamError = StreamError.StreamNotActive)
@@ -256,38 +275,33 @@ class StreamViewModel @AssistedInject constructor(
 
     private fun collectStreamingBridge() {
         viewModelScope.launch {
-            launch {
-                viewModelScope.launch {
-                    streamingBridge.streamStateInfos.collect { infos ->
-                        infos.find { it.streamInfo.index == streamInfo.index }?.selectedStreamQuality?.let { selectedStreamQuality ->
-                            if (state.value.selectedStreamQuality != selectedStreamQuality) {
-                                videoSink?.let { sink ->
-                                    Log.d(TAG, "enableAsync - Update layer")
-                                    state.value.videoTrack?.enableAsync(
-                                        promote = true,
-                                        layer = selectedStreamQuality.layerData,
-                                        videoSink = sink
-                                    )
-                                }
-                                _state.update { it.copy(selectedStreamQuality = selectedStreamQuality) }
-                            }
+            streamingBridge.streamStateInfos.collect { infos ->
+                infos.find { it.streamInfo.index == streamInfo.index }?.selectedStreamQuality?.let { selectedStreamQuality ->
+                    if (state.value.selectedStreamQuality != selectedStreamQuality) {
+                        videoSink?.let { sink ->
+                            Log.d(TAG, "enableAsync - Update layer")
+                            state.value.videoTrack?.enableAsync(
+                                promote = true,
+                                layer = selectedStreamQuality.layerData,
+                                videoSink = sink
+                            )
                         }
-                    }
-                }
-            }
-            launch {
-                viewModelScope.launch {
-                    streamingBridge.streamStateInfos.collect { infos ->
-                        val showStats =
-                            infos.find { it.streamInfo.index == streamInfo.index }?.showStatistics
-                        _state.update {
-                            it.copy(showStatistics = showStats ?: false)
-                        }
-                        updateRenderState()
+                        _state.update { it.copy(selectedStreamQuality = selectedStreamQuality) }
                     }
                 }
             }
         }
+        viewModelScope.launch {
+            streamingBridge.streamStateInfos.collect { infos ->
+                val showStats =
+                    infos.find { it.streamInfo.index == streamInfo.index }?.showStatistics
+                _state.update {
+                    it.copy(showStatistics = showStats ?: false)
+                }
+                updateRenderState()
+            }
+        }
+
     }
 
     fun onUiAction(action: StreamAction) {
