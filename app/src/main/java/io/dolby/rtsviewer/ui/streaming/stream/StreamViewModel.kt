@@ -109,10 +109,6 @@ class StreamViewModel @AssistedInject constructor(
                             Log.d(TAG, "Subscribed : ${streamInfo.index}")
 
                             if (!state.value.subscribed) {
-                                Log.d(
-                                    TAG,
-                                    "ConnectionState : ${streamInfo.index} $connectionState"
-                                )
                                 _state.update { it.copy(subscribed = true) }
                                 streamingBridge.updateSubscribedState(streamInfo.index, true)
                                 updateRenderState()
