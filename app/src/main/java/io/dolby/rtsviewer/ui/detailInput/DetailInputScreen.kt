@@ -52,6 +52,7 @@ import io.dolby.rtsviewer.uikit.button.StyledButton
 import io.dolby.rtsviewer.uikit.input.TvTextInput
 import io.dolby.rtsviewer.uikit.text.Text
 import io.dolby.rtsviewer.uikit.theme.fontColor
+import io.dolby.rtsviewer.utils.printCodecCapabilities
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.launch
@@ -313,7 +314,7 @@ fun DetailInputScreen(
                         value = remoteConfigUrl.value,
                         label = stringResource(id = R.string.remote_config_url),
                         onValueChange = {
-                            viewModel.updateStreamName(it)
+                            viewModel.updateRemoteConfigUrl(it)
                         },
                         keyboardOptions = KeyboardOptions(imeAction = ImeAction.Next),
                         keyboardActions = KeyboardActions(

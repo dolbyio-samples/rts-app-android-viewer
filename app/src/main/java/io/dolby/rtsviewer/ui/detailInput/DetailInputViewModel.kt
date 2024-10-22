@@ -13,6 +13,8 @@ import io.dolby.rtscomponentkit.domain.StreamingData
 import io.dolby.rtscomponentkit.utils.DispatcherProvider
 import io.dolby.rtsviewer.amino.RemoteConfigFlow
 import io.dolby.rtsviewer.datastore.RecentStreamsDataStore
+import io.dolby.rtsviewer.utils.printCodecCapabilities
+import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
@@ -45,7 +47,8 @@ class DetailInputViewModel @Inject constructor(
     private val _accountId = MutableStateFlow("")
     var accountId = _accountId.asStateFlow()
 
-    private val _remoteConfigUrl = MutableStateFlow("")
+    private val _remoteConfigUrl =
+        MutableStateFlow("https://aravind-raveendran.github.io/remote-configs/multich_cfg_1.json")
     var remoteConfigUrl = _remoteConfigUrl.asStateFlow()
 
     private var isDemo = false
@@ -94,6 +97,10 @@ class DetailInputViewModel @Inject constructor(
 
     fun updateAccountId(id: String) {
         _accountId.value = id
+    }
+
+    fun updateRemoteConfigUrl(name: String) {
+        _remoteConfigUrl.value = name
     }
 
     fun useDemoStream() {
