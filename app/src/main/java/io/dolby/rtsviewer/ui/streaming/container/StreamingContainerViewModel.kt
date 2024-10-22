@@ -32,7 +32,7 @@ class StreamingContainerViewModel @Inject constructor(
     private val _uiState = MutableStateFlow(getRenderState())
     val uiState: StateFlow<StreamingContainerUiState> = _uiState.asStateFlow()
 
-    private val config: StreamConfigList = remoteConfigFlow.config.value
+    private val config: StreamConfigList = HARD_CODED_CONFIG //remoteConfigFlow.config.value
 
     init {
         viewModelScope.launch {
@@ -132,8 +132,8 @@ class StreamingContainerViewModel @Inject constructor(
             listOf(
                 StreamConfig(
                     directorUrl = "https://director.millicast.com/api/director/subscribe",
-                    streamName = "Amino1080pFPS50",
-                    accountId = "sjf6bf",
+                    streamName = "multiview",
+                    accountId = "k9Mwad",
                     desc = "test",
                     index = 0,
                     name = "channel 0",
@@ -142,8 +142,8 @@ class StreamingContainerViewModel @Inject constructor(
                 ),
                 StreamConfig(
                     directorUrl = "https://director.millicast.com/api/director/subscribe",
-                    streamName = "Amino1080pFPS50",
-                    accountId = "sjf6bf",
+                    streamName = "multiview",
+                    accountId = "k9Mwad",
                     desc = "test",
                     index = 1,
                     name = "channel 1",
@@ -152,8 +152,8 @@ class StreamingContainerViewModel @Inject constructor(
                 ),
                 StreamConfig(
                     directorUrl = "https://director.millicast.com/api/director/subscribe",
-                    streamName = "Amino1080pFPS50",
-                    accountId = "sjf6bf",
+                    streamName = "multiview",
+                    accountId = "k9Mwad",
                     desc = "test",
                     index = 2,
                     name = "channel 2",
@@ -162,8 +162,8 @@ class StreamingContainerViewModel @Inject constructor(
                 ),
                 StreamConfig(
                     directorUrl = "https://director.millicast.com/api/director/subscribe",
-                    streamName = "Amino1080pFPS50",
-                    accountId = "sjf6bf",
+                    streamName = "multiview",
+                    accountId = "k9Mwad",
                     desc = "test",
                     index = 3,
                     name = "channel 3",
