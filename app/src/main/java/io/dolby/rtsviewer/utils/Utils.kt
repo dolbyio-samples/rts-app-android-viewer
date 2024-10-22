@@ -86,11 +86,14 @@ fun formattedByteCount(bytes: Long): String {
     return String.format("%.1f %cB", value / 1000.0, ci.current())
 }
 
-fun printCodecCapabilities() {
+fun printCodecCapabilities():String {
     if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.Q) {
         val interestedCodecs =
             listOf(MediaFormat.MIMETYPE_VIDEO_AVC, MediaFormat.MIMETYPE_VIDEO_AV1)
         val allCodecsInfos = MediaCodecList(MediaCodecList.ALL_CODECS).codecInfos
+
+        var codecInfoString : String = ""
+
         for (info in allCodecsInfos) {
             if (info.isEncoder) continue
 
@@ -100,8 +103,11 @@ fun printCodecCapabilities() {
                 val ppl = info.getCapabilitiesForType(it).videoCapabilities.supportedPerformancePoints
                 ppl?.forEach { pp ->
                     Log.wtf("CodecInfo", "$it  $pp")
+                    codecInfoString += "$it  $pp "
                 }
             }
         }
+        return codecInfoString
     }
+    return "Can't get codec info"
 }
