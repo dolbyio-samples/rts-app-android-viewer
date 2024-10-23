@@ -116,10 +116,6 @@ class StreamViewModel @AssistedInject constructor(
 
                                 viewModelScope.launch {
                                     subscriber?.stats?.collect { stats ->
-//                                        Log.i(
-//                                            TAG,
-//                                            "stats: ${stats?.toJson(SubscriberStats.Level.SIMPLIFIED)}"
-//                                        )
                                         _subscriberStats.value = stats
                                     }
                                 }
@@ -324,14 +320,13 @@ class StreamViewModel @AssistedInject constructor(
             }
 
             is StreamAction.UpdateFocus -> {
+                Log.d(TAG, "UpdateFocus ${streamInfo.index}")
                 _state.update { it.copy(isFocused = action.isFocused) }
-                viewModelScope.launch {
-                    state.value.audioTrack?.let {
+                state.value.audioTrack?.let {
+                    if(it.isActive) {
                         if (action.isFocused) {
-                            it.setVolume(1.0)
                             it.enableAsync()
                         } else {
-                            it.setVolume(0.0)
                             it.disableAsync()
                         }
                     }

@@ -32,7 +32,7 @@ class StreamingContainerViewModel @Inject constructor(
     private val _uiState = MutableStateFlow(getRenderState())
     val uiState: StateFlow<StreamingContainerUiState> = _uiState.asStateFlow()
 
-    private val config: StreamConfigList = remoteConfigFlow.config.value
+    private val config: StreamConfigList = HARD_CODED_CONFIG //remoteConfigFlow.config.value
 
     init {
         viewModelScope.launch {
