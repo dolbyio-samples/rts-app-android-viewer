@@ -203,9 +203,12 @@ class StreamViewModel @AssistedInject constructor(
             )
         }
         updateRenderState()
-        subscriber?.disconnect()
-        subscriber?.release()
-        subscriber = null
+        viewModelScope.launch {
+            subscriber?.unsubscribe()
+            subscriber?.disconnect()
+            subscriber?.release()
+            subscriber = null
+        }
     }
 
     private fun sortActiveLayers(activeLayers: List<LayerDataSelection>): List<AvailableStreamQuality> {
