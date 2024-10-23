@@ -23,6 +23,7 @@ import io.dolby.rtscomponentkit.domain.StreamConfig
 import io.dolby.rtsviewer.ui.streaming.common.AvailableStreamQuality
 import io.dolby.rtsviewer.ui.streaming.common.StreamError
 import io.dolby.rtsviewer.ui.streaming.common.StreamingBridge
+import kotlinx.coroutines.delay
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
@@ -115,10 +116,10 @@ class StreamViewModel @AssistedInject constructor(
 
                                 viewModelScope.launch {
                                     subscriber?.stats?.collect { stats ->
-                                        Log.i(
-                                            TAG,
-                                            "stats: ${stats?.toJson(SubscriberStats.Level.SIMPLIFIED)}"
-                                        )
+//                                        Log.i(
+//                                            TAG,
+//                                            "stats: ${stats?.toJson(SubscriberStats.Level.SIMPLIFIED)}"
+//                                        )
                                         _subscriberStats.value = stats
                                     }
                                 }
@@ -146,8 +147,11 @@ class StreamViewModel @AssistedInject constructor(
                     }
 
                     is RemoteVideoTrack -> {
-                        if (state.value.videoTrack == null) {
-                            Log.d(TAG, "Received Video Track for ${streamInfo.index}")
+                        Log.d(
+                            TAG,
+                            "Received Video Track for ${streamInfo.index} status:${track.isActive}"
+                        )
+                        if (state.value.videoTrack == null && track.isActive) {
                             _state.update { it.copy(videoTrack = track) }
                             updateRenderState()
                             viewModelScope.launch {
@@ -174,20 +178,15 @@ class StreamViewModel @AssistedInject constructor(
     private fun connect() {
         Log.d(TAG, "Connect Stream ${streamInfo.index}")
         viewModelScope.safeLaunch(block = {
-            Log.d(TAG, "Connect Stream ${streamInfo.index} >1")
+            delay((1000 * (streamInfo.index + 1)).toLong())
             subscriber = Core.createSubscriber()
-            Log.d(TAG, "Connect Stream ${streamInfo.index} >2")
             val credentials =
                 Credential(streamInfo.streamName, streamInfo.accountId, streamInfo.directorUrl)
-            Log.d(TAG, "Connect Stream ${streamInfo.index} >3")
             val connectionOptions = ConnectionOptions(true)
             subscriber?.enableStats(true)
             subscriber?.setCredentials(credentials)
-            Log.d(TAG, "Connect Stream ${streamInfo.index} >4")
             subscriber?.connect(connectionOptions)
-            Log.d(TAG, "Connect Stream ${streamInfo.index} >5")
             collectSubscriberStates()
-            Log.d(TAG, "Connect Stream ${streamInfo.index} >6")
         }) {
             _state.update {
                 it.copy(streamError = StreamError.StreamNotActive)

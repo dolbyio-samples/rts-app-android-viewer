@@ -1,5 +1,6 @@
 package io.dolby.rtsviewer.ui.streaming.stream
 
+import android.content.Context
 import android.util.Log
 import androidx.compose.animation.AnimatedVisibility
 import androidx.compose.foundation.border
@@ -44,6 +45,15 @@ import io.dolby.rtsviewer.ui.streaming.common.ErrorView
 import io.dolby.rtsviewer.uikit.button.StyledIconButton
 import io.dolby.uikit.R
 import org.webrtc.RendererCommon
+import org.webrtc.VideoFrame
+
+class LogTextureViewRenderer(context: Context) : TextureViewRenderer(context) {
+    override fun onFrame(videoFrame: VideoFrame?) {
+        super.onFrame(videoFrame)
+
+        Log.d("LogTextureViewRenderer", "onFrame")
+    }
+}
 
 @Composable
 fun StreamScreen(streamInfo: StreamConfig) {
@@ -106,7 +116,7 @@ fun StreamScreen(streamInfo: StreamConfig) {
         uiState.streamError?.let {
             ErrorView(error = it)
         } ?: run {
-            if (uiState.videoTrack != null) {
+            if (uiState.videoTrack?.isActive == true) {
                 Box(
                     modifier = Modifier
                         .align(Alignment.Center)
@@ -149,7 +159,7 @@ fun StreamScreen(streamInfo: StreamConfig) {
                     }
                 }
 
-                DisposableEffect(uiState.videoTrack, uiState.selectedStreamQuality) {
+                DisposableEffect(uiState.videoTrack) {
                     val observer = LifecycleEventObserver { _, event ->
                         when (event) {
                             Lifecycle.Event.ON_PAUSE -> {
