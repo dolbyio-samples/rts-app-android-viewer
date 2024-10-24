@@ -67,11 +67,12 @@ class AminoDeviceRemoteService(private val remoteConfigFlow: RemoteConfigFlow, p
     private fun buildDeviceConfig() {
         try {
             val jsonArgs = remoteService?.getDeviceParameter("tvapp.mw_args", "")
+            val serialNumber = remoteService?.deviceSerialNumber
             jsonArgs?.takeIf { it.isNotEmpty() }?.let {
                 moshi.adapter(RemoteStreamConfig::class.java).lenient().fromJson(it)
                     ?.let { config ->
                         val streamConfigList = List(config.url.size) { index ->
-                            StreamConfig.from(config, index = index)
+                            StreamConfig.from(config, index = index, serialNumber !=null)
                         }
 
                         remoteConfigFlow.updateConfig(StreamConfigList(streamConfigList))

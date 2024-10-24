@@ -47,8 +47,7 @@ class DetailInputViewModel @Inject constructor(
     private val _accountId = MutableStateFlow("")
     var accountId = _accountId.asStateFlow()
 
-    private val _remoteConfigUrl =
-        MutableStateFlow("https://aravind-raveendran.github.io/remote-configs/multich_cfg_1.json")
+    private val _remoteConfigUrl = MutableStateFlow("")
     var remoteConfigUrl = _remoteConfigUrl.asStateFlow()
 
     private var isDemo = false

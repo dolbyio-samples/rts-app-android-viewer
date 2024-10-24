@@ -33,10 +33,11 @@ data class StreamConfig(
     val name: String,
     val desc: String,
     val accountId: String,
-    val streamName: String
+    val streamName: String,
+    val isAmino: Boolean = false
 ) {
     companion object {
-        fun from(streamConfig: RemoteStreamConfig, index: Int): StreamConfig {
+        fun from(streamConfig: RemoteStreamConfig, index: Int, isAmino : Boolean = false): StreamConfig {
             val details = parseUri(streamConfig.url[index])
             return StreamConfig(
                 index = index,
@@ -51,7 +52,8 @@ data class StreamConfig(
                 name = streamConfig.name,
                 desc = streamConfig.desc,
                 accountId = details?.first ?: "", // TODO throw exception
-                streamName = details?.second ?: ""
+                streamName = details?.second ?: "",
+                isAmino = isAmino
             )
         }
 
