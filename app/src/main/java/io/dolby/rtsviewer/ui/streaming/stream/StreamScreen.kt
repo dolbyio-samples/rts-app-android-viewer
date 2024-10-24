@@ -116,7 +116,7 @@ fun StreamScreen(streamInfo: StreamConfig) {
         uiState.streamError?.let {
             ErrorView(error = it)
         } ?: run {
-            if (uiState.videoTrack?.isActive == true) {
+            if (uiState.videoTrack != null) {
                 Box(
                     modifier = Modifier
                         .align(Alignment.Center)

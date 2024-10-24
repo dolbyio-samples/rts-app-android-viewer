@@ -147,7 +147,7 @@ class StreamViewModel @AssistedInject constructor(
                             TAG,
                             "Received Video Track for ${streamInfo.index} status:${track.isActive}"
                         )
-                        if (state.value.videoTrack == null && track.isActive) {
+                        if (state.value.videoTrack == null) {
                             _state.update { it.copy(videoTrack = track) }
                             updateRenderState()
                             viewModelScope.launch {
@@ -326,12 +326,10 @@ class StreamViewModel @AssistedInject constructor(
                 Log.d(TAG, "UpdateFocus ${streamInfo.index}")
                 _state.update { it.copy(isFocused = action.isFocused) }
                 state.value.audioTrack?.let {
-                    if(it.isActive) {
-                        if (action.isFocused) {
-                            it.enableAsync()
-                        } else {
-                            it.disableAsync()
-                        }
+                    if (action.isFocused) {
+                        it.enableAsync()
+                    } else {
+                        it.disableAsync()
                     }
                 }
                 updateRenderState()
