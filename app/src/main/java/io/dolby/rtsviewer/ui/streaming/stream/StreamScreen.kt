@@ -11,6 +11,7 @@ import androidx.compose.foundation.layout.aspectRatio
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.size
 import androidx.compose.material.MaterialTheme
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.DisposableEffect
@@ -20,6 +21,7 @@ import androidx.compose.runtime.remember
 import androidx.compose.runtime.rememberUpdatedState
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.draw.alpha
 import androidx.compose.ui.focus.FocusRequester
 import androidx.compose.ui.focus.focusRequester
 import androidx.compose.ui.focus.onFocusChanged
@@ -76,7 +78,7 @@ fun StreamScreen(streamInfo: StreamConfig) {
                 }
 
                 override fun onFrameResolutionChanged(p0: Int, p1: Int, p2: Int) {
-                    //Log.d(tag, "${streamInfo.index} onFrameResolutionChanged")
+                    Log.d(tag, "${streamInfo.index} onFrameResolutionChanged")
                 }
 
             }
@@ -113,84 +115,90 @@ fun StreamScreen(streamInfo: StreamConfig) {
             .border(5.dp, borderColor)
             .aspectRatio(16 / 9f)
     ) {
-        uiState.streamError?.let {
-            ErrorView(error = it)
-        } ?: run {
-            if (uiState.videoTrack != null) {
-                Box(
+
+        DisposableEffect(viewModel) {
+            onDispose {
+                Log.d(tag, "${streamInfo.index} Video Track Release")
+                viewModel.onUiAction(StreamAction.Release)
+            }
+        }
+
+        if (uiState.videoTrack != null) {
+            DisposableEffect(uiState.videoTrack) {
+                val lifecycle = lifecycleOwner.value.lifecycle
+                val observer = LifecycleEventObserver { _, event ->
+                    when (event) {
+                        Lifecycle.Event.ON_PAUSE -> {
+                            Log.d(tag, "${streamInfo.index} Video Track Pause")
+                            viewModel.onUiAction(StreamAction.Pause)
+                        }
+
+                        Lifecycle.Event.ON_RESUME -> {
+                            Log.d(tag, "${streamInfo.index} Video Track Play")
+                            viewModel.onUiAction(StreamAction.Play(videoRenderer))
+                        }
+
+                        else -> {}
+                    }
+                }
+                lifecycle.addObserver(observer)
+                onDispose {
+                    Log.d(tag, "${streamInfo.index} onDispose")
+                    lifecycle.removeObserver(observer)
+                }
+            }
+            Box(
+                modifier = Modifier
+                    .align(Alignment.Center)
+                    .fillMaxSize()
+                    .alpha(if (uiState.streamError == null) 1.0f else 0.0f)
+            ) {
+                AndroidView(
+                    factory = { videoRenderer },
                     modifier = Modifier
-                        .align(Alignment.Center)
+                        .fillMaxSize(),
+                    update = { view ->
+                        view.setScalingType(RendererCommon.ScalingType.SCALE_ASPECT_FIT)
+                    },
+                    onRelease = { videoRenderer.release() }
+                )
+            }
+
+            val toolbarContentDescription =
+                stringResource(id = io.dolby.rtsviewer.R.string.streamingToolbar_contentDescription)
+            ConstraintLayout(
+                modifier = Modifier
+                    .fillMaxSize()
+                    .alpha(if (uiState.streamError == null) 1.0f else 0.0f)
+                    .semantics { contentDescription = toolbarContentDescription }
+            ) {
+                val (toolbar, settings) = createRefs()
+                AnimatedVisibility(
+                    visible = uiState.showSettingsButton,
+                    modifier = Modifier
+                        .constrainAs(toolbar) {
+                            bottom.linkTo(parent.bottom)
+                            end.linkTo(parent.end)
+                        }
+                        .semantics { contentDescription = "visibility button" }
                 ) {
-                    AndroidView(
-                        factory = { videoRenderer },
-                        update = { view ->
-                            view.setScalingType(RendererCommon.ScalingType.SCALE_ASPECT_FIT)
-                        },
-                        onRelease = { videoRenderer.release() }
+                    StyledIconButton(
+                        modifier = Modifier
+                            .constrainAs(settings) {
+                                bottom.linkTo(parent.bottom, margin = 14.dp)
+                                end.linkTo(parent.end, margin = 20.dp)
+                            },
+                        icon = painterResource(id = R.drawable.ic_settings),
+                        text = stringResource(id = io.dolby.rtsviewer.R.string.settings_title)
                     )
                 }
-
-                val toolbarContentDescription =
-                    stringResource(id = io.dolby.rtsviewer.R.string.streamingToolbar_contentDescription)
-                ConstraintLayout(
-                    modifier = Modifier
-                        .fillMaxSize()
-                        .semantics { contentDescription = toolbarContentDescription }
-                ) {
-                    val (toolbar, settings) = createRefs()
-                    AnimatedVisibility(
-                        visible = uiState.showSettingsButton,
-                        modifier = Modifier
-                            .constrainAs(toolbar) {
-                                bottom.linkTo(parent.bottom)
-                                end.linkTo(parent.end)
-                            }
-                            .semantics { contentDescription = "visibility button" }
-                    ) {
-                        StyledIconButton(
-                            modifier = Modifier
-                                .constrainAs(settings) {
-                                    bottom.linkTo(parent.bottom, margin = 14.dp)
-                                    end.linkTo(parent.end, margin = 20.dp)
-                                },
-                            icon = painterResource(id = R.drawable.ic_settings),
-                            text = stringResource(id = io.dolby.rtsviewer.R.string.settings_title)
-                        )
-                    }
-                }
-
-                DisposableEffect(uiState.videoTrack) {
-                    val observer = LifecycleEventObserver { _, event ->
-                        when (event) {
-                            Lifecycle.Event.ON_PAUSE -> {
-                                Log.d(tag, "${streamInfo.index} Video Track Pause")
-                                viewModel.onUiAction(StreamAction.Pause)
-                            }
-
-                            Lifecycle.Event.ON_RESUME -> {
-                                Log.d(tag, "${streamInfo.index} Video Track Play")
-                                viewModel.onUiAction(StreamAction.Play(videoRenderer))
-                            }
-
-                            Lifecycle.Event.ON_DESTROY -> {
-                                Log.d(tag, "${streamInfo.index} Video Track Release")
-                            }
-
-                            else -> {}
-                        }
-                    }
-                    val lifecycle = lifecycleOwner.value.lifecycle
-                    lifecycle.addObserver(observer)
-                    onDispose {
-                        Log.d(tag, "${streamInfo.index} onDispose")
-                        // ON_DESTROY is not getting called, so release here
-                        viewModel.onUiAction(StreamAction.Release)
-                        lifecycle.removeObserver(observer)
-                    }
-                }
-            } else {
-                Text(text = "Please wait....", color = MaterialTheme.colors.onSurface)
             }
+        } else {
+            Text(text = "Please wait....", color = MaterialTheme.colors.onSurface)
+        }
+
+        uiState.streamError?.let {
+            ErrorView(error = it)
         }
 
         if (uiState.showStatistics) {

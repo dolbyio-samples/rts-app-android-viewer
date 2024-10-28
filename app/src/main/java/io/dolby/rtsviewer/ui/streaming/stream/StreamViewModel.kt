@@ -33,12 +33,18 @@ import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
 import org.webrtc.VideoSink
+import kotlin.time.Duration.Companion.milliseconds
 
 @HiltViewModel(assistedFactory = StreamViewModel.Factory::class)
 class StreamViewModel @AssistedInject constructor(
     @Assisted private val streamInfo: StreamConfig,
     private val streamingBridge: StreamingBridge
 ) : ViewModel() {
+
+    override fun onCleared() {
+        super.onCleared()
+        Log.d(TAG, "Clearing viewmodel ${streamInfo.index}")
+    }
 
     @AssistedFactory
     interface Factory {
@@ -66,71 +72,52 @@ class StreamViewModel @AssistedInject constructor(
         viewModelScope.launch {
             subscriber?.state?.map { it.connectionState }?.distinctUntilChanged()
                 ?.collect { connectionState ->
+                    Log.d(TAG, "Subscriber state:: ${streamInfo.index} $connectionState")
                     when (connectionState) {
                         is SubscriberConnectionState.Connected -> {
-                            Log.d(TAG, "ConnectionState : ${streamInfo.index} $connectionState")
-                            _state.update { it.copy(subscribed = false) }
-                            _state.update { it.copy(connected = true) }
-
-                            subscriber?.subscribe(
-                                options = Option(
-                                    forcePlayoutDelay = getForcePlayoutDelay(),
-                                    jitterMinimumDelayMs = streamInfo.jitterBufferDelay ?: 0,
-                                    forceSmooth = streamInfo.forceSmooth ?: false,
-                                )
-                            )
+                            // No-op
                         }
 
                         is SubscriberConnectionState.Error -> {
-                            Log.d(TAG, "Error : ${streamInfo.index} ${connectionState.reason}")
+                            Log.d(TAG, "Subscriber state error : ${streamInfo.index} ${connectionState.reason}")
                             _state.update { it.copy(streamError = StreamError.StreamNotActive) }
+                            updateRenderState()
                         }
 
                         SubscriberConnectionState.Connecting -> {
-                            Log.d(TAG, "Connecting : ${streamInfo.index}")
+                            // No-op
                         }
 
                         SubscriberConnectionState.Disconnected -> {
-                            Log.d(TAG, "Disconnected : ${streamInfo.index}")
+                            // No-op
                         }
 
                         SubscriberConnectionState.DisconnectedError -> {
-                            Log.d(TAG, "DisconnectedError : ${streamInfo.index}")
+                            // No-op
                         }
 
                         SubscriberConnectionState.Disconnecting -> {
-                            Log.d(TAG, "Disconnecting : ${streamInfo.index}")
+                            // No-op
                         }
 
                         SubscriberConnectionState.Stopped -> {
-                            Log.d(TAG, "Stopped : ${streamInfo.index}")
+                            // No-op
                         }
 
                         SubscriberConnectionState.Subscribed -> {
-                            Log.d(TAG, "Subscribed : ${streamInfo.index}")
-
-                            if (!state.value.subscribed) {
-                                _state.update { it.copy(subscribed = true) }
-                                streamingBridge.updateSubscribedState(streamInfo.index, true)
-                                updateRenderState()
-
-                                viewModelScope.launch {
-                                    subscriber?.stats?.collect { stats ->
-                                        _subscriberStats.value = stats
-                                    }
-                                }
-                            }
+                            _state.update { it.copy(streamError = null) }
+                            updateRenderState()
                         }
                     }
                 }
         }
-
         viewModelScope.launch {
             subscriber?.onRemoteTrack?.collect { track ->
+                delay((1000 * (streamInfo.index + 1)).toLong())
                 when (track) {
                     is RemoteAudioTrack -> {
                         if (state.value.audioTrack == null) {
-                            //Log.d(TAG, "Received Audio Track for ${streamInfo.index}")
+                            Log.d(TAG, "Received Audio Track for ${streamInfo.index}")
                             if (state.value.isFocused) {
                                 track.setVolume(1.0)
                                 track.enableAsync()
@@ -143,15 +130,12 @@ class StreamViewModel @AssistedInject constructor(
                     }
 
                     is RemoteVideoTrack -> {
-                        Log.d(
-                            TAG,
-                            "Received Video Track for ${streamInfo.index} status:${track.isActive}"
-                        )
                         if (state.value.videoTrack == null) {
+                            Log.d(TAG, "Received Video Track for ${streamInfo.index} status:${track.isActive}")
                             _state.update { it.copy(videoTrack = track) }
                             updateRenderState()
                             viewModelScope.launch {
-                                track.onState.collect { trackState ->
+                                state.value.videoTrack?.onState?.collect { trackState ->
                                     val availableStreamQualities =
                                         trackState.layers?.activeLayers?.let {
                                             sortActiveLayers(it)
@@ -164,30 +148,85 @@ class StreamViewModel @AssistedInject constructor(
                                     )
                                 }
                             }
+
+                            viewModelScope.launch {
+                                track.onState.map { it.isActive }.distinctUntilChanged()
+                                    .collect { isActive ->
+                                        if (isActive) {
+                                            Log.d(TAG, "Video Track for channel ${streamInfo.index} is now active")
+                                            _state.update { it.copy(streamError = null) }
+                                            videoSink?.let { sink ->
+                                                Log.d(TAG, "EnableAsync Video Track without layer")
+                                                track.enableAsync(
+                                                    promote = true,
+                                                    layer = null,
+                                                    videoSink = sink
+                                                )
+                                            }
+                                        } else {
+                                            Log.d(TAG, "Video Track for channel ${streamInfo.index} is now inactive")
+                                            _state.update { it.copy(streamError = StreamError.StreamNotActive) }
+                                            Log.d(TAG, "DisableAsync Video Track")
+                                            track.disableAsync()
+                                        }
+                                        updateRenderState()
+                                    }
+                            }
                         }
                     }
                 }
+            }
+        }
+
+        viewModelScope.launch {
+            subscriber?.stats?.collect { stats ->
+                _subscriberStats.value = stats
             }
         }
     }
 
     private fun connect() {
         Log.d(TAG, "Connect Stream ${streamInfo.index}")
-        viewModelScope.safeLaunch(block = {
-            delay((1000 * (streamInfo.index + 1)).toLong())
+        if (subscriber == null) {
             subscriber = Core.createSubscriber()
+            collectSubscriberStates()
+        }
+
+        viewModelScope.safeLaunch(block = {
             val credentials =
                 Credential(streamInfo.streamName, streamInfo.accountId, streamInfo.directorUrl)
             val connectionOptions = ConnectionOptions(true)
             subscriber?.enableStats(true)
             subscriber?.setCredentials(credentials)
             subscriber?.connect(connectionOptions)
-            collectSubscriberStates()
+            _state.update { it.copy(connected = true) }
+            subscriber?.subscribe(
+                options = Option(
+                    forcePlayoutDelay = getForcePlayoutDelay(),
+                    jitterMinimumDelayMs = streamInfo.jitterBufferDelay ?: 0,
+                    forceSmooth = streamInfo.forceSmooth ?: false,
+                )
+            )
+            _state.update { it.copy(subscribed = true) }
+            streamingBridge.updateSubscribedState(streamInfo.index, true)
+            updateRenderState()
         }) {
             _state.update {
                 it.copy(streamError = StreamError.StreamNotActive)
             }
             release()
+            // Schedule a reconnect in 5 seconds to check if the stream is online ??
+            scheduleReconnection()
+        }
+    }
+
+    private fun scheduleReconnection() {
+        Log.d(TAG, "Schedule reconnection for stream ${streamInfo.index}")
+        viewModelScope.launch {
+            repeat(1) {
+                delay(5000.milliseconds)
+                connect()
+            }
         }
     }
 
@@ -273,7 +312,7 @@ class StreamViewModel @AssistedInject constructor(
                 infos.find { it.streamInfo.index == streamInfo.index }?.selectedStreamQuality?.let { selectedStreamQuality ->
                     if (state.value.selectedStreamQuality != selectedStreamQuality) {
                         videoSink?.let { sink ->
-                            Log.d(TAG, "enableAsync - Update layer")
+                            Log.d(TAG, "Video Track enableAsync - Update layer!!")
                             state.value.videoTrack?.enableAsync(
                                 promote = true,
                                 layer = selectedStreamQuality.layerData,
@@ -300,9 +339,12 @@ class StreamViewModel @AssistedInject constructor(
 
     fun onUiAction(action: StreamAction) {
         when (action) {
-            StreamAction.Connect -> connect()
+            is StreamAction.Connect -> {
+                Log.d(TAG, "Connect ${streamInfo.index}; ${Thread.currentThread()}")
+                connect()
+            }
             is StreamAction.Play -> {
-                Log.d(TAG, "Play ${streamInfo.index}")
+                Log.d(TAG, "Play ${streamInfo.index}; ${Thread.currentThread()}")
                 videoSink = action.videoSink
                 state.value.videoTrack?.enableAsync(
                     promote = true,
