@@ -9,24 +9,28 @@ import io.dolby.rtscomponentkit.domain.StreamConfig
 import io.dolby.rtscomponentkit.domain.StreamConfigList
 import io.dolby.rtsviewer.R
 import io.dolby.rtsviewer.amino.RemoteConfigFlow
+import io.dolby.rtsviewer.preferenceStore.PrefsStore
 import io.dolby.rtsviewer.ui.streaming.common.StreamError
 import io.dolby.rtsviewer.ui.streaming.common.StreamStateInfo
 import io.dolby.rtsviewer.ui.streaming.common.StreamingBridge
 import io.dolby.rtsviewer.utils.NetworkStatusObserver
+import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.distinctUntilChanged
 import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
+import kotlinx.coroutines.withContext
 import javax.inject.Inject
 
 @HiltViewModel
 class StreamingContainerViewModel @Inject constructor(
     private val networkStatusObserver: NetworkStatusObserver,
     private val streamingBridge: StreamingBridge,
-    private val remoteConfigFlow: RemoteConfigFlow
-) : ViewModel() {
+    private val remoteConfigFlow: RemoteConfigFlow,
+    private val preferencesDataStore: PrefsStore
+    ) : ViewModel() {
     private val _state = MutableStateFlow(StreamingContainerState())
     private val state: StateFlow<StreamingContainerState> = _state.asStateFlow()
     private val _uiState = MutableStateFlow(getRenderState())
@@ -72,6 +76,13 @@ class StreamingContainerViewModel @Inject constructor(
                 updateRenderState()
             }
         }
+        viewModelScope.launch {
+            preferencesDataStore.isLiveIndicatorEnabled.collect { enabled ->
+                streamingBridge.updateShowLiveIndicator(enabled && _uiState.value.showLiveIndicatorSettings)
+                _state.update { it.copy(liveIndicatorEnabled = enabled) }
+                updateRenderState()
+            }
+        }
     }
 
     fun onUiAction(action: StreamingContainerAction) {
@@ -91,6 +102,14 @@ class StreamingContainerViewModel @Inject constructor(
 
             is StreamingContainerAction.UpdateSelectedStreamQuality -> {
                 streamingBridge.updateSelectedQuality(action.streamQualityType)
+            }
+
+            is StreamingContainerAction.UpdateLiveIndicatorVisibility -> {
+                viewModelScope.launch {
+                    withContext(Dispatchers.IO) {
+                        preferencesDataStore.updateLiveIndicator(action.show)
+                    }
+                }
             }
         }
         updateRenderState()
@@ -116,12 +135,14 @@ class StreamingContainerViewModel @Inject constructor(
             showSimulcastSettings = state.value.showSimulcastSettings,
             statisticsShown = showStatistics,
             statisticsEnabled = isSubscribed,
+            liveIndicatorEnabled = state.value.liveIndicatorEnabled,
             selectedStreamQualityTitleId = state.value.streamInfos.find { it.shouldShowSettings }?.selectedStreamQuality?.titleResId
                 ?: R.string.simulcast_auto,
             availableStreamQualityItems = state.value.streamInfos.find { it.shouldShowSettings }?.availableStreamQualities
                 ?: emptyList(),
             simulcastSettingsEnabled = state.value.streamInfos.find { it.shouldShowSettings }?.availableStreamQualities?.isNotEmpty()
-                ?: false
+                ?: false,
+            showLiveIndicatorSettings = state.value.streamInfos.count() == 1
         )
     }
 

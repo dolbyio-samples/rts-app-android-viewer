@@ -51,8 +51,7 @@ fun StreamingContainerScreen(
             LazyVerticalGrid(
                 columns = GridCells.Fixed(count),
                 modifier = Modifier
-                    .fillMaxHeight()
-                    .padding(top = 5.dp),
+                    .fillMaxHeight(),
                 verticalArrangement = Arrangement.spacedBy(5.dp),
                 horizontalArrangement = Arrangement.spacedBy(5.dp)
             ) {

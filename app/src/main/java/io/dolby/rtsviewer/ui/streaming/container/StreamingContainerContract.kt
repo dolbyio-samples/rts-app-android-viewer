@@ -12,6 +12,7 @@ data class StreamingContainerState(
     val showSettings: Boolean = false,
     val showSimulcastSettings: Boolean = false,
     val showStatistics: Boolean = false,
+    val liveIndicatorEnabled: Boolean = false,
     val selectedStreamQuality: AvailableStreamQuality = AvailableStreamQuality.AUTO
 )
 
@@ -25,9 +26,11 @@ data class StreamingContainerUiState(
     val showSimulcastSettings: Boolean,
     val statisticsShown: Boolean,
     val statisticsEnabled: Boolean,
+    val liveIndicatorEnabled: Boolean,
     val selectedStreamQualityTitleId: Int,
     val availableStreamQualityItems: List<AvailableStreamQuality>,
-    val simulcastSettingsEnabled: Boolean
+    val simulcastSettingsEnabled: Boolean,
+    val showLiveIndicatorSettings: Boolean
 )
 
 // actions
@@ -38,4 +41,5 @@ sealed class StreamingContainerAction {
     data class UpdateStatisticsVisibility(val show: Boolean) : StreamingContainerAction()
     data class UpdateSelectedStreamQuality(val streamQualityType: AvailableStreamQuality) :
         StreamingContainerAction()
+    data class UpdateLiveIndicatorVisibility(val show: Boolean) : StreamingContainerAction()
 }

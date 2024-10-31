@@ -19,7 +19,6 @@ import dagger.assisted.Assisted
 import dagger.assisted.AssistedFactory
 import dagger.assisted.AssistedInject
 import dagger.hilt.android.lifecycle.HiltViewModel
-import io.dolby.rtscomponentkit.data.multistream.safeLaunch
 import io.dolby.rtscomponentkit.domain.StreamConfig
 import io.dolby.rtsviewer.ui.streaming.common.AvailableStreamQuality
 import io.dolby.rtsviewer.ui.streaming.common.StreamError
@@ -203,6 +202,7 @@ class StreamViewModel @AssistedInject constructor(
                 Log.d(TAG, "Connect Stream ${streamInfo.index}; ${Thread.currentThread()}")
 
                 if (subscriber == null) {
+                    Core.initialize()
                     subscriber = Core.createSubscriber()
                     collectSubscriberStates()
                 }
@@ -350,6 +350,10 @@ class StreamViewModel @AssistedInject constructor(
                         }
                     }
                 }
+                _state.update {
+                    it.copy(isSingleStreamView = infos.count() == 1)
+                }
+                updateRenderState()
             }
         }
         viewModelScope.launch {
@@ -359,6 +363,15 @@ class StreamViewModel @AssistedInject constructor(
                     infos.find { it.streamInfo.index == streamInfo.index }?.showStatistics
                 _state.update {
                     it.copy(showStatistics = showStats ?: false)
+                }
+                updateRenderState()
+            }
+        }
+        viewModelScope.launch {
+            streamingBridge.showLiveIndicator.collect { showLiveIndicator ->
+                Log.d(TAG, "Collect Show Live Indicator state!! ; ${showLiveIndicator} ${Thread.currentThread()}")
+                _state.update {
+                    it.copy(shouldShowLiveIndicator = showLiveIndicator)
                 }
                 updateRenderState()
             }
@@ -440,7 +453,9 @@ class StreamViewModel @AssistedInject constructor(
             videoTrack = state.value.videoTrack,
             selectedStreamQuality = state.value.selectedStreamQuality,
             showStatistics = state.value.showStatistics && state.value.subscribed,
-            streamError = state.value.streamError
+            streamError = state.value.streamError,
+            shouldShowLiveIndicator = state.value.shouldShowLiveIndicator,
+            isSingleStreamView = state.value.isSingleStreamView
         )
     }
 

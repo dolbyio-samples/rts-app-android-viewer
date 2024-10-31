@@ -59,7 +59,7 @@ import kotlinx.coroutines.launch
 
 @Composable
 fun DetailInputScreen(
-    onPlayClick: (StreamingData) -> Unit,
+    onPlayClick: () -> Unit,
     onPlayFromConfigClick: () -> Unit,
     onSavedStreamsClick: () -> Unit,
     modifier: Modifier = Modifier,
@@ -86,21 +86,23 @@ fun DetailInputScreen(
     val env = viewModel.listOfEnv()
     var selectedEnv by remember { mutableStateOf(env[0]) }
 
+    fun playDemoStream() {
+        coroutineScope.launch {
+            viewModel.useDemoStream()
+            coroutineScope.launch(Dispatchers.Main) {
+                onPlayClick()
+            }
+        }
+    }
+    
     fun playStream() {
         if (!viewModel.shouldPlayStream) {
             showMissingStreamDetailDialog = true
         } else {
-            coroutineScope.launch(Dispatchers.Main) {
-                val connected = viewModel.connect(selectedEnv)
-                if (connected) {
-                    onPlayClick(
-                        StreamingData(
-                            streamName = streamName.value,
-                            accountId = accountId.value
-                        )
-                    )
-                } else {
-                    showStreamConnectionErrorDialog = true
+            coroutineScope.launch {
+                viewModel.connect(selectedEnv, isDemo = false)
+                coroutineScope.launch(Dispatchers.Main) {
+                    onPlayClick()
                 }
             }
         }
@@ -263,8 +265,7 @@ fun DetailInputScreen(
                 StyledButton(
                     buttonText = stringResource(id = R.string.demo_stream_title),
                     onClickAction = {
-                        viewModel.useDemoStream()
-                        playStream()
+                        playDemoStream()
                     },
                     buttonType = ButtonType.PRIMARY
                 )

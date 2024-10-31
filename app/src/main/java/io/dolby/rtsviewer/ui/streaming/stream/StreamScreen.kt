@@ -44,6 +44,7 @@ import com.millicast.Media
 import com.millicast.video.TextureViewRenderer
 import io.dolby.rtscomponentkit.domain.StreamConfig
 import io.dolby.rtsviewer.ui.streaming.common.ErrorView
+import io.dolby.rtsviewer.ui.streaming.common.LiveIndicatorView
 import io.dolby.rtsviewer.uikit.button.StyledIconButton
 import io.dolby.uikit.R
 import org.webrtc.RendererCommon
@@ -97,7 +98,9 @@ fun StreamScreen(streamInfo: StreamConfig) {
     }
 
     val borderColor =
-        if (uiState.isFocused) MaterialTheme.colors.primaryVariant else Color.Transparent
+        if (uiState.isFocused && !uiState.isSingleStreamView) MaterialTheme.colors.primaryVariant else Color.Transparent
+    val borderWidth =
+        if (uiState.isFocused && !uiState.isSingleStreamView) 5.dp else 0.dp
 
     Box(
         modifier = Modifier
@@ -112,7 +115,7 @@ fun StreamScreen(streamInfo: StreamConfig) {
                     StreamAction.UpdateSettingsVisibility(true)
                 )
             }
-            .border(5.dp, borderColor)
+            .border(borderWidth, borderColor)
             .aspectRatio(16 / 9f)
     ) {
 
@@ -155,8 +158,6 @@ fun StreamScreen(streamInfo: StreamConfig) {
             ) {
                 AndroidView(
                     factory = { videoRenderer },
-                    modifier = Modifier
-                        .fillMaxSize(),
                     update = { view ->
                         view.setScalingType(RendererCommon.ScalingType.SCALE_ASPECT_FIT)
                     },
@@ -182,6 +183,7 @@ fun StreamScreen(streamInfo: StreamConfig) {
                         }
                         .semantics { contentDescription = "visibility button" }
                 ) {
+
                     StyledIconButton(
                         modifier = Modifier
                             .constrainAs(settings) {
@@ -190,6 +192,14 @@ fun StreamScreen(streamInfo: StreamConfig) {
                             },
                         icon = painterResource(id = R.drawable.ic_settings),
                         text = stringResource(id = io.dolby.rtsviewer.R.string.settings_title)
+                    )
+                }
+
+                if (uiState.shouldShowLiveIndicator) {
+                    LiveIndicatorView(
+                        modifier = Modifier
+                            .padding(horizontal = 10.dp, vertical = 10.dp),
+                        isLive = uiState.subscribed
                     )
                 }
             }

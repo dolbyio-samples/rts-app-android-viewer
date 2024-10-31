@@ -8,7 +8,6 @@ import io.dolby.rtscomponentkit.domain.StreamingData
 import io.dolby.rtsviewer.ui.detailInput.DetailInputScreen
 import io.dolby.rtsviewer.ui.savedStreams.SavedStreamScreen
 import io.dolby.rtsviewer.ui.streaming.container.StreamingContainerScreen
-import io.dolby.rtsviewer.ui.streaming.legacy.StreamingScreen
 
 @Composable
 fun AppNavigation(navController: NavHostController) {
@@ -34,7 +33,7 @@ fun AppNavigation(navController: NavHostController) {
             DetailInputScreen(
                 streamingData = streamingData,
                 onPlayClick = {
-                    navController.navigate(Screen.StreamingScreen.route(it))
+                    navController.navigate(Screen.StreamingContainerScreen.route)
                 },
                 onPlayFromConfigClick = {
                     navController.navigate(Screen.StreamingContainerScreen.route)
@@ -43,17 +42,6 @@ fun AppNavigation(navController: NavHostController) {
                     navController.navigate(Screen.SavedStreams.route)
                 }
             )
-        }
-
-        composable(
-            route = Screen.StreamingScreen.route
-        ) {
-            val accountId = it.arguments?.getString(Screen.StreamingScreen.ARG_ACCOUNT_ID)
-            val streamName = it.arguments?.getString(Screen.StreamingScreen.ARG_STREAM_NAME)
-            if (streamName.isNullOrEmpty() || accountId.isNullOrEmpty()) {
-                throw IllegalArgumentException()
-            }
-            StreamingScreen(onBack = { navController.popBackStack() })
         }
 
         composable(

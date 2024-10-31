@@ -8,17 +8,6 @@ sealed class Screen(val route: String) {
         const val ARG_ACCOUNT_ID_TO_PLAY = "accountIDToPlay"
     }
 
-    object StreamingScreen :
-        Screen(route = "streaming/streamName={streamName}&accountId={accountId}") {
-        const val ARG_STREAM_NAME = "streamName"
-        const val ARG_ACCOUNT_ID = "accountId"
-        fun route(model: StreamingData): String {
-            val streamName = model.streamName
-            val accountId = model.accountId
-            return "streaming/streamName=$streamName&accountId=$accountId"
-        }
-    }
-
     object StreamingContainerScreen : Screen(route = "streamingContainer")
 
     object SavedStreams : Screen(route = "savedStreams")

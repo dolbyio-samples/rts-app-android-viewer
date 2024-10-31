@@ -15,6 +15,7 @@ import io.dolby.rtsviewer.amino.RemoteConfigFlow
 import io.dolby.rtsviewer.datastore.RecentStreamsDataStore
 import io.dolby.rtsviewer.utils.printCodecCapabilities
 import kotlinx.coroutines.CoroutineScope
+import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
@@ -25,10 +26,7 @@ import kotlinx.coroutines.withContext
 import javax.inject.Inject
 
 @HiltViewModel
-class DetailInputViewModel @Inject constructor(
-    private val repository: RTSViewerDataStore,
-    private val dispatcherProvider: DispatcherProvider,
-    private val recentStreamsDataStore: RecentStreamsDataStore,
+class DetailInputViewModel @Inject constructor(    private val recentStreamsDataStore: RecentStreamsDataStore,
     private val remoteConfigFlow: RemoteConfigFlow,
     private val moshi: Moshi
 ) : ViewModel() {
@@ -50,8 +48,6 @@ class DetailInputViewModel @Inject constructor(
     private val _remoteConfigUrl = MutableStateFlow("")
     var remoteConfigUrl = _remoteConfigUrl.asStateFlow()
 
-    private var isDemo = false
-
     init {
         viewModelScope.launch {
             recentStreamsDataStore.recentStreams
@@ -65,21 +61,26 @@ class DetailInputViewModel @Inject constructor(
         }
     }
 
-    suspend fun connect(selectedMediaServerEnv: MediaServerEnv): Boolean =
-        withContext(dispatcherProvider.default) {
-            val connected = repository.connect(
-                selectedMediaServerEnv,
-                StreamingData(accountId = accountId.value, streamName = streamName.value)
-            )
+    suspend fun connect(selectedMediaServerEnv: MediaServerEnv, isDemo: Boolean) {
+        withContext(Dispatchers.Default) {
+            val streamConfigList = List(1) { index ->
+                StreamConfig(
+                    index = index,
+                    directorUrl = selectedMediaServerEnv.getURL(),
+                    name = "SingleView",
+                    desc = "Single view mode",
+                    streamName = if (isDemo) DEMO_STREAM_NAME else streamName.value,
+                    accountId = if (isDemo) DEMO_ACCOUNT_ID else accountId.value
+                )
+            }
+            remoteConfigFlow.updateConfig(StreamConfigList(streamConfigList))
 
-            if (connected && !isDemo) {
+            if (!isDemo) {
                 // Save the stream detail
                 recentStreamsDataStore.addStreamDetail(streamName.value, accountId.value)
             }
-
-            isDemo = false
-            return@withContext connected
         }
+    }
 
     fun clearAllStreams() {
         viewModelScope.launch {
@@ -102,10 +103,8 @@ class DetailInputViewModel @Inject constructor(
         _remoteConfigUrl.value = name
     }
 
-    fun useDemoStream() {
-        isDemo = true
-        _streamName.value = DEMO_STREAM_NAME
-        _accountId.value = DEMO_ACCOUNT_ID
+    suspend fun useDemoStream() {
+        connect(selectedMediaServerEnv = MediaServerEnv.PROD, isDemo = true)
     }
 
     fun listOfEnv() = MediaServerEnv.listOfEnv()
@@ -124,19 +123,25 @@ class DetailInputViewModel @Inject constructor(
                 state.copy(remoteConfigFetchState = RemoteConfigFetchState.FETCHING) // TODO show spinner
             }
 
-            val service = RemoteConfigService(remoteConfigUrl.value, moshi)
-            service.fetch()?.let { config ->
-                val streamConfigList = List(config.url.size) { index ->
-                    StreamConfig.from(config, index = index)
-                }
+            withContext(Dispatchers.Default) {
+                val service = RemoteConfigService(remoteConfigUrl.value, moshi)
+                service.fetch()?.let { config ->
+                    val streamConfigList = List(config.url.size) { index ->
+                        StreamConfig.from(config, index = index)
+                    }
 
-                remoteConfigFlow.updateConfig(StreamConfigList(streamConfigList))
-                _uiState.update { state ->
-                    state.copy(remoteConfigFetchState = RemoteConfigFetchState.SUCCESS)
-                }
-            } ?: run {
-                _uiState.update { state ->
-                    state.copy(remoteConfigFetchState = RemoteConfigFetchState.ERROR)
+                    withContext(Dispatchers.Main) {
+                        remoteConfigFlow.updateConfig(StreamConfigList(streamConfigList))
+                        _uiState.update { state ->
+                            state.copy(remoteConfigFetchState = RemoteConfigFetchState.SUCCESS)
+                        }
+                    }
+                } ?: run {
+                    withContext(Dispatchers.Main) {
+                        _uiState.update { state ->
+                            state.copy(remoteConfigFetchState = RemoteConfigFetchState.ERROR)
+                        }
+                    }
                 }
             }
         }

@@ -103,6 +103,20 @@ fun SettingsScreen(viewModel: StreamingContainerViewModel) {
                 }
             )
             Spacer(modifier = Modifier.height(12.dp))
+
+            if (uiState.showLiveIndicatorSettings) {
+                SwitchComponent(
+                    text = stringResource(id = R.string.live_indicator_title),
+                    startIcon = painterResource(id = io.dolby.uikit.R.drawable.icon_live_indicator),
+                    checked = uiState.liveIndicatorEnabled,
+                    isEnabled = true,
+                    onCheckedChange = {
+                        viewModel.onUiAction(
+                            StreamingContainerAction.UpdateLiveIndicatorVisibility(it)
+                        )
+                    }
+                )
+            }
         }
     }
 }

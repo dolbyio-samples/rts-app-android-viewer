@@ -16,7 +16,9 @@ data class StreamState(
     val audioTrack: RemoteAudioTrack? = null,
     val selectedStreamQuality: AvailableStreamQuality = AvailableStreamQuality.AUTO,
     val showStatistics: Boolean = false,
-    val streamError: StreamError? = null
+    val streamError: StreamError? = null,
+    val shouldShowLiveIndicator: Boolean = false,
+    val isSingleStreamView: Boolean = false
 )
 
 // ui state
@@ -28,7 +30,9 @@ data class StreamUiState(
     val videoTrack: RemoteVideoTrack?,
     val selectedStreamQuality: AvailableStreamQuality,
     val showStatistics: Boolean,
-    val streamError: StreamError?
+    val streamError: StreamError?,
+    val shouldShowLiveIndicator: Boolean,
+    val isSingleStreamView: Boolean
 )
 
 // actions
