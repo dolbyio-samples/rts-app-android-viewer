@@ -220,7 +220,7 @@ fun StreamScreen(streamInfo: StreamConfig) {
                     )
                 }
             }
-        } else {
+        } else if (uiState.streamError == null) {
             Text(text = "Please wait....", color = MaterialTheme.colors.onSurface)
         }
 

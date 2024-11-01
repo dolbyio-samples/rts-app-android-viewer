@@ -123,11 +123,31 @@ class StreamViewModel @AssistedInject constructor(
                                     Log.d(TAG, "Scheduling audio track enable on default context ${streamInfo.index}; ${Thread.currentThread()}")
                                     track.setVolume(1.0)
                                     track.enableAsync()
-                                } else {
-                                    Log.d(TAG, "Scheduling audio track disable on default context ${streamInfo.index}; ${Thread.currentThread()}")
-                                    track.setVolume(0.0)
-                                    track.disableAsync()
                                 }
+                            }
+                            viewModelScope.launch {
+                                track.onState.map { it.isActive }.distinctUntilChanged()
+                                    .collect { isActive ->
+                                        if (isActive) {
+                                            withContext(Dispatchers.Default) {
+                                                Log.d(TAG, "Audio Track for channel ${streamInfo.index} is now active; ${Thread.currentThread()}")
+                                                if (state.value.isFocused) {
+                                                    videoSink?.let { sink ->
+                                                        Log.d(TAG, "EnableAsync Audio Track; ${Thread.currentThread()}")
+                                                        track.setVolume(1.0)
+                                                        track.enableAsync()
+                                                    }
+                                                }
+                                            }
+                                        } else {
+                                            withContext(Dispatchers.Default) {
+                                                Log.d(TAG, "Audio Track for channel ${streamInfo.index} is now inactive; ${Thread.currentThread()}")
+                                                Log.d(TAG, "DisableAsync Audio Track; ${Thread.currentThread()}")
+                                                track.disableAsync()
+                                            }
+                                        }
+                                        updateRenderState()
+                                    }
                             }
                             _state.update { it.copy(audioTrack = track) }
                         }
@@ -367,6 +387,27 @@ class StreamViewModel @AssistedInject constructor(
             }
         }
         viewModelScope.launch {
+            streamingBridge.streamStateInfos
+                .map { it[streamInfo.index] }
+                .distinctUntilChanged { old, new ->
+                    old.isFocused == new.isFocused
+                }
+                .collect { streamStateInfo ->
+                    _state.update { it.copy(isFocused = streamStateInfo.isFocused) }
+                    updateRenderState()
+                    withContext(Dispatchers.Default) {
+                        Log.d(TAG, "Collect focus updates ${streamInfo.index}; ${Thread.currentThread()}")
+                        state.value.audioTrack?.let {
+                            if (streamStateInfo.isFocused) {
+                                it.enableAsync()
+                            } else {
+                                it.disableAsync()
+                            }
+                        }
+                    }
+                }
+        }
+        viewModelScope.launch {
             streamingBridge.showLiveIndicator.collect { showLiveIndicator ->
                 Log.d(TAG, "Collect Show Live Indicator state!! ; ${showLiveIndicator} ${Thread.currentThread()}")
                 _state.update {
@@ -414,21 +455,9 @@ class StreamViewModel @AssistedInject constructor(
             }
 
             is StreamAction.UpdateFocus -> {
-                _state.update { it.copy(isFocused = action.isFocused) }
-                viewModelScope.launch {
-                    withContext(Dispatchers.Default) {
-                        Log.d(TAG, "UpdateFocus ${streamInfo.index}; ${Thread.currentThread()}")
-                        state.value.audioTrack?.let {
-                            if (action.isFocused) {
-                                it.enableAsync()
-                            } else {
-                                it.disableAsync()
-                            }
-                        }
-                    }
-                    viewModelScope.launch(Dispatchers.Main) {
-                        updateRenderState()
-                    }
+                if (action.isFocused) {
+                    Log.d(TAG, "Update focus ${streamInfo.index}")
+                    streamingBridge.updateFocusedIndex(streamInfo.index)
                 }
             }
 

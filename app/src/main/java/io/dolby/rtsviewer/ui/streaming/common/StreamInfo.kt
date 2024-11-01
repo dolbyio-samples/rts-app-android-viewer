@@ -11,7 +11,8 @@ data class StreamStateInfo(
     val selectedStreamQuality: AvailableStreamQuality = AvailableStreamQuality.AUTO,
     val streamInfo: StreamConfig,
     val showStatistics: Boolean = false,
-    val isLiveIndicatorEnabled: Boolean = true
+    val isLiveIndicatorEnabled: Boolean = true,
+    val isFocused: Boolean = false,
 )
 
 sealed class StreamError(val titleResId: Int, val subtitleResId: Int? = null) {

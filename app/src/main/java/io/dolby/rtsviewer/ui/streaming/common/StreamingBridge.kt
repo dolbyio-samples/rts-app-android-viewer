@@ -16,6 +16,7 @@ interface StreamingBridge {
     fun updateSelectedQuality(selectedStreamQuality: AvailableStreamQuality)
     fun updateShowStatistics(show: Boolean)
     fun updateShowLiveIndicator(show: Boolean)
+    fun updateFocusedIndex(index: Int)
 }
 
 class StreamingBridgeImpl : StreamingBridge {
@@ -93,5 +94,21 @@ class StreamingBridgeImpl : StreamingBridge {
 
     override fun updateShowLiveIndicator(show: Boolean) {
        _showLiveIndicator.update { show }
+    }
+
+    override fun updateFocusedIndex(index: Int) {
+        val streamStateInfos = _streamStateInfos.value.map {
+            if (it.shouldShowSettings) {
+                // When settings is focused skip any focus updates and maintain the focus on the last channel
+                it
+            } else {
+                if (index == it.streamInfo.index) {
+                    it.copy(isFocused = true)
+                } else {
+                    it.copy(isFocused = false)
+                }
+            }
+        }
+        _streamStateInfos.update { streamStateInfos }
     }
 }

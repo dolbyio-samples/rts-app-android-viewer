@@ -18,7 +18,7 @@ data class StreamState(
     val showStatistics: Boolean = false,
     val streamError: StreamError? = null,
     val shouldShowLiveIndicator: Boolean = false,
-    val isSingleStreamView: Boolean = false
+    val isSingleStreamView: Boolean = false,
 )
 
 // ui state
