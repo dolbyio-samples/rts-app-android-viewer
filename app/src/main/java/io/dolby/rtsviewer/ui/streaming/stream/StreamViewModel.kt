@@ -25,7 +25,6 @@ import io.dolby.rtsviewer.ui.streaming.common.StreamError
 import io.dolby.rtsviewer.ui.streaming.common.StreamingBridge
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.delay
-import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
@@ -60,7 +59,7 @@ class StreamViewModel @AssistedInject constructor(
     val uiState: StateFlow<StreamUiState> = _uiState.asStateFlow()
 
     private val _subscriberStats = MutableStateFlow<SubscriberStats?>(null)
-    val subscriberStats: Flow<SubscriberStats?> = _subscriberStats.asStateFlow()
+    val subscriberStats: StateFlow<SubscriberStats?> = _subscriberStats.asStateFlow()
 
     private var subscriber: Subscriber? = null
     private var videoSink: VideoSink? = null
@@ -451,6 +450,7 @@ class StreamViewModel @AssistedInject constructor(
             isFocused = state.value.isFocused,
             subscribed = state.value.subscribed,
             videoTrack = state.value.videoTrack,
+            audioTrack = state.value.audioTrack,
             selectedStreamQuality = state.value.selectedStreamQuality,
             showStatistics = state.value.showStatistics && state.value.subscribed,
             streamError = state.value.streamError,

@@ -28,6 +28,7 @@ data class StreamUiState(
     val isFocused: Boolean,
     val subscribed: Boolean,
     val videoTrack: RemoteVideoTrack?,
+    val audioTrack: RemoteAudioTrack?,
     val selectedStreamQuality: AvailableStreamQuality,
     val showStatistics: Boolean,
     val streamError: StreamError?,

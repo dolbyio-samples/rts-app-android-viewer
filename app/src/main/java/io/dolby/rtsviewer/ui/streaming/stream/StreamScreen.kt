@@ -3,10 +3,13 @@ package io.dolby.rtsviewer.ui.streaming.stream
 import android.content.Context
 import android.util.Log
 import androidx.compose.animation.AnimatedVisibility
+import androidx.compose.foundation.background
 import androidx.compose.foundation.border
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.focusable
 import androidx.compose.foundation.layout.Box
+import androidx.compose.foundation.layout.Row
+import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.aspectRatio
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
@@ -173,7 +176,7 @@ fun StreamScreen(streamInfo: StreamConfig) {
                     .alpha(if (uiState.streamError == null) 1.0f else 0.0f)
                     .semantics { contentDescription = toolbarContentDescription }
             ) {
-                val (toolbar, settings) = createRefs()
+                val (toolbar, settings, stats, liveIndicator) = createRefs()
                 AnimatedVisibility(
                     visible = uiState.showSettingsButton,
                     modifier = Modifier
@@ -183,22 +186,36 @@ fun StreamScreen(streamInfo: StreamConfig) {
                         }
                         .semantics { contentDescription = "visibility button" }
                 ) {
-
                     StyledIconButton(
                         modifier = Modifier
                             .constrainAs(settings) {
-                                bottom.linkTo(parent.bottom, margin = 14.dp)
-                                end.linkTo(parent.end, margin = 20.dp)
+                                bottom.linkTo(parent.bottom, margin = 5.dp)
+                                end.linkTo(parent.end, margin = 5.dp)
                             },
                         icon = painterResource(id = R.drawable.ic_settings),
-                        text = stringResource(id = io.dolby.rtsviewer.R.string.settings_title)
+                        text = if (uiState.isSingleStreamView) stringResource(id = io.dolby.rtsviewer.R.string.settings_title) else null
+                    )
+                }
+
+                if (uiState.showStatistics) {
+                    StatisticsScreen(
+                        viewModel = viewModel,
+                        modifier = Modifier
+                            .constrainAs(stats) {
+                                bottom.linkTo(parent.bottom, margin = 5.dp)
+                                absoluteLeft.linkTo(parent.absoluteLeft, margin = 5.dp)
+                                absoluteRight.linkTo(settings.absoluteLeft, margin = 10.dp)
+                            },
                     )
                 }
 
                 if (uiState.shouldShowLiveIndicator) {
                     LiveIndicatorView(
                         modifier = Modifier
-                            .padding(horizontal = 10.dp, vertical = 10.dp),
+                            .constrainAs(liveIndicator) {
+                                top.linkTo(parent.top, margin = 10.dp)
+                                absoluteLeft.linkTo(parent.absoluteLeft, margin = 10.dp)
+                            },
                         isLive = uiState.subscribed
                     )
                 }
@@ -210,14 +227,6 @@ fun StreamScreen(streamInfo: StreamConfig) {
         uiState.streamError?.let {
             ErrorView(error = it)
         }
-
-        if (uiState.showStatistics) {
-            StatisticsScreen(
-                viewModel = viewModel,
-                modifier = Modifier
-                    .align(Alignment.BottomStart)
-                    .padding(horizontal = 22.dp, vertical = 15.dp)
-            )
-        }
     }
 }
+

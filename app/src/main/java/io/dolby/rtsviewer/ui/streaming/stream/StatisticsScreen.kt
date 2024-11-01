@@ -1,5 +1,6 @@
 package io.dolby.rtsviewer.ui.streaming.stream
 
+import android.icu.text.SimpleDateFormat
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
@@ -13,7 +14,7 @@ import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.MaterialTheme
 import androidx.compose.runtime.Composable
-import androidx.compose.runtime.collectAsState
+import androidx.compose.runtime.getValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
@@ -22,24 +23,24 @@ import androidx.compose.ui.semantics.contentDescription
 import androidx.compose.ui.semantics.semantics
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
+import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import com.millicast.devices.track.TrackType
 import io.dolby.rtsviewer.R
 import io.dolby.rtsviewer.uikit.text.Text
 import io.dolby.rtsviewer.uikit.theme.getColorPalette
-import io.dolby.rtsviewer.utils.formattedByteCount
+import java.util.Date
 
 // move to its own package?
 @Composable
 fun StatisticsScreen(viewModel: StreamViewModel, modifier: Modifier = Modifier) {
-    // TODO collectAsStateWithLifecycle()
-    val statistics = viewModel.subscriberStats.collectAsState(initial = null)
+    val uiState by viewModel.uiState.collectAsStateWithLifecycle()
+    val statistics = viewModel.subscriberStats.collectAsStateWithLifecycle()
     val statisticsTitle = stringResource(id = R.string.streaming_statistics_title)
 
     Box(
         modifier = modifier
-            .size(width = 420.dp, height = 360.dp)
             .background(
-                color = getColorPalette().neutralColor800,
+                color = getColorPalette().neutralColor800.copy(alpha = 0.7f),
                 shape = MaterialTheme.shapes.large
             )
             .clip(MaterialTheme.shapes.large)
@@ -50,7 +51,7 @@ fun StatisticsScreen(viewModel: StreamViewModel, modifier: Modifier = Modifier) 
                 .align(Alignment.TopStart)
                 .verticalScroll(rememberScrollState())
                 .padding(vertical = 8.dp)
-                .padding(start = 16.dp, end = 16.dp)
+                .padding(start = 10.dp, end = 10.dp)
         ) {
             Text(
                 text = stringResource(id = R.string.streaming_statistics_title),
@@ -66,6 +67,7 @@ fun StatisticsScreen(viewModel: StreamViewModel, modifier: Modifier = Modifier) 
                     textAlign = TextAlign.Left,
                     modifier = Modifier.width(155.dp)
                 )
+                Spacer(modifier = Modifier.width(8.dp))
                 Text(
                     text = stringResource(id = R.string.statisticsScreen_value),
                     style = MaterialTheme.typography.body2,
@@ -78,8 +80,20 @@ fun StatisticsScreen(viewModel: StreamViewModel, modifier: Modifier = Modifier) 
                 StatsRow(title = "Stream View Id", value = it.streamViewId)
                 StatsRow(title = "Subscriber Id", value = it.subscriberId)
                 StatsRow(title = "Cluster Id", value = it.clusterId)
+                if (uiState.isSingleStreamView) {
+                    StatsRow(
+                        title = "Current RTT",
+                        value = if (it.currentRoundTripTime != null) it.currentRoundTripTime?.times(1000).toString() else ""
+                    )
+                    StatsRow(
+                        title = "Total RTT",
+                        value = if (it.totalRoundTripTime != null) it.totalRoundTripTime?.times(1000).toString() else ""
+                    )
+                }
 
-                it.trackStats().forEach { trackStats ->
+                it.trackStats()
+                    .filter { it.mid == uiState.videoTrack?.currentMid || it.mid == uiState.audioTrack?.currentMid }
+                    .forEach { trackStats ->
                     when (trackStats.type) {
                         TrackType.Video -> {
                             StatsRow(title = "MID", value = trackStats.mid)
@@ -108,6 +122,68 @@ fun StatisticsScreen(viewModel: StreamViewModel, modifier: Modifier = Modifier) 
                                 title = "Video Bitrate - kbps",
                                 value = trackStats.bitrateBps?.div(1000u).toString()
                             )
+                            if (uiState.isSingleStreamView) {
+                                StatsRow(
+                                    title = "Video total received",
+                                    value = if (trackStats.bytesReceived != null) trackStats.bytesReceived.toString() + "B" else ""
+                                )
+                                StatsRow(
+                                    title = "Packets received",
+                                    value = trackStats.packetsReceived?.toString() ?: ""
+                                )
+                                StatsRow(
+                                    title = "Frames decoded",
+                                    value = trackStats.framesDecoded?.toString() ?: ""
+                                )
+                                StatsRow(
+                                    title = "Frames dropped",
+                                    value = trackStats.framesDropped?.toString() ?: ""
+                                )
+                                StatsRow(
+                                    title = "Video jitter",
+                                    value = if (trackStats.jitter != null) trackStats.jitter?.times(1000).toString() else ""
+                                )
+                                StatsRow(
+                                    title = "Jitter buffer delay",
+                                    value = if (trackStats.jitterBufferDelay != null) trackStats.jitterBufferDelay?.times(1000).toString() else ""
+                                )
+                                StatsRow(
+                                    title = "Jitter buffer min delay",
+                                    value = if (trackStats.jitterBufferMinimumDelay != null) trackStats.jitterBufferMinimumDelay?.times(1000).toString() else ""
+                                )
+                                StatsRow(
+                                    title = "Video packet loss",
+                                    value = trackStats.packetsLost?.toString() ?: ""
+                                )
+                                StatsRow(
+                                    title = "Freeze count",
+                                    value = trackStats.freezeCount?.toString() ?: ""
+                                )
+                                StatsRow(
+                                    title = "Freeze duration",
+                                    value = if (trackStats.totalFreezesDuration != null) trackStats.totalFreezesDuration?.times(1000).toString() else ""
+                                )
+                                StatsRow(
+                                    title = "Pause count",
+                                    value = trackStats.pauseCount?.toString() ?: ""
+                                )
+                                StatsRow(
+                                    title = "Pause duration",
+                                    value = if (trackStats.totalPausesDuration != null) trackStats.totalPausesDuration?.times(1000).toString() else ""
+                                )
+                                StatsRow(
+                                    title = "Retransmitted packets",
+                                    value = trackStats.retransmittedPacketsReceived?.toString() ?: ""
+                                )
+                                StatsRow(
+                                    title = "Retransmitted bytes",
+                                    value = trackStats.retransmittedBytesReceived?.toString() ?: ""
+                                )
+                                StatsRow(
+                                    title = "Timestamp (GMT)",
+                                    value = getDateTime(trackStats.timestamp) ?: ""
+                                )
+                            }
                         }
 
                         TrackType.Audio -> {
@@ -115,6 +191,20 @@ fun StatisticsScreen(viewModel: StreamViewModel, modifier: Modifier = Modifier) 
                                 title = "Audio Bitrate - kbps",
                                 value = trackStats.bitrateBps?.div(1000u).toString()
                             )
+                            if (uiState.isSingleStreamView) {
+                                StatsRow(
+                                    title = "Audio total received",
+                                    value = if (trackStats.bytesReceived != null) trackStats.bytesReceived.toString() + "B" else ""
+                                )
+                                StatsRow(
+                                    title = "Audio jitter",
+                                    value = if (trackStats.jitter != null) trackStats.jitter?.times(1000).toString() else ""
+                                )
+                                StatsRow(
+                                    title = "Audio packet loss",
+                                    value = trackStats.packetsLost?.toString() ?: ""
+                                )
+                            }
                         }
                     }
                 }
@@ -132,7 +222,7 @@ fun StatsRow(title: String, value: String, modifier: Modifier = Modifier) {
             color = getColorPalette().grayLight,
             textAlign = TextAlign.Left,
             modifier = Modifier
-                .width(160.dp)
+                .width(155.dp)
                 .align(Alignment.CenterVertically)
         )
         Spacer(modifier = Modifier.width(8.dp))
@@ -144,5 +234,15 @@ fun StatsRow(title: String, value: String, modifier: Modifier = Modifier) {
             modifier = Modifier
                 .align(Alignment.CenterVertically)
         )
+    }
+}
+
+private fun getDateTime(timeStamp: Long): String? {
+    return try {
+        val dateFormat = SimpleDateFormat.getDateTimeInstance()
+        val netDate = Date(timeStamp)
+        dateFormat.format(netDate)
+    } catch (e: Exception) {
+        null
     }
 }
