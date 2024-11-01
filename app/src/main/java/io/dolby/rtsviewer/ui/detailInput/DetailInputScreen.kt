@@ -304,6 +304,7 @@ fun DetailInputScreen(
                     StyledButton(
                         buttonText = stringResource(id = R.string.play_amino_button),
                         onClickAction = {
+                            viewModel.useAminoService()
                             playStreamFromConfig()
                         },
                         buttonType = ButtonType.PRIMARY

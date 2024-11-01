@@ -14,8 +14,13 @@ import io.dolby.rtscomponentkit.domain.StreamConfigList
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.cancelChildren
+import javax.inject.Singleton
 
-class AminoDeviceRemoteService(private val remoteConfigFlow: RemoteConfigFlow, private val moshi: Moshi) {
+@Singleton
+class AminoDeviceRemoteService(private val moshi: Moshi) {
+
+    var configList: StreamConfigList = StreamConfigList(emptyList())
+        private set
 
     private var isConnecting = false
     private var remoteService: IDeviceRemoteService? = null
@@ -75,12 +80,12 @@ class AminoDeviceRemoteService(private val remoteConfigFlow: RemoteConfigFlow, p
                             StreamConfig.from(config, index = index, serialNumber !=null)
                         }
 
-                        remoteConfigFlow.updateConfig(StreamConfigList(streamConfigList))
-                        Log.d("tvapp.mw_args", remoteConfigFlow.config.value.toString())
+                        configList = StreamConfigList(streamConfigList)
+                        Log.d("tvapp.mw_args", configList.toString())
                     }
             }
         } catch (e: Exception) {
-            remoteConfigFlow.updateConfig(StreamConfigList(emptyList()))
+            configList = StreamConfigList(emptyList())
         }
     }
 

@@ -21,10 +21,9 @@ import javax.inject.Inject
 class MainActivity : ComponentActivity() {
     private var volumeObserver: RemoteVolumeObserver? = null
     @Inject
-    lateinit var remoteConfigFlow: RemoteConfigFlow
-    @Inject
     lateinit var moshi: Moshi
-    private var aminoDeviceService: AminoDeviceRemoteService? = null
+    @Inject
+    lateinit var aminoDeviceService: AminoDeviceRemoteService
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
@@ -43,7 +42,7 @@ class MainActivity : ComponentActivity() {
 
     override fun onStart() {
         super.onStart()
-        aminoDeviceService = AminoDeviceRemoteService(remoteConfigFlow, moshi).apply {
+        aminoDeviceService.apply {
             connect { intent, serviceConnection, flag ->
                 bindService(intent, serviceConnection, flag)
             }
@@ -52,10 +51,9 @@ class MainActivity : ComponentActivity() {
 
     override fun onStop() {
         super.onStop()
-        aminoDeviceService?.disconnect { serviceConnection ->
+        aminoDeviceService.disconnect { serviceConnection ->
             unbindService(serviceConnection)
         }
-        aminoDeviceService = null
     }
 
     fun addVolumeObserver(audioTrack: RemoteAudioTrack) {

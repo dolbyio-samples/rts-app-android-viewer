@@ -1,20 +1,18 @@
 package io.dolby.rtsviewer.ui.detailInput
 
+import android.util.Log
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.squareup.moshi.Moshi
 import dagger.hilt.android.lifecycle.HiltViewModel
-import io.dolby.rtscomponentkit.data.RTSViewerDataStore
 import io.dolby.rtscomponentkit.data.RemoteConfigService
 import io.dolby.rtscomponentkit.domain.MediaServerEnv
 import io.dolby.rtscomponentkit.domain.StreamConfig
 import io.dolby.rtscomponentkit.domain.StreamConfigList
 import io.dolby.rtscomponentkit.domain.StreamingData
-import io.dolby.rtscomponentkit.utils.DispatcherProvider
+import io.dolby.rtsviewer.amino.AminoDeviceRemoteService
 import io.dolby.rtsviewer.amino.RemoteConfigFlow
 import io.dolby.rtsviewer.datastore.RecentStreamsDataStore
-import io.dolby.rtsviewer.utils.printCodecCapabilities
-import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
@@ -25,8 +23,11 @@ import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
 import javax.inject.Inject
 
+private const val TAG = "DetailInputViewModel"
 @HiltViewModel
-class DetailInputViewModel @Inject constructor(    private val recentStreamsDataStore: RecentStreamsDataStore,
+class DetailInputViewModel @Inject constructor(
+    private val aminoService: AminoDeviceRemoteService,
+    private val recentStreamsDataStore: RecentStreamsDataStore,
     private val remoteConfigFlow: RemoteConfigFlow,
     private val moshi: Moshi
 ) : ViewModel() {
@@ -59,6 +60,10 @@ class DetailInputViewModel @Inject constructor(    private val recentStreamsData
                     }
                 }
         }
+    }
+
+    fun useAminoService() {
+        remoteConfigFlow.updateConfig(aminoService.configList)
     }
 
     suspend fun connect(selectedMediaServerEnv: MediaServerEnv, isDemo: Boolean) {
@@ -109,7 +114,7 @@ class DetailInputViewModel @Inject constructor(    private val recentStreamsData
 
     fun listOfEnv() = MediaServerEnv.listOfEnv()
 
-    val isAminoDevice: Boolean = remoteConfigFlow.config.value.streams.isNotEmpty()
+    val isAminoDevice: Boolean = aminoService.configList.streams.isNotEmpty()
 
     fun getRemoteConfig() {
         if (!remoteConfigUrl.value.startsWith("https://")) {
@@ -131,6 +136,7 @@ class DetailInputViewModel @Inject constructor(    private val recentStreamsData
                     }
 
                     withContext(Dispatchers.Main) {
+                        Log.d(TAG, "Remote config fetch $streamConfigList")
                         remoteConfigFlow.updateConfig(StreamConfigList(streamConfigList))
                         _uiState.update { state ->
                             state.copy(remoteConfigFetchState = RemoteConfigFetchState.SUCCESS)
