@@ -221,7 +221,6 @@ class StreamViewModel @AssistedInject constructor(
                 Log.d(TAG, "Connect Stream ${streamInfo.index}; ${Thread.currentThread()}")
 
                 if (subscriber == null) {
-                    Core.initialize()
                     subscriber = Core.createSubscriber()
                     collectSubscriberStates()
                 }

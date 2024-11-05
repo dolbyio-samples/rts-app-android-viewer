@@ -3,6 +3,9 @@ package io.dolby.rtsviewer.ui.detailInput
 import android.util.Log
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
+import com.millicast.Core
+import com.millicast.utils.LogLevel
+import com.millicast.utils.Logger
 import com.squareup.moshi.Moshi
 import dagger.hilt.android.lifecycle.HiltViewModel
 import io.dolby.rtscomponentkit.data.RemoteConfigService
@@ -50,6 +53,17 @@ class DetailInputViewModel @Inject constructor(
     var remoteConfigUrl = _remoteConfigUrl.asStateFlow()
 
     init {
+        Core.initialize()
+
+        // set millicast logs
+        Logger.setLogLevels(
+            sdk = LogLevel.MC_DEBUG,
+            webrtc = LogLevel.MC_DEBUG,
+            websocket = LogLevel.MC_OFF
+        )
+        Logger.setLoggerListener { msg, level ->
+            Log.i(TAG, "Millicast sdk: $level / $msg")
+        }
         viewModelScope.launch {
             recentStreamsDataStore.recentStreams
                 .collectLatest {
