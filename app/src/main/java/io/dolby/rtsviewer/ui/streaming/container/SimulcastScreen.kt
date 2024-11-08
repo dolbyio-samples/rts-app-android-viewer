@@ -44,6 +44,14 @@ fun SimulcastScreen(viewModel: StreamingContainerViewModel) {
         }
     }
 
+    LaunchedEffect(uiState.availableStreamQualityItems) {
+        try {
+            focusRequester.requestFocus()
+        } catch (e: IllegalStateException) {
+            e.printStackTrace()
+        }
+    }
+
     Box(
         modifier = Modifier
             .fillMaxWidth()

@@ -98,7 +98,7 @@ class StreamingBridgeImpl : StreamingBridge {
 
     override fun updateFocusedIndex(index: Int) {
         val streamStateInfos = _streamStateInfos.value.map {
-            if (it.shouldShowSettings) {
+            if (_streamStateInfos.value.firstOrNull { info -> info.shouldShowSettings } != null) {
                 // When settings is focused skip any focus updates and maintain the focus on the last channel
                 it
             } else {
