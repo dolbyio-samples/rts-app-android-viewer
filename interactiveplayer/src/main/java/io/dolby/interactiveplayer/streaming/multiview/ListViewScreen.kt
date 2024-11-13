@@ -52,6 +52,7 @@ import io.dolby.interactiveplayer.rts.ui.DolbyBackgroundBox
 import io.dolby.interactiveplayer.rts.ui.LabelIndicator
 import io.dolby.interactiveplayer.rts.ui.LiveIndicator
 import io.dolby.interactiveplayer.rts.ui.TopAppBar
+import io.dolby.interactiveplayer.streaming.AudioOnlyView
 import io.dolby.interactiveplayer.streaming.ErrorView
 import io.dolby.interactiveplayer.utils.rememberIsInPipMode
 import io.dolby.rtscomponentkit.data.multistream.VideoQuality
@@ -101,6 +102,10 @@ fun ListViewScreen(
                     CircularProgressIndicator(modifier = Modifier.align(Alignment.Center))
                 }
 
+                uiState.videoTracks.isEmpty() && uiState.audioTracks.isNotEmpty() -> {
+                    AudioOnlyView()
+                }
+                
                 uiState.videoTracks.isNotEmpty() -> {
                     val configuration = LocalConfiguration.current
                     val onOtherClick = { videoTrack: RemoteVideoTrack ->

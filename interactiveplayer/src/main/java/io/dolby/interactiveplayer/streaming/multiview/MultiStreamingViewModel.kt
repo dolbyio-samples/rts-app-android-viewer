@@ -148,6 +148,7 @@ class MultiStreamingViewModel @Inject constructor(
 
     private suspend fun update(data: MultiStreamingData) = withContext(dispatcherProvider.main) {
         val videoTracks = data.videoTracks.filter { it.isActive }
+        val audioTracks = data.audioTracks.filter { it.isActive }
         val alphaNumericComparator = Comparator<RemoteVideoTrack> { source1, source2 ->
             val source1Id = source1.sourceId
             val source2Id = source2.sourceId
@@ -158,7 +159,7 @@ class MultiStreamingViewModel @Inject constructor(
             }
         }
         when {
-            data.error != null || videoTracks.isEmpty() -> {
+            data.error != null || videoTracks.isEmpty() && audioTracks.isEmpty() -> {
                 _uiState.update {
                     val error = if (it.hasNetwork) {
                         Error.STREAM_NOT_ACTIVE

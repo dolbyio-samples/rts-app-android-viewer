@@ -85,4 +85,5 @@
     <string name="connection_options_jitter_buffer_delay_title">Jitter Buffer Delay</string>
     <string name="stream_connection_options_select_primary_video_quality_title">Select primary video quality:</string>
     <string name="connection_options_more_stream_config_title">More Stream configurations</string>
+    <string name="audio_only">This stream only has Audio</string>
 </resources>

@@ -35,6 +35,7 @@ import io.dolby.interactiveplayer.R
 import io.dolby.interactiveplayer.rts.ui.DolbyBackgroundBox
 import io.dolby.interactiveplayer.rts.ui.LabelIndicator
 import io.dolby.interactiveplayer.rts.ui.TopAppBar
+import io.dolby.interactiveplayer.streaming.AudioOnlyView
 import io.dolby.interactiveplayer.streaming.ErrorView
 import io.dolby.rtscomponentkit.data.multistream.VideoQuality
 import org.webrtc.RendererCommon
@@ -81,6 +82,10 @@ fun GridViewScreen(
                     CircularProgressIndicator(modifier = Modifier.align(Alignment.Center))
                 }
 
+                uiState.videoTracks.isEmpty() && uiState.audioTracks.isNotEmpty() -> {
+                    AudioOnlyView()
+                }
+                
                 uiState.videoTracks.isNotEmpty() -> {
                     val columnCount =
                         if (LocalConfiguration.current.orientation == Configuration.ORIENTATION_LANDSCAPE) 2 else 1
