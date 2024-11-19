@@ -16,7 +16,7 @@ androidx-test-ext-junit = "1.1.5"
 espresso-core = "3.5.1"
 appcompat = "1.6.1"
 material = "1.8.0"
-millicast-sdk = "2.1.0-SNAPSHOT-3777-0c226fca"
+millicast-sdk = "2.1.0-beta.1"
 moshi = "1.15.1"
 retrofit = "2.9.0"
 
